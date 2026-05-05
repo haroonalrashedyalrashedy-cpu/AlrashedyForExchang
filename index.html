@@ -176,8 +176,7 @@
       <div class="tab" data-tab="accounts">الحسابات</div>
       <div class="tab" data-tab="permissions">الصلاحيات</div>
     </div>
-    <div class="tab" data-tab="devtools" style="display:none;">DevTools</div>
-
+    <div class="tab" data-tab="devtools">DevTools</div>
     <div id="employees" class="tab-content active">
       <div class="card">
         <h3>اضافة موظف</h3>
@@ -541,17 +540,20 @@
     </div>
   
   
-  </div>
-
+ 
 <div id="devtoolsStaff" class="tab-content">
   <div class="card">
     <h3>DevTools Console</h3>
     <p>هذي شاشة DevTools للتجربة</p>
-    <div id="devtools-log-staff" style="background:#000; color:#0f0; padding:10px; height:200px; overflow:auto; font-family:monospace;">
-      Console Ready...
-    </div>
+  <div id="devtools-log-staff" style="background:#000; color:#0f0; padding:10px; height:200px; overflow:auto; font-family:monospace; direction:ltr; text-align:left;">
+  Console Ready...
+</div>
   </div>
 </div>
+
+
+ </div>
+
 
   <div id="modalOverlay" class="overlay"></div>
   <div id="editEmpModal" class="modal">
@@ -685,30 +687,39 @@ function setupDevToolsButton() {
 }
 
 function openDevTools() {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+  const devTab = currentUser.role === 'admin' 
+    ? document.querySelector('#adminScreen .tab[data-tab="devtools"]')
+    : null;
+  const devContent = currentUser.role === 'admin' 
+    ? document.getElementById('devtools')
+    : null;
 
-  if (currentUser.role === 'admin') {
-    // تبويب الادمن
-    const devTab = document.querySelector('#adminScreen .tab[data-tab="devtools"]');
-    const devContent = document.getElementById('devtools');
-    if (devTab && devContent) {
-      devTab.classList.add('active');
-      devContent.classList.add('active');
-      showScreen('adminScreen');
+  if (!devTab || !devContent) return;
+
+  const isOpen = devTab.classList.contains('active');
+
+  if (isOpen) {
+    // اقفل DevTools ورجع للتبويب الاول
+    devTab.classList.remove('active');
+    devContent.classList.remove('active');
+    
+    const firstTab = document.querySelector('#adminScreen .tab[data-tab="employees"]');
+    const firstContent = document.getElementById('employees');
+    if (firstTab && firstContent) {
+      firstTab.classList.add('active');
+      firstContent.classList.add('active');
     }
+    showToast('تم اغلاق DevTools');
   } else {
-    // تبويب الموظف
-    const devTab = document.querySelector('#staffScreen .tab[data-tab="devtools"]');
-    const devContent = document.getElementById('devtoolsStaff');
-    if (devTab && devContent) {
-      devTab.classList.add('active');
-      devContent.classList.add('active');
-      showScreen('staffScreen');
-    }
+    // افتح DevTools
+    document.querySelectorAll('#adminScreen .tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#adminScreen .tab-content').forEach(tc => tc.classList.remove('active'));
+    
+    devTab.classList.add('active');
+    devContent.classList.add('active');
+    showScreen('adminScreen');
+    showToast('تم فتح DevTools');
   }
-
-  showToast('تم فتح DevTools');
 }
 
 document.addEventListener('DOMContentLoaded', setupDevToolsButton);
