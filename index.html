@@ -51,7 +51,7 @@
    
    .header {height: 64px; background: #2d1b69; font-size: 18px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;}
    
-   .tabs {display: flex; min-width: 200px; border-bottom: 1px solid var(--border-color); font-weight: bold; overflow-x: auto; flex-shrink: 0;}
+   .tabs {display: flex; min-width: 50px; border-bottom: 1px solid var(--border-color); font-weight: bold; overflow-x: auto; flex-shrink: 0;}
    
    .tab {flex: 1; min-width: 100px; padding: 14px; text-align: center;  cursor: pointer; font-weight: bold; color: var(--text-secondary); transition: color 0.2s, border-bottom 0.2s; white-space: nowrap;}
    .tab.active {color: var(--accent-green); border-bottom: 2px solid var(--accent-green);}
@@ -1332,17 +1332,21 @@ document.getElementById('btnViewMatch').addEventListener('click', async () => {
 console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 
+
+
 let hideTabsTimer = null;
 
 function hideBottomTabs() {
-  document.querySelectorAll('.tabs').forEach(t => {
+  // اخفي التابات الفرعية فقط - اللي داخل العمليات والحسابات والمطابقات
+  document.querySelectorAll('#operations .tabs, #accounts .tabs, #staffOps .tabs, #staffMatch .tabs, #staffPerm .tabs').forEach(t => {
     t.style.opacity = '0';
     t.style.pointerEvents = 'none';
   });
 }
 
 function showBottomTabs() {
-  document.querySelectorAll('.tabs').forEach(t => {
+  // اظهر التابات الفرعية فقط
+  document.querySelectorAll('#operations .tabs, #accounts .tabs, #staffOps .tabs, #staffMatch .tabs, #staffPerm .tabs').forEach(t => {
     t.style.opacity = '1';
     t.style.pointerEvents = 'auto';
   });
