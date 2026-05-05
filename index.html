@@ -838,10 +838,12 @@ document.getElementById('btnLogin').addEventListener('click', async () => {
     applyPermissions(currentUser.permissions || {});
     
     
-    toggleDevToolsIcon();
+    
 
     if (currentUser.role === 'admin') {
         
+        
+        toggleDevToolsIcon();
         resetTabsToDefault(); 
      
       showScreen('adminScreen');
