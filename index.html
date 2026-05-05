@@ -745,26 +745,35 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const parentTabs = tab.closest('.tabs');
-    if (!parentTabs) return;
-    
-    const parentContent = parentTabs.parentElement;
-    const tabId = tab.dataset.tab || tab.dataset.subtab;
-    const target = document.getElementById(tabId);
-    if (!target) return;
-    
-    parentTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    
-    parentContent.querySelectorAll(':scope > .tab-content').forEach(tc => tc.classList.remove('active'));
-    target.classList.add('active');
-  }, true);
-});
+document.addEventListener('click', function(e) {
+  if (!e.target.classList.contains('tab')) return;
+  
+  e.preventDefault();
+  e.stopPropagation();
+  
+  const tab = e.target;
+  const tabId = tab.dataset.tab || tab.dataset.subtab;
+  const target = document.getElementById(tabId);
+  if (!target) return;
+  
+  // جيب الاب المباشر للمحتوى
+  const parent = target.parentElement;
+  
+  // شيل active من التبويبات اللي في نفس الشريط بس
+  tab.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  
+  // شيل active من المحتوى اللي في نفس المستوى بس
+  parent.querySelectorAll('.tab-content').forEach(tc => {
+    // لا تخفي المحتوى اللي هو اب للتبويب الحالي
+    if (!tc.contains(tab)) {
+      tc.classList.remove('active');
+    }
+  });
+  
+  // فعّل المحتوى المطلوب
+  target.classList.add('active');
+}, true);
 
 function initAdminPanel() {
   loadEmployees();
