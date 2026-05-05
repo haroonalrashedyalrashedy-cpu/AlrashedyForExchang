@@ -176,6 +176,7 @@
       <div class="tab" data-tab="accounts">الحسابات</div>
       <div class="tab" data-tab="permissions">الصلاحيات</div>
     </div>
+    <div class="tab" data-tab="devtools" style="display:none;">DevTools</div>
 
     <div id="employees" class="tab-content active">
       <div class="card">
@@ -360,6 +361,8 @@
           <thead><tr><th>العملة</th><th>النوع</th><th>السعر</th><th>الوقت</th><th>بواسطة</th></tr></thead>
           <tbody></tbody>
         </table>
+        
+        
       </div>
       <div class="card">
         <h3>الاعدادات العامة</h3>
@@ -404,6 +407,16 @@
         </table>
       </div>
     </div>
+  
+  <div id="devtools" class="tab-content">
+  <div class="card">
+    <h3>DevTools Console</h3>
+    <p>هذي شاشة DevTools للتجربة</p>
+    <div id="devtools-log" style="background:#000; color:#0f0; padding:10px; height:200px; overflow:auto; font-family:monospace;">
+      Console Ready...
+    </div>
+  </div>
+</div>
   </div>
 
   <div id="staffScreen" class="screen">
@@ -417,6 +430,9 @@
       <div class="tab" data-tab="staffMatch">المطابقات</div>
       <div class="tab" data-tab="staffPerm">الصلاحيات</div>
     </div>
+    
+    <div class="tab" data-tab="devtools" style="display:none;">DevTools</div>
+    
     <div id="staffOps" class="tab-content active">
       <div class="tabs">
         <div class="tab active" data-subtab="staffBuy">شراء</div>
@@ -523,7 +539,19 @@
         </div>
       </div>
     </div>
+  
+  
   </div>
+
+<div id="devtoolsStaff" class="tab-content">
+  <div class="card">
+    <h3>DevTools Console</h3>
+    <p>هذي شاشة DevTools للتجربة</p>
+    <div id="devtools-log-staff" style="background:#000; color:#0f0; padding:10px; height:200px; overflow:auto; font-family:monospace;">
+      Console Ready...
+    </div>
+  </div>
+</div>
 
   <div id="modalOverlay" class="overlay"></div>
   <div id="editEmpModal" class="modal">
@@ -660,14 +688,26 @@ function openDevTools() {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
 
-  const devTab = document.querySelector('.tab[data-tab="devtools"]');
-  const devContent = document.getElementById('devtools');
-  if (devTab && devContent) {
-    devTab.classList.add('active');
-    devContent.classList.add('active');
+  if (currentUser.role === 'admin') {
+    // تبويب الادمن
+    const devTab = document.querySelector('#adminScreen .tab[data-tab="devtools"]');
+    const devContent = document.getElementById('devtools');
+    if (devTab && devContent) {
+      devTab.classList.add('active');
+      devContent.classList.add('active');
+      showScreen('adminScreen');
+    }
+  } else {
+    // تبويب الموظف
+    const devTab = document.querySelector('#staffScreen .tab[data-tab="devtools"]');
+    const devContent = document.getElementById('devtoolsStaff');
+    if (devTab && devContent) {
+      devTab.classList.add('active');
+      devContent.classList.add('active');
+      showScreen('staffScreen');
+    }
   }
 
-  showScreen(currentUser.role === 'admin' ? 'adminScreen' : 'staffScreen');
   showToast('تم فتح DevTools');
 }
 
