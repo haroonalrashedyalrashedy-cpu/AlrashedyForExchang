@@ -551,6 +551,14 @@ function showScreen(id) {
   console.log("📌 SCREEN:", id);
 }
 
+function resetTabsToDefault() {
+  // شيل active من كل التابات والمحتوى فقط، لا تفعل اي شيء بعده
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+  
+  console.log("📌 TABS RESET TO EMPTY");
+}
+
 function setLoading(btn, loading) {
   if (loading) {
     btn.disabled = true;
@@ -709,6 +717,9 @@ document.getElementById('btnLogin').addEventListener('click', async () => {
 
     await loadSettings();
     applyPermissions(currentUser.permissions || {});
+    
+    
+    resetTabsToDefault(); 
 
     if (currentUser.role === 'admin') {
       showScreen('adminScreen');
@@ -741,6 +752,8 @@ function logout() {
   selectedUser = null;
   document.getElementById('userSelect').value = '';
   document.getElementById('passwordInput').value = '';
+  
+  resetTabsToDefault(); 
   showScreen('loginScreen');
   showToast('تم تسجيل الخروج');
   loadUsersForLogin();
