@@ -747,13 +747,23 @@ if ('serviceWorker' in navigator) {
 
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
-    const parent = tab.closest('.tabs');
-    parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    const parentTabs = tab.closest('.tabs');
+    const parentContent = tab.closest('.tab-content') || tab.closest('.screen');
+    
+    // شيل active من التبويبات في نفس الشريط فقط
+    parentTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
+    
+    // شيل active من المحتوى في نفس المستوى فقط
     const tabId = tab.dataset.tab || tab.dataset.subtab;
-    const parentContent = tab.closest('.screen') || document;
-    parentContent.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-    if (document.getElementById(tabId)) document.getElementById(tabId).classList.add('active');
+    if (parentContent) {
+      parentContent.querySelectorAll(':scope > .tab-content').forEach(tc => tc.classList.remove('active'));
+    }
+    
+    // فعّل المحتوى المطلوب
+    const target = document.getElementById(tabId);
+    if (target) target.classList.add('active');
+    
     console.log("📌 TAB SWITCH:", tabId);
   });
 });
