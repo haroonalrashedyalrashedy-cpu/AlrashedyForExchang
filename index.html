@@ -43,7 +43,7 @@
    .dropdown-item:hover {background: var(--bg-dark);}
    .dropdown-search {position: sticky; top: 0; background: var(--bg-panel); padding: 8px; border-bottom: 1px solid var(--border-color); z-index: 1;}
    .password-box {position: relative; width: 100%;}
-   .password-box.eye {position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; opacity: 0.7;}
+   .password-box .eye {position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; opacity: 0.7;}
    .password-box.eye:hover {opacity: 1;}
    .overlay {position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 5; background: rgba(0,0,0,0.3);}
    .overlay.active {display: block;}
@@ -479,7 +479,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, get, push, update, remove, query, orderByChild, equalTo, limitToLast }
+import { getDatabase, ref, set, get, push, update, remove, query, orderByChild, equalTo, limitToLast,onValue }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
