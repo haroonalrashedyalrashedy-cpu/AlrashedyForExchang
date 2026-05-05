@@ -746,32 +746,20 @@ if ('serviceWorker' in navigator) {
 }
 
 document.addEventListener('click', function(e) {
-  if (!e.target.classList.contains('tab')) return;
+  if (!e.target.matches('.tab')) return;
   
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault();  // امنع السلوك الافتراضي
+  e.stopPropagation(); // اوقف الحدث يوصل للاب
   
-  const tab = e.target;
+  const tab = e.target;  // انت ناسي تعرف tab هنا
   const tabId = tab.dataset.tab || tab.dataset.subtab;
   const target = document.getElementById(tabId);
   if (!target) return;
-  
-  // جيب الاب المباشر للمحتوى
-  const parent = target.parentElement;
-  
-  // شيل active من التبويبات اللي في نفس الشريط بس
+
   tab.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  target.parentElement.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+  
   tab.classList.add('active');
-  
-  // شيل active من المحتوى اللي في نفس المستوى بس
-  parent.querySelectorAll('.tab-content').forEach(tc => {
-    // لا تخفي المحتوى اللي هو اب للتبويب الحالي
-    if (!tc.contains(tab)) {
-      tc.classList.remove('active');
-    }
-  });
-  
-  // فعّل المحتوى المطلوب
   target.classList.add('active');
 }, true);
 
