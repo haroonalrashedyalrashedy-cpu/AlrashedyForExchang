@@ -39,8 +39,8 @@
     
     * {margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent;}
     body {height: 100dvh; background: var(--bg-dark); color: var(--text-primary); font-family: 'Segoe UI', Tahoma, Arial, sans-serif; overflow: hidden; font-size: 16px;}
- .screen {display: none; flex-direction: column; height: 100dvh; width: 100vw; overflow: hidden;}
- .screen.active {display: flex;}
+.screen {display: none; flex-direction: column; height: 100dvh; width: 100vw; overflow: hidden;}
+.screen.active {display: flex;}
     button {background: var(--accent-green); color: var(--bg-dark); border: none; border-radius: 8px; padding: 12px 20px; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.2s, transform 0.1s;}
     button:active {opacity: 0.8; transform: scale(0.98);}
     button:disabled {opacity: 0.5; cursor: not-allowed;}
@@ -49,36 +49,36 @@
     input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}
     input[type="number"] {-moz-appearance: textfield;}
     input[readonly], input[readOnly] {user-select: none; -webkit-user-select: none;}
- .login-container {display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 24px; gap: 20px; max-width: 400px; margin: 0 auto;}
- .login-logo {font-size: 64px; margin-bottom: 8px;}
- .login-title {font-size: 28px; font-weight: 700; margin-bottom: 12px;}
- .dropdown {position: relative; width: 100%;}
- .dropdown-list {position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; max-height: 200px; overflow-y: auto; display: none; z-index: 10; margin-top: 4px;}
- .dropdown-list.active {display: block;}
- .dropdown-item {padding: 12px 16px; cursor: pointer; transition: background 0.2s;}
- .dropdown-item:hover {background: var(--bg-dark);}
- .dropdown-search {position: sticky; top: 0; background: var(--bg-panel); padding: 8px; border-bottom: 1px solid var(--border-color); z-index: 1;}
- .password-box {position: relative; width: 100%;}
- .password-box.eye {position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; opacity: 0.7;}
- .password-box.eye:hover {opacity: 1;}
- .overlay {position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 5; background: rgba(0,0,0,0.3);}
- .overlay.active {display: block;}
- .header {height: 60px; background: var(--bg-dark); display: flex; justify-content: space-between; align-items: center; padding: 0 16px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;}
- .tabs {display: flex; border-bottom: 1px solid var(--border-color); overflow-x: auto; flex-shrink: 0;}
- .tab {flex: 1; min-width: 120px; padding: 14px; text-align: center; cursor: pointer; color: var(--text-secondary); transition: color 0.2s, border-bottom 0.2s; white-space: nowrap;}
- .tab.active {color: var(--accent-green); border-bottom: 2px solid var(--accent-green);}
- .tab-content {display: none; flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch;}
- .tab-content.active {display: block;}
- .card {background: var(--bg-panel); padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border-color);}
- .row {display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;}
- .row > * {flex: 1; min-width: 120px;}
+.login-container {display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 24px; gap: 20px; max-width: 400px; margin: 0 auto;}
+.login-logo {font-size: 64px; margin-bottom: 8px;}
+.login-title {font-size: 28px; font-weight: 700; margin-bottom: 12px;}
+.dropdown {position: relative; width: 100%;}
+.dropdown-list {position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; max-height: 200px; overflow-y: auto; display: none; z-index: 10; margin-top: 4px;}
+.dropdown-list.active {display: block;}
+.dropdown-item {padding: 12px 16px; cursor: pointer; transition: background 0.2s;}
+.dropdown-item:hover {background: var(--bg-dark);}
+.dropdown-search {position: sticky; top: 0; background: var(--bg-panel); padding: 8px; border-bottom: 1px solid var(--border-color); z-index: 1;}
+.password-box {position: relative; width: 100%;}
+.password-box.eye {position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; opacity: 0.7;}
+.password-box.eye:hover {opacity: 1;}
+.overlay {position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 5; background: rgba(0,0,0,0.3);}
+.overlay.active {display: block;}
+.header {height: 60px; background: var(--bg-dark); display: flex; justify-content: space-between; align-items: center; padding: 0 16px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;}
+.tabs {display: flex; border-bottom: 1px solid var(--border-color); overflow-x: auto; flex-shrink: 0;}
+.tab {flex: 1; min-width: 120px; padding: 14px; text-align: center; cursor: pointer; color: var(--text-secondary); transition: color 0.2s, border-bottom 0.2s; white-space: nowrap;}
+.tab.active {color: var(--accent-green); border-bottom: 2px solid var(--accent-green);}
+.tab-content {display: none; flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch;}
+.tab-content.active {display: block;}
+.card {background: var(--bg-panel); padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border-color);}
+.row {display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;}
+.row > * {flex: 1; min-width: 120px;}
     table {width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px;}
     th, td {border: 1px solid var(--border-color); padding: 8px; text-align: center; word-break: break-word;}
     th {background: var(--bg-dark); font-weight: 600;}
- .modal {position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-panel); padding: 20px; border-radius: 12px; z-index: 20; display: none; min-width: 280px; max-width: 90%; box-shadow: 0 8px 24px rgba(0,0,0,0.5);}
- .modal.active {display: block;}
- .toast {position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--bg-panel); padding: 12px 24px; border-radius: 8px; display: none; z-index: 30; border: 1px solid var(--border-color);}
- .toast.show {display: block; animation: fade 3s forwards;}
+.modal {position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-panel); padding: 20px; border-radius: 12px; z-index: 20; display: none; min-width: 280px; max-width: 90%; box-shadow: 0 8px 24px rgba(0,0,0,0.5);}
+.modal.active {display: block;}
+.toast {position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--bg-panel); padding: 12px 24px; border-radius: 8px; display: none; z-index: 30; border: 1px solid var(--border-color);}
+.toast.show {display: block; animation: fade 3s forwards;}
     @keyframes fade {
       0% {opacity: 0; transform: translateX(-50%) translateY(20px);}
       10% {opacity: 1; transform: translateX(-50%) translateY(0);}
@@ -86,9 +86,9 @@
       100% {opacity: 0; transform: translateX(-50%) translateY(20px);}
     }
     @media (max-width: 480px) {
-   .row > * {min-width: 100%;}
-   .login-title {font-size: 24px;}
-   .login-logo {font-size: 56px;}
+  .row > * {min-width: 100%;}
+  .login-title {font-size: 24px;}
+  .login-logo {font-size: 56px;}
       button, input, select {font-size: 15px; padding: 10px 14px;}
     }
 
@@ -97,25 +97,26 @@
   font-size: 18px;
   height: 64px;
   font-weight: bold;
-  background: #2d1b69; /* بنفسجي غامق ملكي - اوضح وارقى */
+  background: #2d1b69;
   color: #ffffff;
   border-bottom: 1px solid #4338ca;
 }
 
-/* 2. التبويبات العامة */
+/* 2. التبويبات العامة - خليت الخط بولد */
 .tabs.tab {
   font-size: 15px;
   padding: 5px 8px;
-  font-weight: 600;
+  font-weight: bold!important; /* بولد */
   color: #b0bec5;
   line-height: 1.1;
   min-width: auto!important;
 }
 
-/* 3. التاب النشط - وردي */
+/* 3. التاب النشط - وردي وبولد */
 .tabs.tab.active {
-  color: #ff6b9d!important; /* وردي */
-  border-bottom: 2px solid #ff6b9d!important; /* الخط تحت وردي */
+  color: #ff6b9d!important;
+  border-bottom: 2px solid #ff6b9d!important;
+  font-weight: bold!important; /* بولد للنشط كمان */
 }
 
 /* 4. الشريط السفلي النحيف */
