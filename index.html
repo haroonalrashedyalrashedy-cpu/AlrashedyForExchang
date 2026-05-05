@@ -82,12 +82,12 @@
     
     
     
-    .devtools-float {
+  .devtools-float {
   position: fixed;
   bottom: 80px;
   right: 20px;
-  width: 56px;
-  height: 56px;
+  width: 48px;   /* كان 56 */
+  height: 48px;  /* كان 56 */
   border-radius: 50%;
   background: var(--accent-green);
   color: white;
@@ -96,11 +96,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 20px; /* كان 22 */
   cursor: grab;
   z-index: 9999;
-  touch-action: none; /* مهم للسحب على الجوال */
+  touch-action: none;
   animation: floatPulse 2s infinite ease-in-out;
+}
+
+@keyframes floatPulse {
+ 0%, 100% { box-shadow: 0 3px 10px rgba(37,211,102,0.4); }
+ 50% { box-shadow: 0 5px 16px rgba(37,211,102,0.7); }
 }
 
 .devtools-float:active {
@@ -108,10 +113,6 @@
   transform: scale(0.95);
 }
 
-@keyframes floatPulse {
- 0%, 100% { box-shadow: 0 4px 12px rgba(37,211,102,0.4); }
- 50% { box-shadow: 0 6px 20px rgba(37,211,102,0.7); }
-}
     
     /* زر خروج الادمن والموظف */
 
@@ -625,10 +626,37 @@ function toggleDevToolsIcon() {
 }
 
 
-document.getElementById('btnDevTools').addEventListener('click', (e) => {
-  // لا تفتح لو كان يسحب - شيل الشرط هذا
-  // if (e.target.closest('.devtools-float').style.left!== '') return;
+// ... باقي اكوادك 
 
+function setupDevToolsButton() {
+  const btn = document.getElementById('btnDevTools');
+  if (!btn) return;
+
+  let dragMoved = false;
+  let startX, startY;
+
+  btn.addEventListener('pointerdown', (e) => {
+    dragMoved = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    btn.setPointerCapture(e.pointerId);
+  });
+
+  btn.addEventListener('pointermove', (e) => {
+    if (Math.abs(e.clientX - startX) > 5 || Math.abs(e.clientY - startY) > 5) {
+      dragMoved = true;
+    }
+  });
+
+  btn.addEventListener('pointerup', (e) => {
+    btn.releasePointerCapture(e.pointerId);
+    if (!dragMoved) {
+      openDevTools();
+    }
+  });
+}
+
+function openDevTools() {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
 
@@ -639,14 +667,11 @@ document.getElementById('btnDevTools').addEventListener('click', (e) => {
     devContent.classList.add('active');
   }
 
-  // افتح الشاشة المناسبة حسب الدور
-  if (currentUser.role === 'admin') {
-    showScreen('adminScreen');
-  } else {
-    showScreen('staffScreen');
-  }
+  showScreen(currentUser.role === 'admin' ? 'adminScreen' : 'staffScreen');
   showToast('تم فتح DevTools');
-});
+}
+
+document.addEventListener('DOMContentLoaded', setupDevToolsButton);
 
 
 function makeDraggable(el) {
@@ -1525,8 +1550,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
 </script>
 
-<button id="btnDevTools" class="devtools-float" style="display:none;">
-  <i class="fas fa-bug"></i>
+<button id="btnDevTools" class="devtools-float" style="display:none;" title="DevTools">
+  <i class="fas fa-toolbox"></i>
 </button>
 
 </body>
