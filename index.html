@@ -21,6 +21,22 @@
       --border-color: #2a3942;
       --danger: #d32f2f;
     }
+    
+    body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url('bg.png') center/cover no-repeat;
+  opacity: 0.15;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.tab-content {
+  background: transparent;
+}
+    
+    
     * {margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent;}
     body {height: 100dvh; background: var(--bg-dark); color: var(--text-primary); font-family: 'Segoe UI', Tahoma, Arial, sans-serif; overflow: hidden; font-size: 16px;}
    .screen {display: none; flex-direction: column; height: 100dvh; width: 100vw; overflow: hidden;}
@@ -753,15 +769,17 @@ document.addEventListener('click', function(e) {
   const target = document.getElementById(tabId);
   if (!target) return;
 
-  // شيل active من التبويبات والمحتوى في نفس المستوى فقط
   const parentTabs = tab.parentElement;
   const parentContent = target.parentElement;
-  
+  const isActive = tab.classList.contains('active');
+
   parentTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   parentContent.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-  
-  tab.classList.add('active');
-  target.classList.add('active');
+
+  if (!isActive) {
+    tab.classList.add('active');
+    target.classList.add('active');
+  }
 }, true);
 
 function initAdminPanel() {
@@ -1285,6 +1303,36 @@ document.getElementById('btnViewMatch').addEventListener('click', async () => {
 });
 
 console.log("📌 SCRIPT LOADED SUCCESSFULLY");
+
+let hideTabsTimer = null;
+
+function hideBottomTabs() {
+  document.querySelectorAll('.tabs').forEach(t => {
+    t.style.opacity = '0';
+    t.style.pointerEvents = 'none';
+  });
+}
+
+function showBottomTabs() {
+  document.querySelectorAll('.tabs').forEach(t => {
+    t.style.opacity = '1';
+    t.style.pointerEvents = 'auto';
+  });
+}
+
+function resetHideTabsTimer() {
+  showBottomTabs();
+  clearTimeout(hideTabsTimer);
+  hideTabsTimer = setTimeout(hideBottomTabs, 30000);
+}
+
+['mousemove', 'touchstart', 'click', 'scroll'].forEach(evt => {
+  document.addEventListener(evt, resetHideTabsTimer, {passive: true});
+});
+
+resetHideTabsTimer();
+
+
 </script>
 </body>
 </html>
