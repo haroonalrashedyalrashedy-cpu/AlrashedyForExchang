@@ -838,7 +838,7 @@ document.getElementById('btnLogin').addEventListener('click', async () => {
     applyPermissions(currentUser.permissions || {});
     
     
-    
+    toggleDevToolsIcon();
 
     if (currentUser.role === 'admin') {
         
@@ -1500,6 +1500,19 @@ function resetHideTabsTimer() {
 });
 
 resetHideTabsTimer();
+
+
+
+
+
+window.addEventListener('DOMContentLoaded', () => {
+  const savedUser = localStorage.getItem('exchangeUser');
+  if (savedUser) {
+    currentUser = JSON.parse(savedUser);
+    applyPermissions(currentUser.permissions || {});
+    toggleDevToolsIcon(); // [استدعها هنا كمان]
+  }
+});
 
 
 </script>
