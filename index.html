@@ -91,6 +91,37 @@
      .login-logo {font-size: 56px;}
       button, input, select {font-size: 15px; padding: 10px 14px;}
     }
+    
+   /* 1. كبر خط شريط العنوان */
+.header {
+  font-size: 18px; /* كان صغير، خليه 18px */
+  height: 60px; /* زود الارتفاع شوي عشان يتناسب */
+}
+
+/* 2. كبر خط التبويبات العلوية والسفلية كلها */
+.tabs .tab {
+  font-size: 17px; /* كبره من 14px */
+  padding: 12px 8px; /* قلل البادنج شوي عشان ما يصير طويل */
+  font-weight: 600;
+}
+
+/* 3. لون الخط اللبني للتبويب النشط في الشريط السفلي */
+.tabs .tab.active {
+  color: #00d4ff; /* هذا لبني فاتح */
+  border-bottom: 2px solid #00d4ff; /* خلي الخط تحت بنفس اللون */
+}
+
+/* 4. قلل ارتفاع الشريط السفلي */
+.tabs {
+  min-height: 48px; /* كان 60px تقريباً */
+}
+
+/* 5. خلي خط التبويب الغير نشط اوضح شوي */
+.tabs .tab {
+  color: #b0bec5; /* رمادي فاتح بدل #8696a0 */
+}
+    
+    
   </style>
 </head>
 <body>
@@ -106,7 +137,7 @@
       <div class="overlay" id="dropdownOverlay"></div>
       <div class="password-box">
         <input type="password" id="passwordInput" placeholder="كلمة المرور" inputmode="numeric">
-        <span class="eye" id="togglePass">👁️</span>
+        <span class="eye" id="togglePass">👁︄1�7</span>
       </div>
       <button id="btnLogin">تسجيل الدخول</button>
     </div>
