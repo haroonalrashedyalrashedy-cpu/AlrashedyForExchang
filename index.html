@@ -719,13 +719,19 @@ document.getElementById('btnLogin').addEventListener('click', async () => {
     applyPermissions(currentUser.permissions || {});
     
     
-    resetTabsToDefault(); 
+    
 
     if (currentUser.role === 'admin') {
+        
+        resetTabsToDefault(); 
+     
       showScreen('adminScreen');
       document.getElementById('adminName').textContent = currentUser.name;
       initAdminPanel();
     } else {
+        
+        resetTabsToDefault(); 
+        
       showScreen('staffScreen');
       document.getElementById('staffName').textContent = currentUser.name;
       initStaffPanel();
