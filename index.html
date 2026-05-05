@@ -746,26 +746,24 @@ if ('serviceWorker' in navigator) {
 }
 
 document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    const parentTabs = tab.closest('.tabs');
-    const parentContent = tab.closest('.tab-content') || tab.closest('.screen');
+  tab.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     
-    // شيل active من التبويبات في نفس الشريط فقط
+    const parentTabs = tab.closest('.tabs');
+    if (!parentTabs) return;
+    
+    const parentContent = parentTabs.parentElement;
+    const tabId = tab.dataset.tab || tab.dataset.subtab;
+    const target = document.getElementById(tabId);
+    if (!target) return;
+    
     parentTabs.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     
-    // شيل active من المحتوى في نفس المستوى فقط
-    const tabId = tab.dataset.tab || tab.dataset.subtab;
-    if (parentContent) {
-      parentContent.querySelectorAll(':scope > .tab-content').forEach(tc => tc.classList.remove('active'));
-    }
-    
-    // فعّل المحتوى المطلوب
-    const target = document.getElementById(tabId);
-    if (target) target.classList.add('active');
-    
-    console.log("📌 TAB SWITCH:", tabId);
-  });
+    parentContent.querySelectorAll(':scope > .tab-content').forEach(tc => tc.classList.remove('active'));
+    target.classList.add('active');
+  }, true);
 });
 
 function initAdminPanel() {
