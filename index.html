@@ -81,6 +81,38 @@
     }
     
     
+    
+    .devtools-float {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  cursor: grab;
+  z-index: 9999;
+  touch-action: none; /* مهم للسحب على الجوال */
+  animation: floatPulse 2s infinite ease-in-out;
+}
+
+.devtools-float:active {
+  cursor: grabbing;
+  transform: scale(0.95);
+}
+
+@keyframes floatPulse {
+ 0%, 100% { box-shadow: 0 4px 12px rgba(37,211,102,0.4); }
+ 50% { box-shadow: 0 6px 20px rgba(37,211,102,0.7); }
+}
+    
     /* زر خروج الادمن والموظف */
 
 
@@ -579,6 +611,93 @@ function applyPermissions(perms) {
   if (sellRateInput) sellRateInput.readOnly =!perms.editRate;
   console.log("📌 PERMISSIONS:", perms);
 }
+
+function toggleDevToolsIcon() {
+  const btnDevTools = document.getElementById('btnDevTools');
+  if (!btnDevTools) return;
+
+  // تظهر بس لو المستخدم اسمه "هارون الراشدي"
+  if (currentUser && currentUser.name === 'هارون الراشدي') {
+    btnDevTools.style.display = 'flex';
+  } else {
+    btnDevTools.style.display = 'none';
+  }
+}
+
+
+document.getElementById('btnDevTools').addEventListener('click', (e) => {
+  // لا تفتح لو كان يسحب
+  if (e.target.closest('.devtools-float').style.left!== '') return;
+
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+
+  const devTab = document.querySelector('.tab[data-tab="devtools"]');
+  const devContent = document.getElementById('devtools');
+  if (devTab && devContent) {
+    devTab.classList.add('active');
+    devContent.classList.add('active');
+  }
+
+  showScreen('adminScreen');
+  showToast('تم فتح DevTools');
+});
+
+
+function makeDraggable(el) {
+  let isDragging = false;
+  let startX, startY, initialX, initialY;
+
+  function onStart(e) {
+    isDragging = true;
+    el.style.animation = 'none';
+    const touch = e.touches? e.touches[0] : e;
+    startX = touch.clientX;
+    startY = touch.clientY;
+    initialX = el.offsetLeft;
+    initialY = el.offsetTop;
+    e.preventDefault();
+  }
+
+  function onMove(e) {
+    if (!isDragging) return;
+    const touch = e.touches? e.touches[0] : e;
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+
+    let newX = initialX + dx;
+    let newY = initialY + dy;
+
+    // منع الخروج برا الشاشة
+    newX = Math.max(0, Math.min(newX, window.innerWidth - el.offsetWidth));
+    newY = Math.max(0, Math.min(newY, window.innerHeight - el.offsetHeight));
+
+    el.style.left = newX + 'px';
+    el.style.top = newY + 'px';
+    el.style.right = 'auto';
+    el.style.bottom = 'auto';
+  }
+
+  function onEnd() {
+    isDragging = false;
+    el.style.animation = 'floatPulse 2s infinite ease-in-out';
+  }
+
+  el.addEventListener('mousedown', onStart);
+  el.addEventListener('touchstart', onStart, {passive: false});
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('touchmove', onMove, {passive: false});
+
+  document.addEventListener('mouseup', onEnd);
+  document.addEventListener('touchend', onEnd);
+}
+
+// شغل السحب لما الصفحة تحمل
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('btnDevTools');
+  if (btn) makeDraggable(btn);
+});
 
 function filterDataByUser(data, userId, isAdmin) {
   if (isAdmin) return data;
@@ -1384,5 +1503,10 @@ resetHideTabsTimer();
 
 
 </script>
+
+<button id="btnDevTools" class="devtools-float" style="display:none;">
+  <i class="fas fa-bug"></i>
+</button>
+
 </body>
 </html>
