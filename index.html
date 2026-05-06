@@ -1356,17 +1356,17 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 let hideTabsTimer = null;
 
 function hideBottomTabs() {
-  // اخفي التابات الفرعية فقط، واترك .main-tabs
-  document.querySelectorAll('.tabs:not(.main-tabs)').forEach(t => {
-    t.style.opacity = '0';
-    t.style.pointerEvents = 'none';
+  // اخفي التابات اللي فيها subtab فقط
+  document.querySelectorAll('.tabs [data-subtab]').forEach(el => {
+    el.parentElement.style.opacity = '0';
+    el.parentElement.style.pointerEvents = 'none';
   });
 }
 
 function showBottomTabs() {
-  document.querySelectorAll('.tabs:not(.main-tabs)').forEach(t => {
-    t.style.opacity = '1';
-    t.style.pointerEvents = 'auto';
+  document.querySelectorAll('.tabs [data-subtab]').forEach(el => {
+    el.parentElement.style.opacity = '1';
+    el.parentElement.style.pointerEvents = 'auto';
   });
 }
 
