@@ -193,13 +193,17 @@ tbody tr.selected {
   left: 0;
   right: 0;
   height: 52px;
-  background: #8B4513; /* بني */
-  display: flex;
+  background: #8B4513;
+  display: none; /* خله مخفي افتراضياً */
   justify-content: space-around;
   align-items: center;
-  z-index: 100;
+  z-index: 50; /* قلل الـ z-index من 100 لـ 50 */
   border-top: 1px solid #5D3A1A;
   box-shadow: 0 -2px 8px rgba(0,0,0,0.3);
+}
+
+#bottomBar.active {
+  display: flex; /* يظهر بس لما نضيف كلاس active */
 }
 
 #bottomBar button {
@@ -957,6 +961,9 @@ document.getElementById('btnLogin').addEventListener('click', async () => {
 
 function logout() {
   // 1. رجع زر الدخول لوضعه الطبيعي لو كان معلق
+  
+  document.getElementById('bottomBar').classList.remove('active');
+  
   const loginBtn = document.getElementById('btnLogin');
   setLoading(loginBtn, false);
 
@@ -992,15 +999,19 @@ window.addEventListener('load', async () => {
     if (snap.exists() && snap.val().status === 'active') {
       currentUser = {uid: currentUser.uid,...snap.val()};
       applyPermissions(currentUser.permissions || {});
+      
       if (currentUser.role === 'admin') {
         showScreen('adminScreen');
         document.getElementById('adminName').textContent = currentUser.name;
         initAdminPanel();
+        document.getElementById('bottomBar').classList.add('active'); // اضفت هذا السطر
       } else {
         showScreen('staffScreen');
         document.getElementById('staffName').textContent = currentUser.name;
         initStaffPanel();
+        document.getElementById('bottomBar').classList.add('active'); // واضفت هذا السطر
       }
+      
     } else {
       logout();
     }
