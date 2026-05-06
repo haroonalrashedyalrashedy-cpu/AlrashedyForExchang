@@ -1040,20 +1040,34 @@ function loadRatesRealtime() {
   onValue(ref(db, 'rates'), (snap) => {
     if (snap.exists()) {
       rates = snap.val();
+
       activeCurrencies.forEach(cur => {
-        // المدير
-        if (document.getElementById('buyRate') && document.getElementById('buyCurrency').value === cur) {
-          document.getElementById('buyRate').value = rates.buy?.[cur] || '';
+        // المدير - شراء
+        const buyRateEl = document.getElementById('buyRate');
+        const buyCurSel = document.getElementById('buyCurrency');
+        if (buyRateEl && buyCurSel && buyCurSel.value === cur) {
+          buyRateEl.value = rates.buy?.[cur] || '';
         }
-        if (document.getElementById('sellRate') && document.getElementById('sellCurrency').value === cur) {
-          document.getElementById('sellRate').value = rates.sell?.[cur] || '';
+
+        // المدير - بيع
+        const sellRateEl = document.getElementById('sellRate');
+        const sellCurSel = document.getElementById('sellCurrency');
+        if (sellRateEl && sellCurSel && sellCurSel.value === cur) {
+          sellRateEl.value = rates.sell?.[cur] || '';
         }
-        // الموظف
-        if (document.getElementById('staffBuyRate') && document.getElementById('staffBuyCurrency').value === cur) {
-          document.getElementById('staffBuyRate').value = rates.buy?.[cur] || '';
+
+        // الموظف - شراء
+        const staffBuyRateEl = document.getElementById('staffBuyRate');
+        const staffBuyCurSel = document.getElementById('staffBuyCurrency');
+        if (staffBuyRateEl && staffBuyCurSel && staffBuyCurSel.value === cur) {
+          staffBuyRateEl.value = rates.buy?.[cur] || '';
         }
-        if (document.getElementById('staffSellRate') && document.getElementById('staffSellCurrency').value === cur) {
-          document.getElementById('staffSellRate').value = rates.sell?.[cur] || '';
+
+        // الموظف - بيع
+        const staffSellRateEl = document.getElementById('staffSellRate');
+        const staffSellCurSel = document.getElementById('staffSellCurrency');
+        if (staffSellRateEl && staffSellCurSel && staffSellCurSel.value === cur) {
+          staffSellRateEl.value = rates.sell?.[cur] || '';
         }
       });
     }
@@ -1307,6 +1321,33 @@ document.getElementById('btnSaveSellRate').addEventListener('click', async () =>
   loadRateLogs();
   console.log("📌 SELL RATE SAVED:", currency, rate);
 });
+
+
+document.getElementById('btnSaveStaffBuyRate').addEventListener('click', async () => {
+  const currency = document.getElementById('staffRateCurrency').value;
+  const rate = parseFloat(document.getElementById('staffBuyRateInput').value);
+  if (!currency) { showToast('اختر العملة'); return; }
+  if (!rate || rate <= 0) { showToast('ادخل سعر صحيح'); return; }
+
+  await update(ref(db, `rates/buy/${currency}`), rate);
+  await push(ref(db, 'rateLogs'), {currency, type: 'buy', rate, userId: currentUser.uid, userName: currentUser.name, time: Date.now()});
+  showToast('تم حفظ سعر الشراء');
+  document.getElementById('staffBuyRateInput').value = '';
+});
+
+document.getElementById('btnSaveStaffSellRate').addEventListener('click', async () => {
+  const currency = document.getElementById('staffRateCurrency').value;
+  const rate = parseFloat(document.getElementById('staffSellRateInput').value);
+  if (!currency) { showToast('اختر العملة'); return; }
+  if (!rate || rate <= 0) { showToast('ادخل سعر صحيح'); return; }
+
+  await update(ref(db, `rates/sell/${currency}`), rate);
+  await push(ref(db, 'rateLogs'), {currency, type: 'sell', rate, userId: currentUser.uid, userName: currentUser.name, time: Date.now()});
+  showToast('تم حفظ سعر البيع');
+  document.getElementById('staffSellRateInput').value = '';
+});
+
+
 
 async function loadRateLogs() {
   const snap = await get(ref(db, 'rateLogs'));
