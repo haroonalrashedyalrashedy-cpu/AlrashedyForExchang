@@ -604,11 +604,22 @@ function setLoading(btn, loading) {
 }
 
 function applyPermissions(perms) {
-  const permTab = document.getElementById('staffPerm');
-  if (permTab) permTab.style.display = perms.viewAcc? 'block' : 'none';
-  const sellRateInput = document.getElementById('staffSellRate');
-  if (sellRateInput) sellRateInput.readOnly =!perms.editRate;
-  console.log("📌 PERMISSIONS:", perms);
+  // اخفي كل التبويبات والمحتوى اول شي
+  document.querySelectorAll('#staffScreen .tab-content').forEach(tc => {
+    tc.classList.remove('active');
+    tc.style.display = 'none';
+  });
+
+  // اظهر التبويبات الرئيسية للموظف دايماً
+  document.querySelector('#staffScreen .tabs').style.display = 'flex';
+  
+  // افتح تبويب العمليات افتراضياً
+  document.getElementById('staffOps').style.display = 'block';
+  document.getElementById('staffOps').classList.add('active');
+  document.querySelector('.tab[data-tab="staffOps"]').classList.add('active');
+
+  // الكروت حقت "انشاء حساب" و "تغيير كلمة المرور" ما نلمسها
+  // بتظل ظاهرة لانها داخل staffPerm ومافي كود يخفيها
 }
 
 function filterDataByUser(data, userId, isAdmin) {
