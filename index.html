@@ -604,22 +604,19 @@ function setLoading(btn, loading) {
 }
 
 function applyPermissions(perms) {
-  // اخفي كل التبويبات والمحتوى اول شي
+  // لا تلعب في display. خلي CSS يتحكم
   document.querySelectorAll('#staffScreen .tab-content').forEach(tc => {
     tc.classList.remove('active');
-    tc.style.display = 'none';
   });
 
-  // اظهر التبويبات الرئيسية للموظف دايماً
+  // اظهر التبويبات الرئيسية
   document.querySelector('#staffScreen .tabs').style.display = 'flex';
   
-  // افتح تبويب العمليات افتراضياً
-  document.getElementById('staffOps').style.display = 'block';
+  // افتح العمليات + شراء افتراضياً
   document.getElementById('staffOps').classList.add('active');
+  document.getElementById('staffBuy').classList.add('active');
   document.querySelector('.tab[data-tab="staffOps"]').classList.add('active');
-
-  // الكروت حقت "انشاء حساب" و "تغيير كلمة المرور" ما نلمسها
-  // بتظل ظاهرة لانها داخل staffPerm ومافي كود يخفيها
+  document.querySelector('.tab[data-subtab="staffBuy"]').classList.add('active');
 }
 
 function filterDataByUser(data, userId, isAdmin) {
