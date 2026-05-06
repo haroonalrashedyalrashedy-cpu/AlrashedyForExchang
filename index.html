@@ -9,7 +9,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.png">
-  <title>نظام الراشدي للصرافة</title>
+   
+  <title>الراشدي للصرافة والتحويلات</title>
+  
   <style>
     /* 📌 القسم 2: ستايل الواجهة + Responsive */
     :root {
@@ -193,13 +195,15 @@ tbody tr.selected {
   left: 0;
   right: 0;
   height: 52px;
-  background: #8B4513;
-  display: none; /* خله مخفي افتراضياً */
+  background: rgba(139, 69, 19, 0.75); /* بني شفاف 75% */
+  backdrop-filter: blur(6px); /* يخلي اللي تحته يطلع متموه شوي */
+  -webkit-backdrop-filter: blur(6px); /* للايفون */
+  display: none;
   justify-content: space-around;
   align-items: center;
-  z-index: 50; /* قلل الـ z-index من 100 لـ 50 */
-  border-top: 1px solid #5D3A1A;
-  box-shadow: 0 -2px 8px rgba(0,0,0,0.3);
+  z-index: 50;
+  border-top: 1px solid rgba(93, 58, 26, 0.6);
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
 }
 
 #bottomBar.active {
@@ -207,8 +211,8 @@ tbody tr.selected {
 }
 
 #bottomBar button {
-  background: #A0522D;
-  color: #fff;
+  background: #4ade80;  /* نفس لون الهيدر */
+  color: #111b21;       /* خليته غامق عشان يبان على الاخضر */
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -219,6 +223,12 @@ tbody tr.selected {
   gap: 6px;
   min-width: 110px;
   justify-content: center;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+#bottomBar button:active {
+  transform: scale(0.97);
+  opacity: 0.9;
 }
 
 #bottomBar button:active {
