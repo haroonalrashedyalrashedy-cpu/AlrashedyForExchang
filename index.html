@@ -186,12 +186,78 @@ tbody tr.selected {
   color: var(--accent-green) !important;
 }
     
-    
+    /* الشريط السفلي */
+#bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 52px;
+  background: #8B4513; /* بني */
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  border-top: 1px solid #5D3A1A;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.3);
+}
+
+#bottomBar button {
+  background: #A0522D;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 110px;
+  justify-content: center;
+}
+
+#bottomBar button:active {
+  transform: scale(0.97);
+}
+
+#bottomBar button:disabled {
+  opacity: 0.6;
+}
+
+/* أنيميشن الدائرة وقت التحديث */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  display: none;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+ 100% { transform: rotate(360deg); }
+}
+.loading .spinner { display: inline-block; }
+.loading .txt { display: none; }
+
+/* خلي الصفحة ما تنخفي تحت الشريط */
+.tab-content {
+  padding-bottom: 60px;
+}
+
+/* تحديد الجدول كامل عند الضغط على الركن */
+table.table-selected {
+  outline: 2px solid #8B4513;
+  outline-offset: -2px;
+}
     
     
     
   </style>
 </head>
+
+
 <body>
   <!-- 📌 القسم 3: شاشات الـ HTML -->
   <div id="loginScreen" class="screen active">
@@ -1723,7 +1789,144 @@ window.printFullTable = function(tableId) {
 }
 
 
+let selectedRow = null;
+let selectedTable = null;
+
+// 1. زر التحديث الكامل
+document.getElementById('btnRefreshAll').addEventListener('click', async () => {
+  const btn = document.getElementById('btnRefreshAll');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  showToast('جاري التحديث...');
+
+  try {
+    // اعد تحميل كل البيانات من Firebase
+    await loadSettings();
+    await loadRatesRealtime();
+    await loadAccounts();
+    await loadTransactions();
+    await loadStaffTransactions();
+    await loadRateLogs();
+    showToast('تم التحديث بنجاح ✅');
+  } catch (e) {
+    showToast('فشل التحديث: ' + e.message);
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+});
+
+// 2. تحديد صف او جدول كامل
+document.addEventListener('click', (e) => {
+  const th = e.target.closest('th:first-child');
+  const tr = e.target.closest('tbody tr');
+  const table = e.target.closest('table');
+
+  if (th && table) {
+    // ضغطت على ركن الجدول = حدد الجدول كامل
+    document.querySelectorAll('table').forEach(t => t.classList.remove('table-selected'));
+    table.classList.add('table-selected');
+    selectedTable = table;
+    selectedRow = null;
+    showToast('تم تحديد الجدول كامل');
+    return;
+  }
+
+  if (tr) {
+    // ضغطت على صف = حدد الصف
+    document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('selected'));
+    tr.classList.add('selected');
+    selectedRow = tr;
+    selectedTable = null;
+    window.selectedRowData = {
+      table: tr.closest('table').id,
+      headers: [...tr.closest('table').querySelectorAll('thead th')].map(th => th.textContent),
+      cells: [...tr.cells].map(td => td.textContent)
+    };
+    showToast('تم تحديد الصف');
+  }
+});
+
+// 3. زر الطباعة PDF
+document.getElementById('btnPrint').addEventListener('click', () => {
+  if (selectedTable) {
+    printPDF('table', selectedTable.id);
+  } else if (selectedRow) {
+    printPDF('row', null);
+  } else {
+    showToast('حدد صف او جدول اولاً');
+  }
+});
+
+function printPDF(type, tableId) {
+  let html = '';
+  let title = 'سند';
+
+  if (type === 'row' && window.selectedRowData) {
+    title = 'سند عملية';
+    html = `
+      <table>
+        <tr>${window.selectedRowData.headers.map(h => `<th>${h}</th>`).join('')}</tr>
+        <tr>${window.selectedRowData.cells.map(c => `<td>${c}</td>`).join('')}</tr>
+      </table>
+    `;
+  } else if (type === 'table') {
+    title = 'تقرير ' + tableId;
+    html = document.getElementById(tableId).outerHTML;
+  }
+
+  const win = window.open('', '', 'height=800,width=600');
+  win.document.write(`
+    <!DOCTYPE html>
+    <html dir="rtl" lang="ar">
+    <head>
+      <meta charset="UTF-8">
+      <title>${title}</title>
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Arial; padding: 30px; color: #333; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #8B4513; padding-bottom: 10px; }
+        .header h1 { color: #8B4513; margin: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #333; padding: 8px; text-align: center; }
+        th { background: #8B4513; color: #fff; }
+        .footer { margin-top: 40px; text-align: left; font-size: 12px; color: #666; }
+        @media print { 
+          .no-print { display: none; }
+          button { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>نظام الراشدي للصرافة</h1>
+        <p>${new Date().toLocaleString('ar-SA')}</p>
+      </div>
+      ${html}
+      <div class="footer">
+        <p>الموظف: ${currentUser?.name || '-'}</p>
+      </div>
+      <div class="no-print" style="text-align:center;margin-top:30px;">
+        <button onclick="window.print()" style="padding:10px 30px;font-size:16px;background:#8B4513;color:#fff;border:none;border-radius:6px;">
+          طباعة / حفظ PDF
+        </button>
+      </div>
+    </body>
+    </html>
+  `);
+  win.document.close();
+}
+
+
 
 </script>
+
+<div id="bottomBar">
+  <button id="btnRefreshAll">
+    <span class="spinner"></span>
+    <span class="txt">تحديث</span>
+  </button>
+  <button id="btnPrint">طباعة</button>
+</div>
+
 </body>
 </html>
