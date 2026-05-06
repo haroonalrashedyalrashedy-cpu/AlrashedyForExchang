@@ -1797,18 +1797,20 @@ document.addEventListener('click', (e) => {
     tr.classList.add('selected');
     selectedRow = tr;
     selectedTable = null;
-    window.selectedRowData = {
-  table: tr.closest('table').id,
-  accountId: d.accountId,
-  currency: d.currency,
-  type: d.type,
-  amount: d.amount,
-  depositor: d.depositor,
-  recipient: d.recipient,
-  headers: [...tr.closest('table').querySelectorAll('thead th')].map(th => th.textContent),
-  cells: [...tr.cells].map(td => td.textContent)
-};
-    showToast('تم تحديد الصف');
+    tr.onclick = () => {
+  window.selectedRowData = {
+    type: d.type,
+    accountId: d.accountId,
+    currency: d.currency,
+    amount: d.amount,
+    depositor: d.depositor || '',
+    recipient: d.recipient || '',
+    userName: d.userName,
+    time: d.time
+  };
+  printPDF('row');
+}
+    //showToast('تم تحديد الصف');
   }
 });
 
