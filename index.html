@@ -1356,7 +1356,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 let hideTabsTimer = null;
 
 function hideBottomTabs() {
-  // اخفي التابات الفرعية فقط، واترك .main-tabs
+  // اخفي التابات الفرعية فقط
   document.querySelectorAll('.tabs:not(.main-tabs)').forEach(t => {
     t.style.opacity = '0';
     t.style.pointerEvents = 'none';
