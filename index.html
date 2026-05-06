@@ -832,6 +832,7 @@ function initAdminPanel() {
   loadEmployees();
   loadAccounts();
   loadCurrencies();
+  loadRatesRealtime();
   loadRates();
   loadTransactions();
   loadRateLogs();
@@ -963,27 +964,39 @@ function loadCurrencies() {
   console.log("📌 CURRENCIES LOADED:", activeCurrencies);
 }
 
+
+
 function loadRatesRealtime() {
   onValue(ref(db, 'rates'), (snap) => {
-    if (snap.exists()) {
-      rates = snap.val();
-      activeCurrencies.forEach(cur => {
-        // المدير
-        if (document.getElementById('buyRate') && document.getElementById('buyCurrency').value === cur) {
-          document.getElementById('buyRate').value = rates.buy?.[cur] || '';
-        }
-        if (document.getElementById('sellRate') && document.getElementById('sellCurrency').value === cur) {
-          document.getElementById('sellRate').value = rates.sell?.[cur] || '';
-        }
-        // الموظف
-        if (document.getElementById('staffBuyRate') && document.getElementById('staffBuyCurrency').value === cur) {
-          document.getElementById('staffBuyRate').value = rates.buy?.[cur] || '';
-        }
-        if (document.getElementById('staffSellRate') && document.getElementById('staffSellCurrency').value === cur) {
-          document.getElementById('staffSellRate').value = rates.sell?.[cur] || '';
-        }
-      });
+    if (!snap.exists()) return;
+    rates = snap.val();
+
+    // حدث خانات المدير
+    const buyCur = document.getElementById('buyCurrency')?.value;
+    const sellCur = document.getElementById('sellCurrency')?.value;
+    if (buyCur && rates.buy?.[buyCur]!== undefined) {
+      document.getElementById('buyRate').value = rates.buy[buyCur];
     }
+    if (sellCur && rates.sell?.[sellCur]!== undefined) {
+      document.getElementById('sellRate').value = rates.sell[sellCur];
+    }
+
+    // حدث خانات الموظف
+    const sBuyCur = document.getElementById('staffBuyCurrency')?.value;
+    const sSellCur = document.getElementById('staffSellCurrency')?.value;
+    if (sBuyCur && rates.buy?.[sBuyCur]!== undefined) {
+      document.getElementById('staffBuyRate').value = rates.buy[sBuyCur];
+    }
+    if (sSellCur && rates.sell?.[sSellCur]!== undefined) {
+      document.getElementById('staffSellRate').value = rates.sell[sSellCur];
+    }
+
+    // اعد حساب النتيجة بعد ما يتحدث السعر
+    calcResult('buy');
+    calcResult('sell');
+    calcResult('staffBuy');
+    calcResult('staffSell');
+
     console.log("📌 RATES REALTIME UPDATED:", rates);
   });
 }
@@ -1212,25 +1225,25 @@ document.getElementById('btnDeleteAcc').addEventListener('click', async () => {
 document.getElementById('btnSaveBuyRate').addEventListener('click', async () => {
   const currency = document.getElementById('rateCurrency').value;
   const rate = parseFloat(document.getElementById('buyRateInput').value);
-  if (!rate) return;
+  if (!currency ||!rate) { showToast('اختر العملة وادخل السعر'); return; }
+
   await update(ref(db, `rates/buy/${currency}`), rate);
   await push(ref(db, 'rateLogs'), {currency, type: 'buy', rate, userId: currentUser.uid, userName: currentUser.name, time: Date.now()});
   showToast('تم حفظ سعر الشراء');
-  loadRatesRealtime();
+
+  // لا تنادي loadRatesRealtime هنا، onValue بيحدثها لحاله
   loadRateLogs();
-  console.log("📌 BUY RATE SAVED:", currency, rate);
 });
 
 document.getElementById('btnSaveSellRate').addEventListener('click', async () => {
   const currency = document.getElementById('rateCurrency').value;
   const rate = parseFloat(document.getElementById('sellRateInput').value);
-  if (!rate) return;
+  if (!currency ||!rate) { showToast('اختر العملة وادخل السعر'); return; }
+
   await update(ref(db, `rates/sell/${currency}`), rate);
   await push(ref(db, 'rateLogs'), {currency, type: 'sell', rate, userId: currentUser.uid, userName: currentUser.name, time: Date.now()});
   showToast('تم حفظ سعر البيع');
-  loadRatesRealtime();
   loadRateLogs();
-  console.log("📌 SELL RATE SAVED:", currency, rate);
 });
 
 async function loadRateLogs() {
@@ -1356,7 +1369,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 let hideTabsTimer = null;
 
 function hideBottomTabs() {
-  // اخفي التابات الفرعية فقط
+  // اخفي التابات الفرعية فقط، واترك .main-tabs
   document.querySelectorAll('.tabs:not(.main-tabs)').forEach(t => {
     t.style.opacity = '0';
     t.style.pointerEvents = 'none';
