@@ -1040,62 +1040,42 @@ function loadRatesRealtime() {
   onValue(ref(db, 'rates'), (snap) => {
     rates = snap.exists()? snap.val() : {buy: {}, sell: {}};
 
-    // حدث كل حقول السعر في الصفحة حسب العملة المختارة
-    document.querySelectorAll('input, select').forEach(el => {
-      // تجاهل العناصر اللي ما لها علاقة بالسعر
-      if (!el.id.match(/(buyRate|sellRate|buyCurrency|sellCurrency|staffBuyRate|staffSellRate|staffBuyCurrency|staffSellCurrency|rateCurrency|staffRateCurrency)/)) return;
-    });
-
-    activeCurrencies.forEach(cur => {
-      // تحديث خانات العرض القراءة فقط
+    // تحديث خانات السعر في تبويب العمليات - شراء وبيع
+    const updateRateFields = () => {
+      // تبويب شراء المدير
+      const buyCur = document.getElementById('buyCurrency')?.value;
       const buyRateEl = document.getElementById('buyRate');
-      const buyCurSel = document.getElementById('buyCurrency');
-      if (buyRateEl && buyCurSel && buyCurSel.value === cur) {
-        buyRateEl.value = rates.buy?.[cur] || '';
+      if (buyCur && buyRateEl && rates.buy?.[buyCur]!== undefined) {
+        buyRateEl.value = rates.buy[buyCur];
+        calcResult('buy'); // يحسب النتيجة تلقائي
       }
 
+      // تبويب بيع المدير
+      const sellCur = document.getElementById('sellCurrency')?.value;
       const sellRateEl = document.getElementById('sellRate');
-      const sellCurSel = document.getElementById('sellCurrency');
-      if (sellRateEl && sellCurSel && sellCurSel.value === cur) {
-        sellRateEl.value = rates.sell?.[cur] || '';
+      if (sellCur && sellRateEl && rates.sell?.[sellCur]!== undefined) {
+        sellRateEl.value = rates.sell[sellCur];
+        calcResult('sell');
       }
 
+      // تبويب شراء الموظف
+      const staffBuyCur = document.getElementById('staffBuyCurrency')?.value;
       const staffBuyRateEl = document.getElementById('staffBuyRate');
-      const staffBuyCurSel = document.getElementById('staffBuyCurrency');
-      if (staffBuyRateEl && staffBuyCurSel && staffBuyCurSel.value === cur) {
-        staffBuyRateEl.value = rates.buy?.[cur] || '';
+      if (staffBuyCur && staffBuyRateEl && rates.buy?.[staffBuyCur]!== undefined) {
+        staffBuyRateEl.value = rates.buy[staffBuyCur];
+        calcResult('staffBuy');
       }
 
+      // تبويب بيع الموظف
+      const staffSellCur = document.getElementById('staffSellCurrency')?.value;
       const staffSellRateEl = document.getElementById('staffSellRate');
-      const staffSellCurSel = document.getElementById('staffSellCurrency');
-      if (staffSellRateEl && staffSellCurSel && staffSellCurSel.value === cur) {
-        staffSellRateEl.value = rates.sell?.[cur] || '';
+      if (staffSellCur && staffSellRateEl && rates.sell?.[staffSellCur]!== undefined) {
+        staffSellRateEl.value = rates.sell[staffSellCur];
+        calcResult('staffSell');
       }
+    };
 
-      // تحديث خانات تعديل السعر نفسها
-      const adminBuyInput = document.getElementById('buyRateInput');
-      const adminRateSel = document.getElementById('rateCurrency');
-      if (adminBuyInput && adminRateSel && adminRateSel.value === cur) {
-        adminBuyInput.placeholder = rates.buy?.[cur] || '';
-      }
-
-      const adminSellInput = document.getElementById('sellRateInput');
-      if (adminSellInput && adminRateSel && adminRateSel.value === cur) {
-        adminSellInput.placeholder = rates.sell?.[cur] || '';
-      }
-
-      const staffBuyInput = document.getElementById('staffBuyRateInput');
-      const staffRateSel = document.getElementById('staffRateCurrency');
-      if (staffBuyInput && staffRateSel && staffRateSel.value === cur) {
-        staffBuyInput.placeholder = rates.buy?.[cur] || '';
-      }
-
-      const staffSellInput = document.getElementById('staffSellRateInput');
-      if (staffSellInput && staffRateSel && staffRateSel.value === cur) {
-        staffSellInput.placeholder = rates.sell?.[cur] || '';
-      }
-    });
-
+    updateRateFields();
     console.log("📌 RATES REALTIME UPDATED:", rates);
   });
 }
@@ -1324,27 +1304,43 @@ document.getElementById('btnDeleteAcc').addEventListener('click', async () => {
 });
 
 document.getElementById('btnSaveBuyRate').addEventListener('click', async () => {
-  const currency = document.getElementById('rateCurrency').value;
-  const rate = parseFloat(document.getElementById('buyRateInput').value);
-  if (!rate) return;
-  await update(ref(db, `rates/buy/${currency}`), rate);
-  await push(ref(db, 'rateLogs'), {currency, type: 'buy', rate, userId: currentUser.uid, userName: currentUser.name, time: Date.now()});
-  showToast('تم حفظ سعر الشراء');
-  loadRatesRealtime();
-  loadRateLogs();
-  console.log("📌 BUY RATE SAVED:", currency, rate);
+  try {
+    const currency = document.getElementById('rateCurrency').value;
+    const rate = parseFloat(document.getElementById('buyRateInput').value);
+    if (!currency) { showToast('اختر العملة'); return; }
+    if (!rate || rate <= 0) { showToast('ادخل سعر صحيح'); return; }
+
+    await update(ref(db, `rates/buy/${currency}`), rate);
+    await push(ref(db, 'rateLogs'), {
+      currency, type: 'buy', rate, 
+      userId: currentUser.uid, userName: currentUser.name, time: Date.now()
+    });
+
+    showToast('تم حفظ سعر الشراء ✅');
+    document.getElementById('buyRateInput').value = '';
+  } catch (err) {
+    showToast('خطأ حفظ: ' + err.message); // هنا بيطلع لك السبب الحقي
+  }
 });
 
 document.getElementById('btnSaveSellRate').addEventListener('click', async () => {
-  const currency = document.getElementById('rateCurrency').value;
-  const rate = parseFloat(document.getElementById('sellRateInput').value);
-  if (!rate) return;
-  await update(ref(db, `rates/sell/${currency}`), rate);
-  await push(ref(db, 'rateLogs'), {currency, type: 'sell', rate, userId: currentUser.uid, userName: currentUser.name, time: Date.now()});
-  showToast('تم حفظ سعر البيع');
-  loadRatesRealtime();
-  loadRateLogs();
-  console.log("📌 SELL RATE SAVED:", currency, rate);
+  try {
+    const currency = document.getElementById('rateCurrency').value;
+    const rate = parseFloat(document.getElementById('sellRateInput').value);
+    if (!currency) { showToast('اختر العملة'); return; }
+    if (!rate || rate <= 0) { showToast('ادخل سعر صحيح'); return; }
+
+    await update(ref(db, `rates/sell/${currency}`), rate);
+    await push(ref(db, 'rateLogs'), {
+      currency, type: 'sell', rate, 
+      userId: currentUser.uid, userName: currentUser.name, time: Date.now()
+    });
+
+    showToast('تم حفظ سعر البيع ✅');
+    document.getElementById('sellRateInput').value = '';
+  } catch (err) {
+    showToast('خطأ حفظ: ' + err.message);
+  }
 });
 
 
@@ -1522,6 +1518,14 @@ function resetHideTabsTimer() {
 });
 
 resetHideTabsTimer();
+
+['buyCurrency', 'sellCurrency', 'staffBuyCurrency', 'staffSellCurrency'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', () => {
+    loadRatesRealtime(); // يجيب السعر من Firebase ويحطه في الخانة
+    calcResult(id.replace('Currency',''));
+  });
+});
 
 
 </script>
