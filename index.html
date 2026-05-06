@@ -348,15 +348,20 @@
           <button id="btnChangeAdminPass">تغيير كلمة المرور</button>
         </div>
       </div>
-      <div class="card">
-        <h3>صلاحيات الموظفين</h3>
-        <div class="row">
-          <select id="permEmpSelect"></select>
-          <label><input type="checkbox" id="permEditRate"> تعديل الاسعار</label>
-          <label><input type="checkbox" id="permViewAcc"> عرض الحسابات</label>
-        </div>
-        <button id="btnSavePerm">حفظ الصلاحيات</button>
-      </div>
+    <div class="card">
+  <h3>صلاحيات الموظفين</h3>
+  <div class="row">
+    <select id="permEmpSelect"></select>
+    <label><input type="checkbox" id="permEditRate"> تعديل الاسعار</label>
+    <label><input type="checkbox" id="permViewAcc"> عرض الحسابات</label>
+    <label><input type="checkbox" id="permCreateAcc"> انشاء حساب</label>
+    <label><input type="checkbox" id="permChangePass"> تغيير كلمة المرور</label>
+  </div>
+  <button id="btnSavePerm">حفظ الصلاحيات</button>
+</div>
+    
+    
+    
       <div class="card">
         <h3>ارصدة ومطابقات الموظفين</h3>
         <div class="row">
@@ -468,29 +473,51 @@
     </div>
 
     <div id="staffPerm" class="tab-content">
-      <div class="card">
-        <h3>انشاء حساب عميل</h3>
-        <div class="row">
-          <input type="text" id="staffAccName" placeholder="اسم العميل">
-          <input type="number" id="staffAccPhone" placeholder="رقم الهاتف" inputmode="numeric">
-        </div>
-        <div class="row">
-          <label><input type="checkbox" value="YER" class="staffAccCurrency"> ريال يمني</label>
-          <label><input type="checkbox" value="SAR" class="staffAccCurrency"> ريال سعودي</label>
-          <label><input type="checkbox" value="USD" class="staffAccCurrency"> دولار</label>
-          <label><input type="checkbox" value="EUR" class="staffAccCurrency"> يورو</label>
-        </div>
-        <button id="btnStaffCreateAcc">حفظ الحساب</button>
-      </div>
-      <div class="card">
-        <h3>تغيير كلمة المرور</h3>
-        <div class="row">
-          <input type="password" id="staffNewPass" placeholder="كلمة المرور الجديدة" inputmode="numeric">
-          <button id="btnChangeStaffPass">حفظ</button>
-        </div>
+  <div class="tabs main-tabs">
+    <div class="tab active" data-subtab="staffPermView">صلاحياتي</div>
+    <div class="tab" data-subtab="staffCreateAcc">انشاء حساب</div>
+    <div class="tab" data-subtab="staffChangePass">تغيير كلمة المرور</div>
+  </div>
+
+  <!-- 1. عرض الصلاحيات الممنوحة -->
+  <div id="staffPermView" class="tab-content active">
+    <div class="card">
+      <h3>الصلاحيات المفعلة لحسابك</h3>
+      <div id="staffPermList" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+        <!-- بيتعبى بالجافاسكربت -->
       </div>
     </div>
   </div>
+
+  <!-- 2. انشاء حساب عميل -->
+  <div id="staffCreateAcc" class="tab-content">
+    <div class="card">
+      <h3>انشاء حساب عميل</h3>
+      <div class="row">
+        <input type="text" id="staffAccName" placeholder="اسم العميل">
+        <input type="number" id="staffAccPhone" placeholder="رقم الهاتف" inputmode="numeric">
+      </div>
+      <div class="row">
+        <label><input type="checkbox" value="YER" class="staffAccCurrency"> ريال يمني</label>
+        <label><input type="checkbox" value="SAR" class="staffAccCurrency"> ريال سعودي</label>
+        <label><input type="checkbox" value="USD" class="staffAccCurrency"> دولار</label>
+        <label><input type="checkbox" value="EUR" class="staffAccCurrency"> يورو</label>
+      </div>
+      <button id="btnStaffCreateAcc">حفظ الحساب</button>
+    </div>
+  </div>
+
+  <!-- 3. تغيير كلمة المرور -->
+  <div id="staffChangePass" class="tab-content">
+    <div class="card">
+      <h3>تغيير كلمة المرور</h3>
+      <div class="row">
+        <input type="password" id="staffNewPass" placeholder="كلمة المرور الجديدة" inputmode="numeric">
+        <button id="btnChangeStaffPass">حفظ</button>
+      </div>
+    </div>
+  </div>
+</div>
 
   <div id="modalOverlay" class="overlay"></div>
   <div id="editEmpModal" class="modal">
@@ -573,11 +600,51 @@ function setLoading(btn, loading) {
 }
 
 function applyPermissions(perms) {
-  const permTab = document.getElementById('staffPerm');
-  if (permTab) permTab.style.display = perms.viewAcc? 'block' : 'none';
+  perms = perms || {};
+  console.log("📌 PERMISSIONS:", perms);
+
+  // 1. اظهر/اخفي التبويبات الفرعية حسب الصلاحية
+  const tabCreateAcc = document.querySelector('#staffPerm.tab[data-subtab="staffCreateAcc"]');
+  const tabChangePass = document.querySelector('#staffPerm.tab[data-subtab="staffChangePass"]');
+  const contentCreateAcc = document.getElementById('staffCreateAcc');
+  const contentChangePass = document.getElementById('staffChangePass');
+
+  if (tabCreateAcc) tabCreateAcc.style.display = perms.createAcc? 'block' : 'none';
+  if (contentCreateAcc) contentCreateAcc.style.display = perms.createAcc? 'block' : 'none';
+
+  if (tabChangePass) tabChangePass.style.display = perms.changePass? 'block' : 'none';
+  if (contentChangePass) contentChangePass.style.display = perms.changePass? 'block' : 'none';
+
+  // 2. خلي سعر البيع قابل للتعديل لو عنده صلاحية
   const sellRateInput = document.getElementById('staffSellRate');
   if (sellRateInput) sellRateInput.readOnly =!perms.editRate;
-  console.log("📌 PERMISSIONS:", perms);
+
+  // 3. عبّي قائمة الصلاحيات المفعلة
+  const list = document.getElementById('staffPermList');
+  if (!list) return;
+
+  const permNames = {
+    editRate: "تعديل سعر البيع",
+    viewAcc: "عرض الحسابات",
+    createAcc: "إنشاء حساب عميل",
+    changePass: "تغيير كلمة المرور"
+  };
+
+  list.innerHTML = '';
+  let hasAny = false;
+
+  Object.keys(permNames).forEach(key => {
+    if (perms[key]) {
+      hasAny = true;
+      list.innerHTML += `<div style="padding:8px; background:var(--bg-dark); border-radius:6px; border:1px solid var(--border-color);">
+        ✅ ${permNames[key]}
+      </div>`;
+    }
+  });
+
+  if (!hasAny) {
+    list.innerHTML = `<div style="opacity:0.7;">لا توجد صلاحيات مفعلة حالياً</div>`;
+  }
 }
 
 function filterDataByUser(data, userId, isAdmin) {
@@ -842,7 +909,17 @@ function initStaffPanel() {
   loadAccounts();
   loadCurrencies();
   loadStaffTransactions();
-  loadRatesRealtime(); // 📌 صار ريال تايم
+  loadRatesRealtime();
+
+  // استماع لحظي للصلاحيات
+  if (currentUser && currentUser.uid) {
+    onValue(ref(db, `users/${currentUser.uid}/permissions`), (snap) => {
+      const perms = snap.exists()? snap.val() : {};
+      currentUser.permissions = perms;
+      applyPermissions(perms);
+    });
+  }
+
   console.log("📌 STAFF PANEL INIT");
 }
 
@@ -1282,11 +1359,12 @@ document.getElementById('btnSavePerm').addEventListener('click', async () => {
   if (!uid) { showToast('اختر موظف اولاً'); return; }
   const perms = {
     editRate: document.getElementById('permEditRate').checked,
-    viewAcc: document.getElementById('permViewAcc').checked
+    viewAcc: document.getElementById('permViewAcc').checked,
+    createAcc: document.getElementById('permCreateAcc').checked,
+    changePass: document.getElementById('permChangePass').checked
   };
   await update(ref(db, `users/${uid}/permissions`), perms);
   showToast('تم حفظ الصلاحيات بنجاح');
-  console.log("📌 PERMS SAVED:", uid, perms);
 });
 
 document.getElementById('permEmpSelect').addEventListener('change', async () => {
@@ -1294,13 +1372,16 @@ document.getElementById('permEmpSelect').addEventListener('change', async () => 
   if (!uid) {
     document.getElementById('permEditRate').checked = false;
     document.getElementById('permViewAcc').checked = false;
+    document.getElementById('permCreateAcc').checked = false;
+    document.getElementById('permChangePass').checked = false;
     return;
   }
   const snap = await get(ref(db, `users/${uid}/permissions`));
   const perms = snap.exists()? snap.val() : {};
   document.getElementById('permEditRate').checked = perms.editRate || false;
   document.getElementById('permViewAcc').checked = perms.viewAcc || false;
-  console.log("📌 PERMS LOADED:", uid, perms);
+  document.getElementById('permCreateAcc').checked = perms.createAcc || false;
+  document.getElementById('permChangePass').checked = perms.changePass || false;
 });
 
 async function calcSystemBalance(userId, currency) {
