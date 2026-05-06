@@ -110,6 +110,109 @@
 }
     
     
+    /* ===== حل عام لكل الجداول بدون تعديل HTML ===== */
+
+/* خلي كل table داخل سكرول */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* عشان الاعمدة ما تتمد */
+}
+
+/* لف الـ tbody داخل سكرول 3 صفوف فقط */
+tbody {
+  display: block;
+  max-height: calc(3 * 36px); /* 3 صفوف × 36px ارتفاع الصف */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* خلي thead و tr يشتغلوا table عادي */
+thead, tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* تقليل ارتفاع الصف */
+th, td {
+  padding: 4px 3px;      /* كان 8px */
+  font-size: 13px;       /* كان 14px */
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px solid var(--border-color);
+}
+
+/* تثبيت الهيدر فوق */
+thead {
+  position: sticky;
+  top: 0;
+  background: var(--bg-dark);
+  z-index: 2;
+}
+
+/* تحديد صف عند الضغط */
+tbody tr.selected {
+  background: rgba(37, 211, 102, 0.2) !important;
+  outline: 1px solid var(--accent-green);
+}
+
+/* ===== ضبط عرض الاعمدة حسب نوع الجدول ===== */
+
+/* جداول الموظف 4 اعمدة: المبلغ | السعر | النتيجة | الوقت */
+#staffBuyTable th:nth-child(1), #staffBuyTable td:nth-child(1),
+#staffSellTable th:nth-child(1), #staffSellTable td:nth-child(1) { width: 25%; } /* المبلغ */
+
+#staffBuyTable th:nth-child(2), #staffBuyTable td:nth-child(2),
+#staffSellTable th:nth-child(2), #staffSellTable td:nth-child(2) { width: 15%; } /* السعر */
+
+#staffBuyTable th:nth-child(3), #staffBuyTable td:nth-child(3),
+#staffSellTable th:nth-child(3), #staffSellTable td:nth-child(3) { 
+  width: 35%; /* النتيجة */
+  font-size: 15px;
+  font-weight: 700;
+}
+
+#staffBuyTable th:nth-child(4), #staffBuyTable td:nth-child(4),
+#staffSellTable th:nth-child(4), #staffSellTable td:nth-child(4) { 
+  width: 25%; /* الوقت */
+  font-size: 11px;
+}
+
+/* جداول الادمن 5 اعمدة: المبلغ | السعر | النتيجة | الموظف | الوقت */
+#buyTable th:nth-child(1), #buyTable td:nth-child(1),
+#sellTable th:nth-child(1), #sellTable td:nth-child(1) { width: 20%; }
+
+#buyTable th:nth-child(3), #buyTable td:nth-child(3),
+#sellTable th:nth-child(3), #sellTable td:nth-child(3) { 
+  width: 25%;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+#buyTable th:nth-child(4), #buyTable td:nth-child(4),
+#sellTable th:nth-child(4), #sellTable td:nth-child(4) { width: 20%; }
+
+#buyTable th:nth-child(5), #buyTable td:nth-child(5),
+#sellTable th:nth-child(5), #sellTable td:nth-child(5) { 
+  width: 20%;
+  font-size: 11px;
+}
+
+/* تكبير مربع النتيجة فوق */
+#staffBuyResult, #staffSellResult, 
+#buyResult, #sellResult {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: var(--accent-green) !important;
+}
+    
+    
+    
+    
+    
   </style>
 </head>
 <body>
@@ -1557,6 +1660,86 @@ resetHideTabsTimer();
     calcResult(id.replace('Currency',''));
   });
 });
+
+let selectedRow = null;
+
+// دالة تختار الصف عند الضغط
+document.addEventListener('click', (e) => {
+  const tr = e.target.closest('tbody tr');
+  if (!tr) return;
+  
+  // شيل التحديد من الصف القديم
+  if (selectedRow) selectedRow.classList.remove('selected');
+  
+  // حدد الصف الجديد
+  tr.classList.add('selected');
+  selectedRow = tr;
+  
+  // خزن بيانات الصف للطباعة لاحقاً
+  window.selectedRowData = {
+    table: tr.closest('table').id,
+    cells: [...tr.cells].map(td => td.textContent)
+  };
+  
+  console.log("📌 Row Selected:", window.selectedRowData);
+  showToast('تم تحديد الصف. فعل زر الطباعة الحين');
+});
+
+// دالة طباعة الصف المحدد
+window.printSelectedRow = function() {
+  if (!window.selectedRowData) {
+    showToast('اختر صف اولاً');
+    return;
+  }
+  
+  const w = window.open('', '', 'height=600,width=800');
+  w.document.write(`
+    <html dir="rtl" lang="ar">
+    <head>
+      <title>طباعة</title>
+      <style>
+        body { font-family: Arial; padding: 20px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #000; padding: 8px; }
+        th { background: #eee; }
+        h2 { margin: 0; }
+      </style>
+    </head>
+    <body>
+      <h2>نظام الراشدي للصرافة</h2>
+      <table>
+        <tr>${window.selectedRowData.cells.map(c => `<td>${c}</td>`).join('')}</tr>
+      </table>
+      <script>window.print(); window.close();</script>
+    </body>
+    </html>
+  `);
+}
+
+// دالة طباعة الجدول كامل
+window.printFullTable = function(tableId) {
+  const table = document.getElementById(tableId).outerHTML;
+  const w = window.open('', '', 'height=600,width=800');
+  w.document.write(`
+    <html dir="rtl" lang="ar">
+    <head>
+      <title>تقرير</title>
+      <style>
+        body { font-family: Arial; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #000; padding: 6px; font-size: 12px; }
+        th { background: #eee; }
+      </style>
+    </head>
+    <body>
+      <h2>تقرير ${tableId}</h2>
+      ${table}
+      <script>window.print(); window.close();</script>
+    </body>
+    </html>
+  `);
+}
+
 
 
 </script>
