@@ -373,36 +373,46 @@ table.table-selected {
         </div>
       </div>
 
-      <div id="deposit" class="tab-content">
-        <div class="card">
-          <div class="row">
-            <select id="depositAccount" class="searchable"></select>
-            <input type="number" id="depositAmount" placeholder="المبلغ" inputmode="numeric">
-            <select id="depositCurrency"></select>
-            <button id="btnSaveDeposit">حفظ</button>
-          </div>
-          <table id="depositTable">
-            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
+    <div id="deposit" class="tab-content">
+    <div class="card">
+      <div class="row">
+        <select id="depositAccount" class="searchable"></select>
+        <input type="number" id="depositAmount" placeholder="المبلغ" inputmode="numeric">
+        <select id="depositCurrency"></select>
+      </div>
+      <div class="row">
+        <input type="text" id="depositDepositor" placeholder="اسم المودع" style="width:100%">
+      </div>
+      <button id="btnSaveDeposit">حفظ</button>
+    </div>
+    <table id="depositTable">
+      <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
+      <tbody></tbody>
+    </table>
+</div>
           <div class="row">
             <select id="depositFilterUser"><option value="all">الكل</option></select>
           </div>
         </div>
       </div>
 
-      <div id="withdraw" class="tab-content">
-        <div class="card">
-          <div class="row">
-            <select id="withdrawAccount" class="searchable"></select>
-            <input type="number" id="withdrawAmount" placeholder="المبلغ" inputmode="numeric">
-            <select id="withdrawCurrency"></select>
-            <button id="btnSaveWithdraw">حفظ</button>
-          </div>
-          <table id="withdrawTable">
-            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
+    <div id="withdraw" class="tab-content">
+  <div class="card">
+    <div class="row">
+      <select id="withdrawAccount" class="searchable"></select>
+      <input type="number" id="withdrawAmount" placeholder="المبلغ" inputmode="numeric">
+      <select id="withdrawCurrency"></select>
+    </div>
+    <div class="row">
+      <input type="text" id="withdrawRecipient" placeholder="اسم المستلم" style="width:100%">
+    </div>
+    <button id="btnSaveWithdraw">حفظ</button>
+  </div>
+  <table id="withdrawTable">
+    <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
           <div class="row">
             <select id="withdrawFilterUser"><option value="all">الكل</option></select>
           </div>
@@ -614,36 +624,41 @@ table.table-selected {
         </div>
       </div>
 
-      <div id="staffDeposit" class="tab-content">
-        <div class="card">
-          <div class="row">
-            <select id="staffDepositAccount" class="searchable"></select>
-            <input type="number" id="staffDepositAmount" placeholder="المبلغ" inputmode="numeric">
-            <select id="staffDepositCurrency"></select>
-            <button id="btnSaveStaffDeposit">حفظ</button>
-          </div>
-          <table id="staffDepositTable">
-            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div id="staffWithdraw" class="tab-content">
-        <div class="card">
-          <div class="row">
-            <select id="staffWithdrawAccount" class="searchable"></select>
-            <input type="number" id="staffWithdrawAmount" placeholder="المبلغ" inputmode="numeric">
-            <select id="staffWithdrawCurrency"></select>
-            <button id="btnSaveStaffWithdraw">حفظ</button>
-          </div>
-          <table id="staffWithdrawTable">
-            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
+   <div id="staffDeposit" class="tab-content">
+  <div class="card">
+    <div class="row">
+      <select id="staffDepositAccount" class="searchable"></select>
+      <input type="number" id="staffDepositAmount" placeholder="المبلغ" inputmode="numeric">
+      <select id="staffDepositCurrency"></select>
     </div>
+    <div class="row">
+      <input type="text" id="staffDepositDepositor" placeholder="اسم المودع" style="width:100%">
+    </div>
+    <button id="btnSaveStaffDeposit">حفظ</button>
+  </div>
+  <table id="staffDepositTable">
+    <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+ <div id="staffWithdraw" class="tab-content">
+  <div class="card">
+    <div class="row">
+      <select id="staffWithdrawAccount" class="searchable"></select>
+      <input type="number" id="staffWithdrawAmount" placeholder="المبلغ" inputmode="numeric">
+      <select id="staffWithdrawCurrency"></select>
+    </div>
+    <div class="row">
+      <input type="text" id="staffWithdrawRecipient" placeholder="اسم المستلم" style="width:100%">
+    </div>
+    <button id="btnSaveStaffWithdraw">حفظ</button>
+  </div>
+  <table id="staffWithdrawTable">
+    <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
 
     <div id="staffMatch" class="tab-content">
       <div class="card">
@@ -1265,27 +1280,46 @@ document.getElementById('btnSaveSell').addEventListener('click', () => saveTrans
 document.getElementById('btnSaveStaffBuy').addEventListener('click', () => saveTransaction('buy', 'staffBuyAmount', 'staffBuyCurrency', 'staffBuyRate', 'staffBuyResult'));
 document.getElementById('btnSaveStaffSell').addEventListener('click', () => saveTransaction('sell', 'staffSellAmount', 'staffSellCurrency', 'staffSellRate', 'staffSellResult'));
 
-async function saveCashTransaction(type, accountId, amountId, currencyId) {
+async function saveCashTransaction(type, accountId, amountId, currencyId, personId) {
   const account = document.getElementById(accountId).value;
   const amount = parseFloat(document.getElementById(amountId).value);
   const currency = document.getElementById(currencyId).value;
-  if (!account ||!amount) { showToast('اختر الحساب وادخل المبلغ'); return; }
+  const personName = document.getElementById(personId).value.trim();
+
+  if (!account || !amount) { showToast('اختر الحساب وادخل المبلغ'); return; }
+  if (!personName) { showToast('ادخل الاسم'); return; }
 
   await push(ref(db, 'transactions'), {
-    type, accountId: account, amount, currency,
-    userId: currentUser.uid, userName: currentUser.name, time: Date.now()
+    type, 
+    accountId: account, 
+    amount, 
+    currency,
+    depositor: type === 'deposit' ? personName : null,
+    recipient: type === 'withdraw' ? personName : null,
+    userId: currentUser.uid, 
+    userName: currentUser.name, 
+    time: Date.now()
   });
+
   showToast(`تم حفظ عملية ${type}`);
   document.getElementById(amountId).value = '';
+  document.getElementById(personId).value = '';
   loadTransactions();
   loadStaffTransactions();
-  console.log("📌 CASH TRANSACTION SAVED:", type, account, amount);
 }
 
-document.getElementById('btnSaveDeposit').addEventListener('click', () => saveCashTransaction('deposit', 'depositAccount', 'depositAmount', 'depositCurrency'));
-document.getElementById('btnSaveWithdraw').addEventListener('click', () => saveCashTransaction('withdraw', 'withdrawAccount', 'withdrawAmount', 'withdrawCurrency'));
-document.getElementById('btnSaveStaffDeposit').addEventListener('click', () => saveCashTransaction('deposit', 'staffDepositAccount', 'staffDepositAmount', 'staffDepositCurrency'));
-document.getElementById('btnSaveStaffWithdraw').addEventListener('click', () => saveCashTransaction('withdraw', 'staffWithdrawAccount', 'staffWithdrawAmount', 'staffWithdrawCurrency'));
+document.getElementById('btnSaveDeposit').addEventListener('click', () => 
+  saveCashTransaction('deposit', 'depositAccount', 'depositAmount', 'depositCurrency', 'depositDepositor')
+);
+document.getElementById('btnSaveWithdraw').addEventListener('click', () => 
+  saveCashTransaction('withdraw', 'withdrawAccount', 'withdrawAmount', 'withdrawCurrency', 'withdrawRecipient')
+);
+document.getElementById('btnSaveStaffDeposit').addEventListener('click', () => 
+  saveCashTransaction('deposit', 'staffDepositAccount', 'staffDepositAmount', 'staffDepositCurrency', 'staffDepositDepositor')
+);
+document.getElementById('btnSaveStaffWithdraw').addEventListener('click', () => 
+  saveCashTransaction('withdraw', 'staffWithdrawAccount', 'staffWithdrawAmount', 'staffWithdrawCurrency', 'staffWithdrawRecipient')
+);
 
 async function loadTransactions() {
   const snap = await get(ref(db, 'transactions'));
@@ -1764,10 +1798,16 @@ document.addEventListener('click', (e) => {
     selectedRow = tr;
     selectedTable = null;
     window.selectedRowData = {
-      table: tr.closest('table').id,
-      headers: [...tr.closest('table').querySelectorAll('thead th')].map(th => th.textContent),
-      cells: [...tr.cells].map(td => td.textContent)
-    };
+  table: tr.closest('table').id,
+  accountId: d.accountId,
+  currency: d.currency,
+  type: d.type,
+  amount: d.amount,
+  depositor: d.depositor,
+  recipient: d.recipient,
+  headers: [...tr.closest('table').querySelectorAll('thead th')].map(th => th.textContent),
+  cells: [...tr.cells].map(td => td.textContent)
+};
     showToast('تم تحديد الصف');
   }
 });
@@ -1788,12 +1828,24 @@ function printPDF(type, tableId) {
   let title = 'سند';
 
   if (type === 'row' && window.selectedRowData) {
-    title = 'سند عملية';
+    const d = window.selectedRowData;
+    const acc = allAccounts.find(a => a.id === d.accountId);
+    const opType = d.type === 'deposit' ? 'ايداع' : 'صرف';
+    const person = d.type === 'deposit' ? d.depositor : d.recipient;
+    const verb1 = d.type === 'deposit' ? 'اودع الى حسابكم لدينا' : 'استلم من حسابكم لدينا';
+    const verb2 = d.type === 'deposit' ? 'اودع' : 'صرف';
+
+    // حساب رصيد العملة فقط للحساب بعد العملية
+    const bal = calcBalanceForAccountCurrency(d.accountId, d.currency);
+
+    title = 'سند ' + opType;
     html = `
-      <table>
-        <tr>${window.selectedRowData.headers.map(h => `<th>${h}</th>`).join('')}</tr>
-        <tr>${window.selectedRowData.cells.map(c => `<td>${c}</td>`).join('')}</tr>
-      </table>
+      <div style="font-size:18px; line-height:1.8; text-align:right; direction:rtl;">
+        ${verb1} <b>${person}</b> مبلغاً وقدره <b>${d.amount} ${d.currency}</b><br>
+        ${verb2} يمني يطلع بالسند الرصيد اليمني فقط وكذلك اذا ${verb2} عمله اخرى يطلع بالسند الرصيد من نفس العملة فقط<br>
+        ${d.type === 'deposit' ? 'اصبح رصيدكم في حسابكم لدينا' : 'يتبقى في حسابكم لدينا'} 
+        <b>${bal.toFixed(2)} ${d.currency}</b>
+      </div>
     `;
   } else if (type === 'table') {
     title = 'تقرير ' + tableId;
@@ -1809,36 +1861,41 @@ function printPDF(type, tableId) {
       <title>${title}</title>
       <style>
         body { font-family: 'Segoe UI', Tahoma, Arial; padding: 30px; color: #333; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #8B4513; padding-bottom: 10px; }
-        .header h1 { color: #8B4513; margin: 0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #333; padding: 8px; text-align: center; }
-        th { background: #8B4513; color: #fff; }
-        .footer { margin-top: 40px; text-align: left; font-size: 12px; color: #666; }
-        @media print { 
-          .no-print { display: none; }
-          button { display: none; }
-        }
+        .print-logo { text-align:center; font-size:48px; margin-bottom:10px; }
+        .header { text-align:center; margin-bottom:20px; border-bottom:2px solid #8B4513; padding-bottom:10px; }
+        .header h1 { color:#8B4513; margin:5px 0; font-size:28px; font-weight:900; }
       </style>
     </head>
     <body>
+      <div class="print-logo">💰</div>
       <div class="header">
         <h1>نظام الراشدي للصرافة</h1>
         <p>${new Date().toLocaleString('ar-SA')}</p>
       </div>
       ${html}
-      <div class="footer">
+      <div class="footer" style="margin-top:40px;text-align:left;font-size:12px;color:#666;">
         <p>الموظف: ${currentUser?.name || '-'}</p>
       </div>
       <div class="no-print" style="text-align:center;margin-top:30px;">
-        <button onclick="window.print()" style="padding:10px 30px;font-size:16px;background:#8B4513;color:#fff;border:none;border-radius:6px;">
-          طباعة / حفظ PDF
-        </button>
+        <button onclick="window.print()">طباعة / حفظ PDF</button>
       </div>
     </body>
     </html>
   `);
   win.document.close();
+}
+
+// دالة تحسب رصيد عملة واحدة للحساب
+async function calcBalanceForAccountCurrency(accountId, currency) {
+  const snap = await get(ref(db, 'transactions'));
+  if (!snap.exists()) return 0;
+  let bal = 0;
+  Object.values(snap.val()).forEach(d => {
+    if (d.accountId !== accountId || d.currency !== currency) return;
+    if (d.type === 'deposit' || d.type === 'buy') bal += d.amount;
+    if (d.type === 'withdraw' || d.type === 'sell') bal -= d.amount;
+  });
+  return bal;
 }
 
 console.log("📌 SCRIPT LOADED SUCCESSFULLY");
