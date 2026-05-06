@@ -81,6 +81,39 @@
     }
     
     
+    
+  .devtools-float {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 48px;   /* كان 56 */
+  height: 48px;  /* كان 56 */
+  border-radius: 50%;
+  background: var(--accent-green);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px; /* كان 22 */
+  cursor: grab;
+  z-index: 9999;
+  touch-action: none;
+  animation: floatPulse 2s infinite ease-in-out;
+}
+
+@keyframes floatPulse {
+ 0%, 100% { box-shadow: 0 3px 10px rgba(37,211,102,0.4); }
+ 50% { box-shadow: 0 5px 16px rgba(37,211,102,0.7); }
+}
+
+.devtools-float:active {
+  cursor: grabbing;
+  transform: scale(0.95);
+}
+
+    
     /* زر خروج الادمن والموظف */
 
 
@@ -137,13 +170,13 @@
       <span id="adminName">هارون الراشدي</span>
       <button id="btnLogoutAdmin">خروج</button>
     </div>
-  <div class="tabs main-tabs">
+    <div class="tabs">
       <div class="tab active" data-tab="employees">ادارة الموظفين</div>
       <div class="tab" data-tab="operations">العمليات</div>
       <div class="tab" data-tab="accounts">الحسابات</div>
       <div class="tab" data-tab="permissions">الصلاحيات</div>
     </div>
-
+    <div class="tab" data-tab="devtools">DevTools</div>
     <div id="employees" class="tab-content active">
       <div class="card">
         <h3>اضافة موظف</h3>
@@ -327,6 +360,8 @@
           <thead><tr><th>العملة</th><th>النوع</th><th>السعر</th><th>الوقت</th><th>بواسطة</th></tr></thead>
           <tbody></tbody>
         </table>
+        
+        
       </div>
       <div class="card">
         <h3>الاعدادات العامة</h3>
@@ -348,20 +383,15 @@
           <button id="btnChangeAdminPass">تغيير كلمة المرور</button>
         </div>
       </div>
-    <div class="card">
-  <h3>صلاحيات الموظفين</h3>
-  <div class="row">
-    <select id="permEmpSelect"></select>
-    <label><input type="checkbox" id="permEditRate"> تعديل الاسعار</label>
-    <label><input type="checkbox" id="permViewAcc"> عرض الحسابات</label>
-    <label><input type="checkbox" id="permCreateAcc"> انشاء حساب</label>
-    <label><input type="checkbox" id="permChangePass"> تغيير كلمة المرور</label>
-  </div>
-  <button id="btnSavePerm">حفظ الصلاحيات</button>
-</div>
-    
-    
-    
+      <div class="card">
+        <h3>صلاحيات الموظفين</h3>
+        <div class="row">
+          <select id="permEmpSelect"></select>
+          <label><input type="checkbox" id="permEditRate"> تعديل الاسعار</label>
+          <label><input type="checkbox" id="permViewAcc"> عرض الحسابات</label>
+        </div>
+        <button id="btnSavePerm">حفظ الصلاحيات</button>
+      </div>
       <div class="card">
         <h3>ارصدة ومطابقات الموظفين</h3>
         <div class="row">
@@ -376,6 +406,16 @@
         </table>
       </div>
     </div>
+  
+  <div id="devtools" class="tab-content">
+  <div class="card">
+    <h3>DevTools Console</h3>
+    <p>هذي شاشة DevTools للتجربة</p>
+    <div id="devtools-log" style="background:#000; color:#0f0; padding:10px; height:200px; overflow:auto; font-family:monospace;">
+      Console Ready...
+    </div>
+  </div>
+</div>
   </div>
 
   <div id="staffScreen" class="screen">
@@ -384,11 +424,14 @@
       <span id="staffName">اسم الموظف</span>
       <button id="btnLogoutStaff">خروج</button>
     </div>
-   <div class="tabs main-tabs">
+    <div class="tabs">
       <div class="tab active" data-tab="staffOps">العمليات</div>
       <div class="tab" data-tab="staffMatch">المطابقات</div>
       <div class="tab" data-tab="staffPerm">الصلاحيات</div>
     </div>
+    
+    <div class="tab" data-tab="devtools" style="display:none;">DevTools</div>
+    
     <div id="staffOps" class="tab-content active">
       <div class="tabs">
         <div class="tab active" data-subtab="staffBuy">شراء</div>
@@ -472,67 +515,44 @@
       </div>
     </div>
 
-<div id="staffPerm" class="tab-content">
-
-  <div class="tabs ">
-    <div class="tab active" data-subtab="staffPermView">صلاحياتي</div>
-    <div class="tab" data-subtab="staffRateEdit" style="display:none;">تعديل السعر</div>
-    <div class="tab" data-subtab="staffViewAcc" style="display:none;">عرض الحسابات</div>
-    <div class="tab" data-subtab="staffCreateAcc" style="display:none;">انشاء حساب</div>
-    <div class="tab" data-subtab="staffChangePass" style="display:none;">تغيير كلمة المرور</div>
-  </div>
-
-  <!-- صلاحياتي -->
-  <div id="staffPermView" class="tab-content active">
-    <div class="card">
-      <h3>الصلاحيات المفعلة لحسابك</h3>
-      <div id="staffPermList"></div>
-    </div>
-  </div>
-
-  <!-- تعديل السعر - جديد -->
-  <div id="staffRateEdit" class="tab-content">
-    <div class="card">
-      <h3>تعديل الاسعار</h3>
-      <div class="row">
-        <select id="staffRateCurrency"></select>
-        <input type="number" id="staffBuyRateInput" placeholder="سعر الشراء" inputmode="decimal">
-        <button id="btnStaffSaveBuyRate">حفظ شراء</button>
+    <div id="staffPerm" class="tab-content">
+      <div class="card">
+        <h3>انشاء حساب عميل</h3>
+        <div class="row">
+          <input type="text" id="staffAccName" placeholder="اسم العميل">
+          <input type="number" id="staffAccPhone" placeholder="رقم الهاتف" inputmode="numeric">
+        </div>
+        <div class="row">
+          <label><input type="checkbox" value="YER" class="staffAccCurrency"> ريال يمني</label>
+          <label><input type="checkbox" value="SAR" class="staffAccCurrency"> ريال سعودي</label>
+          <label><input type="checkbox" value="USD" class="staffAccCurrency"> دولار</label>
+          <label><input type="checkbox" value="EUR" class="staffAccCurrency"> يورو</label>
+        </div>
+        <button id="btnStaffCreateAcc">حفظ الحساب</button>
       </div>
-      <div class="row">
-        <input type="number" id="staffSellRateInput" placeholder="سعر البيع" inputmode="decimal">
-        <button id="btnStaffSaveSellRate">حفظ بيع</button>
+      <div class="card">
+        <h3>تغيير كلمة المرور</h3>
+        <div class="row">
+          <input type="password" id="staffNewPass" placeholder="كلمة المرور الجديدة" inputmode="numeric">
+          <button id="btnChangeStaffPass">حفظ</button>
+        </div>
       </div>
     </div>
+  
+  
+ 
+<div id="devtoolsStaff" class="tab-content">
+  <div class="card">
+    <h3>DevTools Console</h3>
+    <p>هذي شاشة DevTools للتجربة</p>
+  <div id="devtools-log-staff" style="background:#000; color:#0f0; padding:10px; height:200px; overflow:auto; font-family:monospace; direction:ltr; text-align:left;">
+  Console Ready...
+</div>
   </div>
-
-  <!-- عرض الحسابات - جديد -->
-  <div id="staffViewAcc" class="tab-content">
-    <div class="card">
-      <div class="row">
-        <select id="staffViewAccSelect" class="searchable"></select>
-        <button id="btnStaffViewAcc">عرض</button>
-      </div>
-      <table id="staffAccBalanceTable">
-        <thead><tr><th>العملة</th><th>الرصيد</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- انشاء حساب -->
-  <div id="staffCreateAcc" class="tab-content">
-    <!-- نفس الكود القديم -->
-  </div>
-
-  <!-- تغيير كلمة المرور -->
-  <div id="staffChangePass" class="tab-content">
-    <!-- نفس الكود القديم -->
-  </div>
-
 </div>
 
 
+ </div>
 
 
   <div id="modalOverlay" class="overlay"></div>
@@ -616,46 +636,149 @@ function setLoading(btn, loading) {
 }
 
 function applyPermissions(perms) {
-  perms = perms || {};
+  const permTab = document.getElementById('staffPerm');
+  if (permTab) permTab.style.display = perms.viewAcc? 'block' : 'none';
+  const sellRateInput = document.getElementById('staffSellRate');
+  if (sellRateInput) sellRateInput.readOnly =!perms.editRate;
   console.log("📌 PERMISSIONS:", perms);
+}
 
-  // 1. اظهر/اخفي التبويبات الفرعية للموظف فقط لو موجودة
-  const tabsConfig = {
-    staffRateEdit: perms.editRate,
-    staffViewAcc: perms.viewAcc,
-    staffCreateAcc: perms.createAcc,
-    staffChangePass: perms.changePass
-  };
+function toggleDevToolsIcon() {
+  const btnDevTools = document.getElementById('btnDevTools');
+  if (!btnDevTools) return;
 
-  Object.keys(tabsConfig).forEach(tabId => {
-    const tabBtn = document.querySelector(`#staffPerm [data-subtab="${tabId}"]`);
-    const tabContent = document.getElementById(tabId);
-    
-    if (tabBtn) tabBtn.style.display = tabsConfig[tabId] ? 'block' : 'none';
-    if (tabContent) tabContent.style.display = tabsConfig[tabId] ? 'block' : 'none';
-  });
-
-  // 2. عبّي قائمة الصلاحيات المفعلة لو موجودة
-  const list = document.getElementById('staffPermList');
-  if (!list) return; // لو مش في شاشة الموظف اطلع
-
-  const permNames = {
-    editRate: "تعديل الاسعار",
-    viewAcc: "عرض الحسابات",
-    createAcc: "انشاء حساب",
-    changePass: "تغيير كلمة المرور"
-  };
-
-  list.innerHTML = Object.keys(permNames)
-   .filter(k => perms[k])
-   .map(k => `<div style="padding:8px; background:var(--bg-dark); border-radius:6px; border:1px solid var(--border-color);">✅ ${permNames[k]}</div>`)
-   .join('') || '<div style="opacity:0.7;">لا توجد صلاحيات مفعلة</div>';
+  // تظهر بس لو المستخدم اسمه "هارون الراشدي"
+  if (currentUser && currentUser.name === 'هارون الراشدي') {
+    btnDevTools.style.display = 'flex';
+  } else {
+    btnDevTools.style.display = 'none';
+  }
 }
 
 
+// ... باقي اكوادك 
+
+function setupDevToolsButton() {
+  const btn = document.getElementById('btnDevTools');
+  if (!btn) return;
+
+  let dragMoved = false;
+  let startX, startY;
+
+  btn.addEventListener('pointerdown', (e) => {
+    dragMoved = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    btn.setPointerCapture(e.pointerId);
+  });
+
+  btn.addEventListener('pointermove', (e) => {
+    if (Math.abs(e.clientX - startX) > 5 || Math.abs(e.clientY - startY) > 5) {
+      dragMoved = true;
+    }
+  });
+
+  btn.addEventListener('pointerup', (e) => {
+    btn.releasePointerCapture(e.pointerId);
+    if (!dragMoved) {
+      openDevTools();
+    }
+  });
+}
+
+function openDevTools() {
+  const devTab = currentUser.role === 'admin' 
+    ? document.querySelector('#adminScreen .tab[data-tab="devtools"]')
+    : null;
+  const devContent = currentUser.role === 'admin' 
+    ? document.getElementById('devtools')
+    : null;
+
+  if (!devTab || !devContent) return;
+
+  const isOpen = devTab.classList.contains('active');
+
+  if (isOpen) {
+    // اقفل DevTools ورجع للتبويب الاول
+    devTab.classList.remove('active');
+    devContent.classList.remove('active');
+    
+    const firstTab = document.querySelector('#adminScreen .tab[data-tab="employees"]');
+    const firstContent = document.getElementById('employees');
+    if (firstTab && firstContent) {
+      firstTab.classList.add('active');
+      firstContent.classList.add('active');
+    }
+    showToast('تم اغلاق DevTools');
+  } else {
+    // افتح DevTools
+    document.querySelectorAll('#adminScreen .tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#adminScreen .tab-content').forEach(tc => tc.classList.remove('active'));
+    
+    devTab.classList.add('active');
+    devContent.classList.add('active');
+    showScreen('adminScreen');
+    showToast('تم فتح DevTools');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', setupDevToolsButton);
 
 
+function makeDraggable(el) {
+  let isDragging = false;
+  let startX, startY, initialX, initialY;
 
+  function onStart(e) {
+    isDragging = true;
+    el.style.animation = 'none';
+    const touch = e.touches? e.touches[0] : e;
+    startX = touch.clientX;
+    startY = touch.clientY;
+    initialX = el.offsetLeft;
+    initialY = el.offsetTop;
+    e.preventDefault();
+  }
+
+  function onMove(e) {
+    if (!isDragging) return;
+    const touch = e.touches? e.touches[0] : e;
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+
+    let newX = initialX + dx;
+    let newY = initialY + dy;
+
+    // منع الخروج برا الشاشة
+    newX = Math.max(0, Math.min(newX, window.innerWidth - el.offsetWidth));
+    newY = Math.max(0, Math.min(newY, window.innerHeight - el.offsetHeight));
+
+    el.style.left = newX + 'px';
+    el.style.top = newY + 'px';
+    el.style.right = 'auto';
+    el.style.bottom = 'auto';
+  }
+
+  function onEnd() {
+    isDragging = false;
+    el.style.animation = 'floatPulse 2s infinite ease-in-out';
+  }
+
+  el.addEventListener('mousedown', onStart);
+  el.addEventListener('touchstart', onStart, {passive: false});
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('touchmove', onMove, {passive: false});
+
+  document.addEventListener('mouseup', onEnd);
+  document.addEventListener('touchend', onEnd);
+}
+
+// شغل السحب لما الصفحة تحمل
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('btnDevTools');
+  if (btn) makeDraggable(btn);
+});
 
 function filterDataByUser(data, userId, isAdmin) {
   if (isAdmin) return data;
@@ -800,6 +923,8 @@ document.getElementById('btnLogin').addEventListener('click', async () => {
 
     if (currentUser.role === 'admin') {
         
+        
+        toggleDevToolsIcon();
         resetTabsToDefault(); 
      
       showScreen('adminScreen');
@@ -837,6 +962,7 @@ function logout() {
   document.getElementById('passwordInput').value = '';
   
   resetTabsToDefault(); 
+  toggleDevToolsIcon();
   showScreen('loginScreen');
   showToast('تم تسجيل الخروج');
   loadUsersForLogin();
@@ -919,17 +1045,7 @@ function initStaffPanel() {
   loadAccounts();
   loadCurrencies();
   loadStaffTransactions();
-  loadRatesRealtime();
-
-  // استماع لحظي للصلاحيات
-  if (currentUser && currentUser.uid) {
-    onValue(ref(db, `users/${currentUser.uid}/permissions`), (snap) => {
-      const perms = snap.exists()? snap.val() : {};
-      currentUser.permissions = perms;
-      applyPermissions(perms);
-    });
-  }
-
+  loadRatesRealtime(); // 📌 صار ريال تايم
   console.log("📌 STAFF PANEL INIT");
 }
 
@@ -1038,7 +1154,7 @@ document.getElementById('btnDeleteEmp').addEventListener('click', async () => {
 function loadCurrencies() {
   const selects = ['buyCurrency', 'sellCurrency', 'depositCurrency', 'withdrawCurrency',
                    'staffBuyCurrency', 'staffSellCurrency', 'staffDepositCurrency', 'staffWithdrawCurrency',
-                   'staffMatchCurrency', 'rateCurrency', 'matchCurrencySelect', 'staffRateCurrency'];
+                   'staffMatchCurrency', 'rateCurrency', 'matchCurrencySelect'];
   selects.forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
@@ -1047,6 +1163,7 @@ function loadCurrencies() {
       sel.innerHTML += `<option value="${cur}">${cur}</option>`;
     });
   });
+  console.log("📌 CURRENCIES LOADED:", activeCurrencies);
 }
 
 function loadRatesRealtime() {
@@ -1192,8 +1309,7 @@ async function loadAccounts() {
   if (snap.exists()) {
     allAccounts = Object.entries(snap.val()).map(([id, a]) => ({id,...a}));
   }
-  const selects = ['depositAccount', 'withdrawAccount', 'staffDepositAccount', 'staffWithdrawAccount', 
-                   'viewAccSelect', 'editAccSelect', 'deleteAccSelect', 'staffViewAccSelect'];
+  const selects = ['depositAccount', 'withdrawAccount', 'staffDepositAccount', 'staffWithdrawAccount', 'viewAccSelect', 'editAccSelect', 'deleteAccSelect'];
   selects.forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
@@ -1202,6 +1318,7 @@ async function loadAccounts() {
       sel.innerHTML += `<option value="${acc.id}">${acc.name} ${acc.status==='suspended'?'(موقف)':''}</option>`;
     });
   });
+  console.log("📌 ACCOUNTS LOADED:", allAccounts.length);
 }
 
 document.getElementById('btnCreateAcc').addEventListener('click', async () => {
@@ -1331,54 +1448,6 @@ async function loadRateLogs() {
   }
 }
 
-
-// حفظ سعر الشراء للموظف
-document.getElementById('btnStaffSaveBuyRate').addEventListener('click', async () => {
-  const currency = document.getElementById('staffRateCurrency').value;
-  const rate = parseFloat(document.getElementById('staffBuyRateInput').value);
-  if (!rate) { showToast('ادخل السعر'); return; }
-  await update(ref(db, `rates/buy/${currency}`), rate);
-  await push(ref(db, 'rateLogs'), {currency, type: 'buy', rate, userId: currentUser.uid, userName: currentUser.name, time: Date.now()});
-  showToast('تم حفظ سعر الشراء');
-  loadRatesRealtime();
-  loadRateLogs();
-});
-
-// حفظ سعر البيع للموظف
-document.getElementById('btnStaffSaveSellRate').addEventListener('click', async () => {
-  const currency = document.getElementById('staffRateCurrency').value;
-  const rate = parseFloat(document.getElementById('staffSellRateInput').value);
-  if (!rate) { showToast('ادخل السعر'); return; }
-  await update(ref(db, `rates/sell/${currency}`), rate);
-  await push(ref(db, 'rateLogs'), {currency, type: 'sell', rate, userId: currentUser.uid, userName: currentUser.name, time: Date.now()});
-  showToast('تم حفظ سعر البيع');
-  loadRatesRealtime();
-  loadRateLogs();
-});
-
-// عرض رصيد الحساب للموظف
-document.getElementById('btnStaffViewAcc').addEventListener('click', async () => {
-  const accId = document.getElementById('staffViewAccSelect').value;
-  if (!accId) { showToast('اختر حساب'); return; }
-  const snap = await get(ref(db, 'transactions'));
-  let data = snap.exists()? Object.values(snap.val()) : [];
-  data = data.filter(d => d.accountId === accId);
-
-  const balances = {};
-  data.forEach(d => {
-    if (!balances[d.currency]) balances[d.currency] = 0;
-    if (d.type === 'deposit' || d.type === 'buy') balances[d.currency] += d.amount;
-    if (d.type === 'withdraw' || d.type === 'sell') balances[d.currency] -= d.amount;
-  });
-
-  const tbody = document.querySelector('#staffAccBalanceTable tbody');
-  tbody.innerHTML = '';
-  Object.entries(balances).forEach(([cur, bal]) => {
-    tbody.innerHTML += `<tr><td>${cur}</td><td>${bal.toFixed(2)}</td></tr>`;
-  });
-}); 
-
-
 document.getElementById('btnSaveColors').addEventListener('click', async () => {
   const accent = document.getElementById('colorAccent').value;
   const bg = document.getElementById('colorBg').value;
@@ -1416,34 +1485,26 @@ document.getElementById('btnSavePerm').addEventListener('click', async () => {
   if (!uid) { showToast('اختر موظف اولاً'); return; }
   const perms = {
     editRate: document.getElementById('permEditRate').checked,
-    viewAcc: document.getElementById('permViewAcc').checked,
-    createAcc: document.getElementById('permCreateAcc').checked,
-    changePass: document.getElementById('permChangePass').checked
+    viewAcc: document.getElementById('permViewAcc').checked
   };
   await update(ref(db, `users/${uid}/permissions`), perms);
   showToast('تم حفظ الصلاحيات بنجاح');
+  console.log("📌 PERMS SAVED:", uid, perms);
 });
 
 document.getElementById('permEmpSelect').addEventListener('change', async () => {
   const uid = document.getElementById('permEmpSelect').value;
   if (!uid) {
-    ['permEditRate','permViewAcc','permCreateAcc','permChangePass'].forEach(id => {
-      document.getElementById(id).checked = false;
-    });
+    document.getElementById('permEditRate').checked = false;
+    document.getElementById('permViewAcc').checked = false;
     return;
   }
   const snap = await get(ref(db, `users/${uid}/permissions`));
   const perms = snap.exists()? snap.val() : {};
   document.getElementById('permEditRate').checked = perms.editRate || false;
   document.getElementById('permViewAcc').checked = perms.viewAcc || false;
-  document.getElementById('permCreateAcc').checked = perms.createAcc || false;
-  document.getElementById('permChangePass').checked = perms.changePass || false;
+  console.log("📌 PERMS LOADED:", uid, perms);
 });
-
-
-
-
-
 
 async function calcSystemBalance(userId, currency) {
   const snap = await get(ref(db, 'transactions'));
@@ -1498,17 +1559,17 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 let hideTabsTimer = null;
 
 function hideBottomTabs() {
-  // اخفي التابات اللي فيها subtab فقط
-  document.querySelectorAll('.tabs [data-subtab]').forEach(el => {
-    el.parentElement.style.opacity = '0';
-    el.parentElement.style.pointerEvents = 'none';
+  // اخفي التابات الفرعية فقط، واترك .main-tabs
+  document.querySelectorAll('.tabs:not(.main-tabs)').forEach(t => {
+    t.style.opacity = '0';
+    t.style.pointerEvents = 'none';
   });
 }
 
 function showBottomTabs() {
-  document.querySelectorAll('.tabs [data-subtab]').forEach(el => {
-    el.parentElement.style.opacity = '1';
-    el.parentElement.style.pointerEvents = 'auto';
+  document.querySelectorAll('.tabs:not(.main-tabs)').forEach(t => {
+    t.style.opacity = '1';
+    t.style.pointerEvents = 'auto';
   });
 }
 
@@ -1525,6 +1586,24 @@ function resetHideTabsTimer() {
 resetHideTabsTimer();
 
 
+
+
+
+window.addEventListener('DOMContentLoaded', () => {
+  const savedUser = localStorage.getItem('exchangeUser');
+  if (savedUser) {
+    currentUser = JSON.parse(savedUser);
+    applyPermissions(currentUser.permissions || {});
+    toggleDevToolsIcon(); // [استدعها هنا كمان]
+  }
+});
+
+
 </script>
+
+<button id="btnDevTools" class="devtools-float" style="display:none;" title="DevTools">
+  <i class="fas fa-toolbox"></i>
+</button>
+
 </body>
 </html>
