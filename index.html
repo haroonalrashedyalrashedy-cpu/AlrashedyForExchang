@@ -1150,11 +1150,26 @@ function renderTable(tableId, data) {
   tbody.innerHTML = '';
   data.forEach(d => {
     const time = new Date(d.time).toLocaleString('ar');
+    
     if (tableId.includes('buy') || tableId.includes('sell')) {
-      tbody.innerHTML += `<tr><td>${d.amount}</td><td>${d.rate}</td><td>${d.result}</td><td>${d.userName}</td><td>${time}</td></tr>`;
+      // جداول الشراء والبيع: المبلغ | السعر | النتيجة | الموظف | الوقت
+      tbody.innerHTML += `<tr>
+        <td>${d.amount || '-'}</td>
+        <td>${d.rate || '-'}</td>
+        <td>${d.result || '-'}</td>
+        <td>${d.userName || '-'}</td>
+        <td>${time}</td>
+      </tr>`;
     } else {
+      // جداول القبض والصرف: الحساب | المبلغ | العملة | الموظف | الوقت
       const acc = allAccounts.find(a => a.id === d.accountId);
-      tbody.innerHTML += `<tr><td>${acc?acc.name:'-'}</td><td>${d.amount}</td><td>${d.currency}</td><td>${d.userName}</td><td>${time}</td></tr>`;
+      tbody.innerHTML += `<tr>
+        <td>${acc?acc.name:'-'}</td>
+        <td>${d.amount || '-'}</td>
+        <td>${d.currency || '-'}</td>
+        <td>${d.userName || '-'}</td>
+        <td>${time}</td>
+      </tr>`;
     }
   });
 }
