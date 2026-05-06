@@ -472,54 +472,68 @@
       </div>
     </div>
 
- <div id="staffPerm" class="tab-content">
-  
-  <!-- شريط التبويبات الفرعية مرة وحدة بس -->
+<div id="staffPerm" class="tab-content">
+
   <div class="tabs main-tabs">
     <div class="tab active" data-subtab="staffPermView">صلاحياتي</div>
-    <div class="tab" data-subtab="staffCreateAcc">انشاء حساب</div>
-    <div class="tab" data-subtab="staffChangePass">تغيير كلمة المرور</div>
+    <div class="tab" data-subtab="staffRateEdit" style="display:none;">تعديل السعر</div>
+    <div class="tab" data-subtab="staffViewAcc" style="display:none;">عرض الحسابات</div>
+    <div class="tab" data-subtab="staffCreateAcc" style="display:none;">انشاء حساب</div>
+    <div class="tab" data-subtab="staffChangePass" style="display:none;">تغيير كلمة المرور</div>
   </div>
 
-  <!-- المحتوى رقم 1 -->
+  <!-- صلاحياتي -->
   <div id="staffPermView" class="tab-content active">
     <div class="card">
       <h3>الصلاحيات المفعلة لحسابك</h3>
-      <div id="staffPermList" style="display:flex; flex-direction:column; gap:8px; margin-top:12px;">
+      <div id="staffPermList"></div>
+    </div>
+  </div>
+
+  <!-- تعديل السعر - جديد -->
+  <div id="staffRateEdit" class="tab-content">
+    <div class="card">
+      <h3>تعديل الاسعار</h3>
+      <div class="row">
+        <select id="staffRateCurrency"></select>
+        <input type="number" id="staffBuyRateInput" placeholder="سعر الشراء" inputmode="decimal">
+        <button id="btnStaffSaveBuyRate">حفظ شراء</button>
+      </div>
+      <div class="row">
+        <input type="number" id="staffSellRateInput" placeholder="سعر البيع" inputmode="decimal">
+        <button id="btnStaffSaveSellRate">حفظ بيع</button>
       </div>
     </div>
   </div>
 
-  <!-- المحتوى رقم 2 -->
+  <!-- عرض الحسابات - جديد -->
+  <div id="staffViewAcc" class="tab-content">
+    <div class="card">
+      <div class="row">
+        <select id="staffViewAccSelect" class="searchable"></select>
+        <button id="btnStaffViewAcc">عرض</button>
+      </div>
+      <table id="staffAccBalanceTable">
+        <thead><tr><th>العملة</th><th>الرصيد</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- انشاء حساب -->
   <div id="staffCreateAcc" class="tab-content">
-    <div class="card">
-      <h3>انشاء حساب عميل</h3>
-      <div class="row">
-        <input type="text" id="staffAccName" placeholder="اسم العميل">
-        <input type="number" id="staffAccPhone" placeholder="رقم الهاتف" inputmode="numeric">
-      </div>
-      <div class="row">
-        <label><input type="checkbox" value="YER" class="staffAccCurrency"> ريال يمني</label>
-        <label><input type="checkbox" value="SAR" class="staffAccCurrency"> ريال سعودي</label>
-        <label><input type="checkbox" value="USD" class="staffAccCurrency"> دولار</label>
-        <label><input type="checkbox" value="EUR" class="staffAccCurrency"> يورو</label>
-      </div>
-      <button id="btnStaffCreateAcc">حفظ الحساب</button>
-    </div>
+    <!-- نفس الكود القديم -->
   </div>
 
-  <!-- المحتوى رقم 3 -->
+  <!-- تغيير كلمة المرور -->
   <div id="staffChangePass" class="tab-content">
-    <div class="card">
-      <h3>تغيير كلمة المرور</h3>
-      <div class="row">
-        <input type="password" id="staffNewPass" placeholder="كلمة المرور الجديدة" inputmode="numeric">
-        <button id="btnChangeStaffPass">حفظ</button>
-      </div>
-    </div>
+    <!-- نفس الكود القديم -->
   </div>
 
 </div>
+
+
+
 
   <div id="modalOverlay" class="overlay"></div>
   <div id="editEmpModal" class="modal">
@@ -603,51 +617,32 @@ function setLoading(btn, loading) {
 
 function applyPermissions(perms) {
   perms = perms || {};
-  console.log("📌 PERMISSIONS:", perms);
 
-  // 1. اظهر/اخفي التبويبات الفرعية حسب الصلاحية
-  const tabCreateAcc = document.querySelector('#staffPerm.tab[data-subtab="staffCreateAcc"]');
-  const tabChangePass = document.querySelector('#staffPerm.tab[data-subtab="staffChangePass"]');
-  const contentCreateAcc = document.getElementById('staffCreateAcc');
-  const contentChangePass = document.getElementById('staffChangePass');
+  // اظهر/اخفي التبويبات الفرعية حسب الصلاحية
+  document.querySelector('[data-subtab="staffRateEdit"]').style.display = perms.editRate? 'block' : 'none';
+  document.querySelector('[data-subtab="staffViewAcc"]').style.display = perms.viewAcc? 'block' : 'none';
+  document.querySelector('[data-subtab="staffCreateAcc"]').style.display = perms.createAcc? 'block' : 'none';
+  document.querySelector('[data-subtab="staffChangePass"]').style.display = perms.changePass? 'block' : 'none';
 
-  if (tabCreateAcc) tabCreateAcc.style.display = perms.createAcc? 'block' : 'none';
-  if (contentCreateAcc) contentCreateAcc.style.display = perms.createAcc? 'block' : 'none';
-
-  if (tabChangePass) tabChangePass.style.display = perms.changePass? 'block' : 'none';
-  if (contentChangePass) contentChangePass.style.display = perms.changePass? 'block' : 'none';
-
-  // 2. خلي سعر البيع قابل للتعديل لو عنده صلاحية
-  const sellRateInput = document.getElementById('staffSellRate');
-  if (sellRateInput) sellRateInput.readOnly =!perms.editRate;
-
-  // 3. عبّي قائمة الصلاحيات المفعلة
+  // حدث قائمة الصلاحيات المفعلة
   const list = document.getElementById('staffPermList');
-  if (!list) return;
-
   const permNames = {
-    editRate: "تعديل سعر البيع",
+    editRate: "تعديل الاسعار",
     viewAcc: "عرض الحسابات",
-    createAcc: "إنشاء حساب عميل",
+    createAcc: "انشاء حساب",
     changePass: "تغيير كلمة المرور"
   };
 
-  list.innerHTML = '';
-  let hasAny = false;
-
-  Object.keys(permNames).forEach(key => {
-    if (perms[key]) {
-      hasAny = true;
-      list.innerHTML += `<div style="padding:8px; background:var(--bg-dark); border-radius:6px; border:1px solid var(--border-color);">
-        ✅ ${permNames[key]}
-      </div>`;
-    }
-  });
-
-  if (!hasAny) {
-    list.innerHTML = `<div style="opacity:0.7;">لا توجد صلاحيات مفعلة حالياً</div>`;
-  }
+  list.innerHTML = Object.keys(permNames)
+   .filter(k => perms[k])
+   .map(k => `<div style="padding:8px; background:var(--bg-dark); border-radius:6px;">✅ ${permNames[k]}</div>`)
+   .join('') || '<div>لا توجد صلاحيات</div>';
 }
+
+
+
+
+
 
 function filterDataByUser(data, userId, isAdmin) {
   if (isAdmin) return data;
@@ -1030,7 +1025,7 @@ document.getElementById('btnDeleteEmp').addEventListener('click', async () => {
 function loadCurrencies() {
   const selects = ['buyCurrency', 'sellCurrency', 'depositCurrency', 'withdrawCurrency',
                    'staffBuyCurrency', 'staffSellCurrency', 'staffDepositCurrency', 'staffWithdrawCurrency',
-                   'staffMatchCurrency', 'rateCurrency', 'matchCurrencySelect'];
+                   'staffMatchCurrency', 'rateCurrency', 'matchCurrencySelect', 'staffRateCurrency'];
   selects.forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
@@ -1039,7 +1034,6 @@ function loadCurrencies() {
       sel.innerHTML += `<option value="${cur}">${cur}</option>`;
     });
   });
-  console.log("📌 CURRENCIES LOADED:", activeCurrencies);
 }
 
 function loadRatesRealtime() {
@@ -1179,13 +1173,14 @@ function renderTable(tableId, data) {
   if (el) el.addEventListener('change', loadTransactions);
 });
 
-async function loadAccounts() {
+function loadAccounts() {
   const snap = await get(ref(db, 'accounts'));
   allAccounts = [];
   if (snap.exists()) {
     allAccounts = Object.entries(snap.val()).map(([id, a]) => ({id,...a}));
   }
-  const selects = ['depositAccount', 'withdrawAccount', 'staffDepositAccount', 'staffWithdrawAccount', 'viewAccSelect', 'editAccSelect', 'deleteAccSelect'];
+  const selects = ['depositAccount', 'withdrawAccount', 'staffDepositAccount', 'staffWithdrawAccount', 
+                   'viewAccSelect', 'editAccSelect', 'deleteAccSelect', 'staffViewAccSelect'];
   selects.forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
@@ -1194,7 +1189,6 @@ async function loadAccounts() {
       sel.innerHTML += `<option value="${acc.id}">${acc.name} ${acc.status==='suspended'?'(موقف)':''}</option>`;
     });
   });
-  console.log("📌 ACCOUNTS LOADED:", allAccounts.length);
 }
 
 document.getElementById('btnCreateAcc').addEventListener('click', async () => {
@@ -1324,6 +1318,54 @@ async function loadRateLogs() {
   }
 }
 
+
+// حفظ سعر الشراء للموظف
+document.getElementById('btnStaffSaveBuyRate').addEventListener('click', async () => {
+  const currency = document.getElementById('staffRateCurrency').value;
+  const rate = parseFloat(document.getElementById('staffBuyRateInput').value);
+  if (!rate) { showToast('ادخل السعر'); return; }
+  await update(ref(db, `rates/buy/${currency}`), rate);
+  await push(ref(db, 'rateLogs'), {currency, type: 'buy', rate, userId: currentUser.uid, userName: currentUser.name, time: Date.now()});
+  showToast('تم حفظ سعر الشراء');
+  loadRatesRealtime();
+  loadRateLogs();
+});
+
+// حفظ سعر البيع للموظف
+document.getElementById('btnStaffSaveSellRate').addEventListener('click', async () => {
+  const currency = document.getElementById('staffRateCurrency').value;
+  const rate = parseFloat(document.getElementById('staffSellRateInput').value);
+  if (!rate) { showToast('ادخل السعر'); return; }
+  await update(ref(db, `rates/sell/${currency}`), rate);
+  await push(ref(db, 'rateLogs'), {currency, type: 'sell', rate, userId: currentUser.uid, userName: currentUser.name, time: Date.now()});
+  showToast('تم حفظ سعر البيع');
+  loadRatesRealtime();
+  loadRateLogs();
+});
+
+// عرض رصيد الحساب للموظف
+document.getElementById('btnStaffViewAcc').addEventListener('click', async () => {
+  const accId = document.getElementById('staffViewAccSelect').value;
+  if (!accId) { showToast('اختر حساب'); return; }
+  const snap = await get(ref(db, 'transactions'));
+  let data = snap.exists()? Object.values(snap.val()) : [];
+  data = data.filter(d => d.accountId === accId);
+
+  const balances = {};
+  data.forEach(d => {
+    if (!balances[d.currency]) balances[d.currency] = 0;
+    if (d.type === 'deposit' || d.type === 'buy') balances[d.currency] += d.amount;
+    if (d.type === 'withdraw' || d.type === 'sell') balances[d.currency] -= d.amount;
+  });
+
+  const tbody = document.querySelector('#staffAccBalanceTable tbody');
+  tbody.innerHTML = '';
+  Object.entries(balances).forEach(([cur, bal]) => {
+    tbody.innerHTML += `<tr><td>${cur}</td><td>${bal.toFixed(2)}</td></tr>`;
+  });
+}); 
+
+
 document.getElementById('btnSaveColors').addEventListener('click', async () => {
   const accent = document.getElementById('colorAccent').value;
   const bg = document.getElementById('colorBg').value;
@@ -1372,10 +1414,9 @@ document.getElementById('btnSavePerm').addEventListener('click', async () => {
 document.getElementById('permEmpSelect').addEventListener('change', async () => {
   const uid = document.getElementById('permEmpSelect').value;
   if (!uid) {
-    document.getElementById('permEditRate').checked = false;
-    document.getElementById('permViewAcc').checked = false;
-    document.getElementById('permCreateAcc').checked = false;
-    document.getElementById('permChangePass').checked = false;
+    ['permEditRate','permViewAcc','permCreateAcc','permChangePass'].forEach(id => {
+      document.getElementById(id).checked = false;
+    });
     return;
   }
   const snap = await get(ref(db, `users/${uid}/permissions`));
@@ -1385,6 +1426,11 @@ document.getElementById('permEmpSelect').addEventListener('change', async () => 
   document.getElementById('permCreateAcc').checked = perms.createAcc || false;
   document.getElementById('permChangePass').checked = perms.changePass || false;
 });
+
+
+
+
+
 
 async function calcSystemBalance(userId, currency) {
   const snap = await get(ref(db, 'transactions'));
