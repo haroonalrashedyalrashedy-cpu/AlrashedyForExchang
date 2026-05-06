@@ -617,15 +617,28 @@ function setLoading(btn, loading) {
 
 function applyPermissions(perms) {
   perms = perms || {};
+  console.log("📌 PERMISSIONS:", perms);
 
-  // اظهر/اخفي التبويبات الفرعية حسب الصلاحية
-  document.querySelector('[data-subtab="staffRateEdit"]').style.display = perms.editRate? 'block' : 'none';
-  document.querySelector('[data-subtab="staffViewAcc"]').style.display = perms.viewAcc? 'block' : 'none';
-  document.querySelector('[data-subtab="staffCreateAcc"]').style.display = perms.createAcc? 'block' : 'none';
-  document.querySelector('[data-subtab="staffChangePass"]').style.display = perms.changePass? 'block' : 'none';
+  // 1. اظهر/اخفي التبويبات الفرعية للموظف فقط لو موجودة
+  const tabsConfig = {
+    staffRateEdit: perms.editRate,
+    staffViewAcc: perms.viewAcc,
+    staffCreateAcc: perms.createAcc,
+    staffChangePass: perms.changePass
+  };
 
-  // حدث قائمة الصلاحيات المفعلة
+  Object.keys(tabsConfig).forEach(tabId => {
+    const tabBtn = document.querySelector(`#staffPerm [data-subtab="${tabId}"]`);
+    const tabContent = document.getElementById(tabId);
+    
+    if (tabBtn) tabBtn.style.display = tabsConfig[tabId] ? 'block' : 'none';
+    if (tabContent) tabContent.style.display = tabsConfig[tabId] ? 'block' : 'none';
+  });
+
+  // 2. عبّي قائمة الصلاحيات المفعلة لو موجودة
   const list = document.getElementById('staffPermList');
+  if (!list) return; // لو مش في شاشة الموظف اطلع
+
   const permNames = {
     editRate: "تعديل الاسعار",
     viewAcc: "عرض الحسابات",
@@ -635,8 +648,8 @@ function applyPermissions(perms) {
 
   list.innerHTML = Object.keys(permNames)
    .filter(k => perms[k])
-   .map(k => `<div style="padding:8px; background:var(--bg-dark); border-radius:6px;">✅ ${permNames[k]}</div>`)
-   .join('') || '<div>لا توجد صلاحيات</div>';
+   .map(k => `<div style="padding:8px; background:var(--bg-dark); border-radius:6px; border:1px solid var(--border-color);">✅ ${permNames[k]}</div>`)
+   .join('') || '<div style="opacity:0.7;">لا توجد صلاحيات مفعلة</div>';
 }
 
 
@@ -1173,7 +1186,7 @@ function renderTable(tableId, data) {
   if (el) el.addEventListener('change', loadTransactions);
 });
 
-function loadAccounts() {
+async function loadAccounts() {
   const snap = await get(ref(db, 'accounts'));
   allAccounts = [];
   if (snap.exists()) {
