@@ -1211,20 +1211,6 @@ document.getElementById('btnDeleteAcc').addEventListener('click', async () => {
 
 document.getElementById('btnSaveBuyRate').addEventListener('click', async () => {
   const currency = document.getElementById('rateCurrency').value;
-  const rateVal = document.getElementById('buyRateInput').value.trim();
-  const rate = parseFloat(rateVal);
-  
-  if (!currency) { showToast('اختر العملة'); return; }
-  if (!rateVal || isNaN(rate) || rate <= 0) { showToast('ادخل سعر صحيح'); return; }
-
-  await update(ref(db, `rates/buy/${currency}`), rate);
-  await push(ref(db, 'rateLogs'), {currency, type: 'buy', rate, userId: currentUser.uid, userName: currentUser.name, time: Date.now()});
-  showToast('تم حفظ سعر الشراء');
-  loadRateLogs();
-});
-
-document.getElementById('btnSaveBuyRate').addEventListener('click', async () => {
-  const currency = document.getElementById('rateCurrency').value;
   const rateStr = document.getElementById('buyRateInput').value.trim();
   const rate = parseFloat(rateStr);
 
@@ -1232,8 +1218,10 @@ document.getElementById('btnSaveBuyRate').addEventListener('click', async () => 
   if (!rateStr || isNaN(rate) || rate <= 0) { showToast('ادخل سعر صحيح'); return; }
 
   try {
-    await update(ref(db, `rates/buy/${currency}`), rate);
-    showToast('تم الحفظ بنجاح');
+    await set(ref(db, `rates/buy/${currency}`), rate);
+    await push(ref(db, 'rateLogs'), {currency, type: 'buy', rate, userId: currentUser.uid, userName: currentUser.name, time: Date.now()});
+    showToast('تم حفظ سعر الشراء');
+    loadRateLogs();
   } catch (err) {
     showToast('خطأ: ' + err.message);
     console.error(err);
