@@ -1173,7 +1173,7 @@ function renderTable(tableId, data) {
   if (el) el.addEventListener('change', loadTransactions);
 });
 
-function loadAccounts() {
+async function loadAccounts() {
   const snap = await get(ref(db, 'accounts'));
   allAccounts = [];
   if (snap.exists()) {
