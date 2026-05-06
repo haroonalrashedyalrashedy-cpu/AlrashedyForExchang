@@ -1681,7 +1681,6 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 let hideTabsTimer = null;
 
 function hideBottomTabs() {
-  // اخفي التابات الفرعية فقط، واترك .main-tabs
   document.querySelectorAll('.tabs:not(.main-tabs)').forEach(t => {
     t.style.opacity = '0';
     t.style.pointerEvents = 'none';
@@ -1707,99 +1706,7 @@ function resetHideTabsTimer() {
 
 resetHideTabsTimer();
 
-['buyCurrency', 'sellCurrency', 'staffBuyCurrency', 'staffSellCurrency'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.addEventListener('change', () => {
-    loadRatesRealtime();
-    calcResult(id.replace('Currency',''));
-  });
-});
-
-let selectedRow = null;
-
-// دالة تختار الصف عند الضغط
-document.addEventListener('click', (e) => {
-  const tr = e.target.closest('tbody tr');
-  if (!tr) return;
-  
-  // شيل التحديد من الصف القديم
-  if (selectedRow) selectedRow.classList.remove('selected');
-  
-  // حدد الصف الجديد
-  tr.classList.add('selected');
-  selectedRow = tr;
-  
-  // خزن بيانات الصف للطباعة لاحقاً
-  window.selectedRowData = {
-    table: tr.closest('table').id,
-    cells: [...tr.cells].map(td => td.textContent)
-  };
-  
-  console.log("📌 Row Selected:", window.selectedRowData);
-  showToast('تم تحديد الصف. فعل زر الطباعة الحين');
-});
-
-// دالة طباعة الصف المحدد
-// طباعة الصف المحدد فقط عند الضغط على زر
-window.printSelectedRow = function() {
-  if (!window.selectedRowData) {
-    showToast('اختر صف اولاً');
-    return;
-  }
-  
-  const w = window.open('', '', 'height=600,width=800');
-  w.document.write(`
-    <html dir="rtl" lang="ar">
-    <head>
-      <title>طباعة</title>
-      <style>
-        body { font-family: Arial; padding: 20px; text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #000; padding: 8px; }
-        th { background: #eee; }
-        h2 { margin: 0; }
-        @media print { button { display: none; } }
-      </style>
-    </head>
-    <body>
-      <h2>نظام الراشدي للصرافة</h2>
-      <table>
-        <tr>${window.selectedRowData.cells.map(c => `<td>${c}</td>`).join('')}</tr>
-      </table>
-      <button onclick="window.print()" style="margin-top:20px;padding:10px 20px;">طباعة</button>
-    </body>
-    </html>
-  `);
-  w.document.close();
-}
-
-// طباعة الجدول كامل
-window.printFullTable = function(tableId) {
-  const table = document.getElementById(tableId).outerHTML;
-  const w = window.open('', '', 'height=600,width=800');
-  w.document.write(`
-    <html dir="rtl" lang="ar">
-    <head>
-      <title>تقرير</title>
-      <style>
-        body { font-family: Arial; padding: 20px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #000; padding: 6px; font-size: 12px; }
-        th { background: #eee; }
-        @media print { button { display: none; } }
-      </style>
-    </head>
-    <body>
-      <h2>تقرير ${tableId}</h2>
-      ${table}
-      <button onclick="window.print()" style="margin-top:20px;padding:10px 20px;">طباعة</button>
-    </body>
-    </html>
-  `);
-  w.document.close();
-}
-
-
+// بقية الكود تبع الجداول والطباعة والتحديث يجي هنا
 let selectedRow = null;
 let selectedTable = null;
 
@@ -1811,7 +1718,6 @@ document.getElementById('btnRefreshAll').addEventListener('click', async () => {
   showToast('جاري التحديث...');
 
   try {
-    // اعد تحميل كل البيانات من Firebase
     await loadSettings();
     await loadRatesRealtime();
     await loadAccounts();
@@ -1834,7 +1740,6 @@ document.addEventListener('click', (e) => {
   const table = e.target.closest('table');
 
   if (th && table) {
-    // ضغطت على ركن الجدول = حدد الجدول كامل
     document.querySelectorAll('table').forEach(t => t.classList.remove('table-selected'));
     table.classList.add('table-selected');
     selectedTable = table;
@@ -1844,7 +1749,6 @@ document.addEventListener('click', (e) => {
   }
 
   if (tr) {
-    // ضغطت على صف = حدد الصف
     document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('selected'));
     tr.classList.add('selected');
     selectedRow = tr;
@@ -1927,8 +1831,7 @@ function printPDF(type, tableId) {
   win.document.close();
 }
 
-
-
+console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 </script>
 
 <div id="bottomBar">
