@@ -1023,7 +1023,8 @@ document.getElementById('btnDeleteEmp').addEventListener('click', async () => {
 function loadCurrencies() {
   const selects = ['buyCurrency', 'sellCurrency', 'depositCurrency', 'withdrawCurrency',
                    'staffBuyCurrency', 'staffSellCurrency', 'staffDepositCurrency', 'staffWithdrawCurrency',
-                   'staffMatchCurrency', 'rateCurrency', 'matchCurrencySelect'];
+                   'staffMatchCurrency', 'rateCurrency', 'matchCurrencySelect',
+                   'staffRateCurrency']; // اضف هذا السطر
   selects.forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
@@ -1172,13 +1173,15 @@ function renderTable(tableId, data) {
   if (el) el.addEventListener('change', loadTransactions);
 });
 
-async function loadAccounts() {
+function loadAccounts() {
   const snap = await get(ref(db, 'accounts'));
   allAccounts = [];
   if (snap.exists()) {
     allAccounts = Object.entries(snap.val()).map(([id, a]) => ({id,...a}));
   }
-  const selects = ['depositAccount', 'withdrawAccount', 'staffDepositAccount', 'staffWithdrawAccount', 'viewAccSelect', 'editAccSelect', 'deleteAccSelect'];
+  const selects = ['depositAccount', 'withdrawAccount', 'staffDepositAccount', 'staffWithdrawAccount', 
+                   'viewAccSelect', 'editAccSelect', 'deleteAccSelect',
+                   'staffViewAccSelect']; // اضف هذا السطر
   selects.forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
