@@ -1038,39 +1038,64 @@ function loadCurrencies() {
 
 function loadRatesRealtime() {
   onValue(ref(db, 'rates'), (snap) => {
-    if (snap.exists()) {
-      rates = snap.val();
+    rates = snap.exists()? snap.val() : {buy: {}, sell: {}};
 
-      activeCurrencies.forEach(cur => {
-        // المدير - شراء
-        const buyRateEl = document.getElementById('buyRate');
-        const buyCurSel = document.getElementById('buyCurrency');
-        if (buyRateEl && buyCurSel && buyCurSel.value === cur) {
-          buyRateEl.value = rates.buy?.[cur] || '';
-        }
+    // حدث كل حقول السعر في الصفحة حسب العملة المختارة
+    document.querySelectorAll('input, select').forEach(el => {
+      // تجاهل العناصر اللي ما لها علاقة بالسعر
+      if (!el.id.match(/(buyRate|sellRate|buyCurrency|sellCurrency|staffBuyRate|staffSellRate|staffBuyCurrency|staffSellCurrency|rateCurrency|staffRateCurrency)/)) return;
+    });
 
-        // المدير - بيع
-        const sellRateEl = document.getElementById('sellRate');
-        const sellCurSel = document.getElementById('sellCurrency');
-        if (sellRateEl && sellCurSel && sellCurSel.value === cur) {
-          sellRateEl.value = rates.sell?.[cur] || '';
-        }
+    activeCurrencies.forEach(cur => {
+      // تحديث خانات العرض القراءة فقط
+      const buyRateEl = document.getElementById('buyRate');
+      const buyCurSel = document.getElementById('buyCurrency');
+      if (buyRateEl && buyCurSel && buyCurSel.value === cur) {
+        buyRateEl.value = rates.buy?.[cur] || '';
+      }
 
-        // الموظف - شراء
-        const staffBuyRateEl = document.getElementById('staffBuyRate');
-        const staffBuyCurSel = document.getElementById('staffBuyCurrency');
-        if (staffBuyRateEl && staffBuyCurSel && staffBuyCurSel.value === cur) {
-          staffBuyRateEl.value = rates.buy?.[cur] || '';
-        }
+      const sellRateEl = document.getElementById('sellRate');
+      const sellCurSel = document.getElementById('sellCurrency');
+      if (sellRateEl && sellCurSel && sellCurSel.value === cur) {
+        sellRateEl.value = rates.sell?.[cur] || '';
+      }
 
-        // الموظف - بيع
-        const staffSellRateEl = document.getElementById('staffSellRate');
-        const staffSellCurSel = document.getElementById('staffSellCurrency');
-        if (staffSellRateEl && staffSellCurSel && staffSellCurSel.value === cur) {
-          staffSellRateEl.value = rates.sell?.[cur] || '';
-        }
-      });
-    }
+      const staffBuyRateEl = document.getElementById('staffBuyRate');
+      const staffBuyCurSel = document.getElementById('staffBuyCurrency');
+      if (staffBuyRateEl && staffBuyCurSel && staffBuyCurSel.value === cur) {
+        staffBuyRateEl.value = rates.buy?.[cur] || '';
+      }
+
+      const staffSellRateEl = document.getElementById('staffSellRate');
+      const staffSellCurSel = document.getElementById('staffSellCurrency');
+      if (staffSellRateEl && staffSellCurSel && staffSellCurSel.value === cur) {
+        staffSellRateEl.value = rates.sell?.[cur] || '';
+      }
+
+      // تحديث خانات تعديل السعر نفسها
+      const adminBuyInput = document.getElementById('buyRateInput');
+      const adminRateSel = document.getElementById('rateCurrency');
+      if (adminBuyInput && adminRateSel && adminRateSel.value === cur) {
+        adminBuyInput.placeholder = rates.buy?.[cur] || '';
+      }
+
+      const adminSellInput = document.getElementById('sellRateInput');
+      if (adminSellInput && adminRateSel && adminRateSel.value === cur) {
+        adminSellInput.placeholder = rates.sell?.[cur] || '';
+      }
+
+      const staffBuyInput = document.getElementById('staffBuyRateInput');
+      const staffRateSel = document.getElementById('staffRateCurrency');
+      if (staffBuyInput && staffRateSel && staffRateSel.value === cur) {
+        staffBuyInput.placeholder = rates.buy?.[cur] || '';
+      }
+
+      const staffSellInput = document.getElementById('staffSellRateInput');
+      if (staffSellInput && staffRateSel && staffRateSel.value === cur) {
+        staffSellInput.placeholder = rates.sell?.[cur] || '';
+      }
+    });
+
     console.log("📌 RATES REALTIME UPDATED:", rates);
   });
 }
