@@ -497,31 +497,62 @@
       </div>
     </div>
 
-    <div id="staffPerm" class="tab-content ">
+ <div id="staffPerm" class="tab-content">
         
-      <div class="card">
-        <h3>انشاء حساب عميل</h3>
-        <div class="row">
-          <input type="text" id="staffAccName" placeholder="اسم العميل">
-          <input type="number" id="staffAccPhone" placeholder="رقم الهاتف" inputmode="numeric">
-        </div>
-        <div class="row">
-          <label><input type="checkbox" value="YER" class="staffAccCurrency"> ريال يمني</label>
-          <label><input type="checkbox" value="SAR" class="staffAccCurrency"> ريال سعودي</label>
-          <label><input type="checkbox" value="USD" class="staffAccCurrency"> دولار</label>
-          <label><input type="checkbox" value="EUR" class="staffAccCurrency"> يورو</label>
-        </div>
-        <button id="btnStaffCreateAcc">حفظ الحساب</button>
-      </div>
-      <div class="card">
-        <h3>تغيير كلمة المرور</h3>
-        <div class="row">
-          <input type="password" id="staffNewPass" placeholder="كلمة المرور الجديدة" inputmode="numeric">
-          <button id="btnChangeStaffPass">حفظ</button>
-        </div>
-      </div>
+  <div class="card">
+    <h3>انشاء حساب عميل</h3>
+    <div class="row">
+      <input type="text" id="staffAccName" placeholder="اسم العميل">
+      <input type="number" id="staffAccPhone" placeholder="رقم الهاتف" inputmode="numeric">
+    </div>
+    <div class="row">
+      <label><input type="checkbox" value="YER" class="staffAccCurrency"> ريال يمني</label>
+      <label><input type="checkbox" value="SAR" class="staffAccCurrency"> ريال سعودي</label>
+      <label><input type="checkbox" value="USD" class="staffAccCurrency"> دولار</label>
+      <label><input type="checkbox" value="EUR" class="staffAccCurrency"> يورو</label>
+    </div>
+    <button id="btnStaffCreateAcc">حفظ الحساب</button>
+  </div>
+
+  <div class="card">
+    <h3>تغيير كلمة المرور</h3>
+    <div class="row">
+      <input type="password" id="staffNewPass" placeholder="كلمة المرور الجديدة" inputmode="numeric">
+      <button id="btnChangeStaffPass">حفظ</button>
     </div>
   </div>
+
+  <!-- حط الكود الجديد هنا 👇 تحت كرت تغيير كلمة المرور -->
+
+  <!-- كرت تعديل الاسعار - يظهر لو عنده editRate -->
+  <div class="card" id="staffEditRateCard" style="display:none">
+    <h3>تعديل الاسعار</h3>
+    <div class="row">
+      <select id="staffRateCurrency"></select>
+      <input type="number" id="staffBuyRateInput" placeholder="سعر الشراء" inputmode="decimal">
+      <button id="btnSaveStaffBuyRate">حفظ شراء</button>
+    </div>
+    <div class="row">
+      <input type="number" id="staffSellRateInput" placeholder="سعر البيع" inputmode="decimal">
+      <button id="btnSaveStaffSellRate">حفظ بيع</button>
+    </div>
+  </div>
+
+  <!-- كرت عرض الحسابات - يظهر لو عنده viewAcc -->
+  <div class="card" id="staffViewAccCard" style="display:none">
+    <h3>عرض حساب عميل</h3>
+    <div class="row">
+      <select id="staffViewAccSelect" class="searchable"></select>
+      <button id="btnStaffViewAcc">عرض</button>
+    </div>
+    <table id="staffAccBalanceTable">
+      <thead><tr><th>العملة</th><th>الرصيد</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+</div>
+
 
   <div id="modalOverlay" class="overlay"></div>
   <div id="editEmpModal" class="modal">
@@ -604,19 +635,14 @@ function setLoading(btn, loading) {
 }
 
 function applyPermissions(perms) {
-  // لا تلعب في display. خلي CSS يتحكم
-  document.querySelectorAll('#staffScreen .tab-content').forEach(tc => {
-    tc.classList.remove('active');
-  });
-
-  // اظهر التبويبات الرئيسية
-  document.querySelector('#staffScreen .tabs').style.display = 'flex';
+  const editRateCard = document.getElementById('staffEditRateCard');
+  const viewAccCard = document.getElementById('staffViewAccCard');
   
-  // افتح العمليات + شراء افتراضياً
-  document.getElementById('staffOps').classList.add('active');
-  document.getElementById('staffBuy').classList.add('active');
-  document.querySelector('.tab[data-tab="staffOps"]').classList.add('active');
-  document.querySelector('.tab[data-subtab="staffBuy"]').classList.add('active');
+  if (editRateCard) editRateCard.style.display = perms.editRate ? 'block' : 'none';
+  if (viewAccCard) viewAccCard.style.display = perms.viewAcc ? 'block' : 'none';
+
+  // لو عطاه صلاحية عرض الحسابات، عبّي السيلكت فوراً
+  if (perms.viewAcc) loadAccounts();
 }
 
 function filterDataByUser(data, userId, isAdmin) {
@@ -881,8 +907,15 @@ function initStaffPanel() {
   loadAccounts();
   loadCurrencies();
   loadStaffTransactions();
-  loadRatesRealtime(); // 📌 صار ريال تايم
-  console.log("📌 STAFF PANEL INIT");
+  loadRatesRealtime();
+
+  // استمع للصلاحيات لحظياً
+  onValue(ref(db, `users/${currentUser.uid}/permissions`), (snap) => {
+    const perms = snap.exists() ? snap.val() : {};
+    currentUser.permissions = perms; // حدث الكائن المحلي
+    applyPermissions(perms);
+    console.log("📌 PERMISSIONS UPDATED REALTIME:", perms);
+  });
 }
 
 document.getElementById('btnAddEmp').addEventListener('click', async () => {
