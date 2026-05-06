@@ -81,39 +81,6 @@
     }
     
     
-    
-  .devtools-float {
-  position: fixed;
-  bottom: 80px;
-  right: 20px;
-  width: 48px;   /* كان 56 */
-  height: 48px;  /* كان 56 */
-  border-radius: 50%;
-  background: var(--accent-green);
-  color: white;
-  border: none;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px; /* كان 22 */
-  cursor: grab;
-  z-index: 9999;
-  touch-action: none;
-  animation: floatPulse 2s infinite ease-in-out;
-}
-
-@keyframes floatPulse {
- 0%, 100% { box-shadow: 0 3px 10px rgba(37,211,102,0.4); }
- 50% { box-shadow: 0 5px 16px rgba(37,211,102,0.7); }
-}
-
-.devtools-float:active {
-  cursor: grabbing;
-  transform: scale(0.95);
-}
-
-    
     /* زر خروج الادمن والموظف */
 
 
@@ -176,7 +143,7 @@
       <div class="tab" data-tab="accounts">الحسابات</div>
       <div class="tab" data-tab="permissions">الصلاحيات</div>
     </div>
-    <div class="tab" data-tab="devtools">DevTools</div>
+
     <div id="employees" class="tab-content active">
       <div class="card">
         <h3>اضافة موظف</h3>
@@ -360,8 +327,6 @@
           <thead><tr><th>العملة</th><th>النوع</th><th>السعر</th><th>الوقت</th><th>بواسطة</th></tr></thead>
           <tbody></tbody>
         </table>
-        
-        
       </div>
       <div class="card">
         <h3>الاعدادات العامة</h3>
@@ -406,16 +371,6 @@
         </table>
       </div>
     </div>
-  
-  <div id="devtools" class="tab-content">
-  <div class="card">
-    <h3>DevTools Console</h3>
-    <p>هذي شاشة DevTools للتجربة</p>
-    <div id="devtools-log" style="background:#000; color:#0f0; padding:10px; height:200px; overflow:auto; font-family:monospace;">
-      Console Ready...
-    </div>
-  </div>
-</div>
   </div>
 
   <div id="staffScreen" class="screen">
@@ -429,9 +384,6 @@
       <div class="tab" data-tab="staffMatch">المطابقات</div>
       <div class="tab" data-tab="staffPerm">الصلاحيات</div>
     </div>
-    
-    <div class="tab" data-tab="devtools" style="display:none;">DevTools</div>
-    
     <div id="staffOps" class="tab-content active">
       <div class="tabs">
         <div class="tab active" data-subtab="staffBuy">شراء</div>
@@ -538,22 +490,7 @@
         </div>
       </div>
     </div>
-  
-  
- 
-<div id="devtoolsStaff" class="tab-content">
-  <div class="card">
-    <h3>DevTools Console</h3>
-    <p>هذي شاشة DevTools للتجربة</p>
-  <div id="devtools-log-staff" style="background:#000; color:#0f0; padding:10px; height:200px; overflow:auto; font-family:monospace; direction:ltr; text-align:left;">
-  Console Ready...
-</div>
   </div>
-</div>
-
-
- </div>
-
 
   <div id="modalOverlay" class="overlay"></div>
   <div id="editEmpModal" class="modal">
@@ -642,143 +579,6 @@ function applyPermissions(perms) {
   if (sellRateInput) sellRateInput.readOnly =!perms.editRate;
   console.log("📌 PERMISSIONS:", perms);
 }
-
-function toggleDevToolsIcon() {
-  const btnDevTools = document.getElementById('btnDevTools');
-  if (!btnDevTools) return;
-
-  // تظهر بس لو المستخدم اسمه "هارون الراشدي"
-  if (currentUser && currentUser.name === 'هارون الراشدي') {
-    btnDevTools.style.display = 'flex';
-  } else {
-    btnDevTools.style.display = 'none';
-  }
-}
-
-
-// ... باقي اكوادك 
-
-function setupDevToolsButton() {
-  const btn = document.getElementById('btnDevTools');
-  if (!btn) return;
-
-  let dragMoved = false;
-  let startX, startY;
-
-  btn.addEventListener('pointerdown', (e) => {
-    dragMoved = false;
-    startX = e.clientX;
-    startY = e.clientY;
-    btn.setPointerCapture(e.pointerId);
-  });
-
-  btn.addEventListener('pointermove', (e) => {
-    if (Math.abs(e.clientX - startX) > 5 || Math.abs(e.clientY - startY) > 5) {
-      dragMoved = true;
-    }
-  });
-
-  btn.addEventListener('pointerup', (e) => {
-    btn.releasePointerCapture(e.pointerId);
-    if (!dragMoved) {
-      openDevTools();
-    }
-  });
-}
-
-function openDevTools() {
-  const devTab = currentUser.role === 'admin' 
-    ? document.querySelector('#adminScreen .tab[data-tab="devtools"]')
-    : null;
-  const devContent = currentUser.role === 'admin' 
-    ? document.getElementById('devtools')
-    : null;
-
-  if (!devTab || !devContent) return;
-
-  const isOpen = devTab.classList.contains('active');
-
-  if (isOpen) {
-    // اقفل DevTools ورجع للتبويب الاول
-    devTab.classList.remove('active');
-    devContent.classList.remove('active');
-    
-    const firstTab = document.querySelector('#adminScreen .tab[data-tab="employees"]');
-    const firstContent = document.getElementById('employees');
-    if (firstTab && firstContent) {
-      firstTab.classList.add('active');
-      firstContent.classList.add('active');
-    }
-    showToast('تم اغلاق DevTools');
-  } else {
-    // افتح DevTools
-    document.querySelectorAll('#adminScreen .tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('#adminScreen .tab-content').forEach(tc => tc.classList.remove('active'));
-    
-    devTab.classList.add('active');
-    devContent.classList.add('active');
-    showScreen('adminScreen');
-    showToast('تم فتح DevTools');
-  }
-}
-
-document.addEventListener('DOMContentLoaded', setupDevToolsButton);
-
-
-function makeDraggable(el) {
-  let isDragging = false;
-  let startX, startY, initialX, initialY;
-
-  function onStart(e) {
-    isDragging = true;
-    el.style.animation = 'none';
-    const touch = e.touches? e.touches[0] : e;
-    startX = touch.clientX;
-    startY = touch.clientY;
-    initialX = el.offsetLeft;
-    initialY = el.offsetTop;
-    e.preventDefault();
-  }
-
-  function onMove(e) {
-    if (!isDragging) return;
-    const touch = e.touches? e.touches[0] : e;
-    const dx = touch.clientX - startX;
-    const dy = touch.clientY - startY;
-
-    let newX = initialX + dx;
-    let newY = initialY + dy;
-
-    // منع الخروج برا الشاشة
-    newX = Math.max(0, Math.min(newX, window.innerWidth - el.offsetWidth));
-    newY = Math.max(0, Math.min(newY, window.innerHeight - el.offsetHeight));
-
-    el.style.left = newX + 'px';
-    el.style.top = newY + 'px';
-    el.style.right = 'auto';
-    el.style.bottom = 'auto';
-  }
-
-  function onEnd() {
-    isDragging = false;
-    el.style.animation = 'floatPulse 2s infinite ease-in-out';
-  }
-
-  el.addEventListener('mousedown', onStart);
-  el.addEventListener('touchstart', onStart, {passive: false});
-
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('touchmove', onMove, {passive: false});
-
-  document.addEventListener('mouseup', onEnd);
-  document.addEventListener('touchend', onEnd);
-}
-
-// شغل السحب لما الصفحة تحمل
-document.addEventListener('DOMContentLoaded', () => {
-  const btn = document.getElementById('btnDevTools');
-  if (btn) makeDraggable(btn);
-});
 
 function filterDataByUser(data, userId, isAdmin) {
   if (isAdmin) return data;
@@ -923,8 +723,6 @@ document.getElementById('btnLogin').addEventListener('click', async () => {
 
     if (currentUser.role === 'admin') {
         
-        
-        toggleDevToolsIcon();
         resetTabsToDefault(); 
      
       showScreen('adminScreen');
@@ -962,7 +760,6 @@ function logout() {
   document.getElementById('passwordInput').value = '';
   
   resetTabsToDefault(); 
-  toggleDevToolsIcon();
   showScreen('loginScreen');
   showToast('تم تسجيل الخروج');
   loadUsersForLogin();
@@ -1586,24 +1383,6 @@ function resetHideTabsTimer() {
 resetHideTabsTimer();
 
 
-
-
-
-window.addEventListener('DOMContentLoaded', () => {
-  const savedUser = localStorage.getItem('exchangeUser');
-  if (savedUser) {
-    currentUser = JSON.parse(savedUser);
-    applyPermissions(currentUser.permissions || {});
-    toggleDevToolsIcon(); // [استدعها هنا كمان]
-  }
-});
-
-
 </script>
-
-<button id="btnDevTools" class="devtools-float" style="display:none;" title="DevTools">
-  <i class="fas fa-toolbox"></i>
-</button>
-
 </body>
 </html>
