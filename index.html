@@ -1223,18 +1223,21 @@ document.getElementById('btnSaveBuyRate').addEventListener('click', async () => 
   loadRateLogs();
 });
 
-document.getElementById('btnSaveSellRate').addEventListener('click', async () => {
+document.getElementById('btnSaveBuyRate').addEventListener('click', async () => {
   const currency = document.getElementById('rateCurrency').value;
-  const rateVal = document.getElementById('sellRateInput').value.trim();
-  const rate = parseFloat(rateVal);
-  
-  if (!currency) { showToast('اختر العملة'); return; }
-  if (!rateVal || isNaN(rate) || rate <= 0) { showToast('ادخل سعر صحيح'); return; }
+  const rateStr = document.getElementById('buyRateInput').value.trim();
+  const rate = parseFloat(rateStr);
 
-  await update(ref(db, `rates/sell/${currency}`), rate);
-  await push(ref(db, 'rateLogs'), {currency, type: 'sell', rate, userId: currentUser.uid, userName: currentUser.name, time: Date.now()});
-  showToast('تم حفظ سعر البيع');
-  loadRateLogs();
+  if (!currency) { showToast('اختر العملة'); return; }
+  if (!rateStr || isNaN(rate) || rate <= 0) { showToast('ادخل سعر صحيح'); return; }
+
+  try {
+    await update(ref(db, `rates/buy/${currency}`), rate);
+    showToast('تم الحفظ بنجاح');
+  } catch (err) {
+    showToast('خطأ: ' + err.message);
+    console.error(err);
+  }
 });
 
 
