@@ -1923,21 +1923,34 @@ async function calcBalanceForAccountCurrency(accountId, currency) {
 
 console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
-let selectedTableId = null; // عشان نعرف اي جدول محدد
 
-// لما تضغط على جدول كامل
+
+
+// ========== كود تصوير الصور ==========
+let selectedTableId = null;
+
+// يحدد الجدول لما تضغط عليه
 document.addEventListener('click', function(e) {
   const table = e.target.closest('table');
-  if (!table) return;
+  if (table) {
+    document.querySelectorAll('table').forEach(t => t.classList.remove('table-selected'));
+    table.classList.add('table-selected');
+    selectedTableId = table.id;
+  }
   
-  // شيل التحديد من كل الجداول
-  document.querySelectorAll('table').forEach(t => t.classList.remove('table-selected'));
-  // حدد الجدول الحالي
-  table.classList.add('table-selected');
-  selectedTableId = table.id;
+  // زر الصورة
+  if (e.target.closest('#btnPrintImg')) {
+    if (window.selectedRowData) {
+      printRowAsImage();
+    } else if (selectedTableId) {
+      printTableAsImage();
+    } else {
+      showToast('اختر صف او جدول أولاً');
+    }
+  }
 });
 
-// دالة تصوير صف واحد
+// يصور صف واحد
 async function printRowAsImage() {
   if (!window.selectedRowData) {
     showToast('اختر صف من الجدول اولاً');
@@ -1962,7 +1975,7 @@ async function printRowAsImage() {
   await generateImage('receiptArea', 'سند_' + Date.now());
 }
 
-// دالة تصوير الجدول كامل
+// يصور الجدول كامل
 async function printTableAsImage() {
   if (!selectedTableId) {
     showToast('اختر جدول اولاً بالضغط على الركن');
@@ -1970,7 +1983,7 @@ async function printTableAsImage() {
   }
 
   const table = document.getElementById(selectedTableId);
-  const title = document.querySelector(`#${selectedTableId}`).closest('.tab-content').querySelector('h3')?.textContent || 'تقرير';
+  const title = document.querySelector(`#${selectedTableId}`)?.closest('.tab-content')?.querySelector('h3')?.textContent || 'تقرير';
 
   document.getElementById('tablePrintDate').textContent = 'التاريخ: ' + new Date().toLocaleString('ar-SA');
   document.getElementById('tablePrintTitle').textContent = title;
@@ -1979,32 +1992,30 @@ async function printTableAsImage() {
   await generateImage('tablePrintArea', 'جدول_' + selectedTableId + '_' + Date.now());
 }
 
-// دالة عامة للتصوير
+// يحول العنصر لصورة وينزلها
 async function generateImage(elementId, filename) {
   const area = document.getElementById(elementId);
   if (!area) { 
-    showToast('خطأ: العنصر ' + elementId + ' غير موجود'); 
+    showToast('العنصر غير موجود: ' + elementId); 
     return; 
   }
   
   if (typeof html2canvas === 'undefined') { 
-    showToast('خطأ: html2canvas ما تحمّل. ارجع حط سطر السكربت في head'); 
+    showToast('html2canvas ما تحمّل. حط سطر السكربت في head'); 
     return; 
   }
   
   area.style.left = '0';
-  showToast('1/3 جاري تحضير الصورة...');
+  showToast('جاري التصوير...');
   
   try {
-    showToast('2/3 جاري التصوير...');
     const canvas = await html2canvas(area, {
       backgroundColor: '#fff',
       scale: 2,
-      useCORS: false // غيرتها لـ false عشان ما توقف على الجوال
+      useCORS: false
     });
     
     area.style.left = '-9999px';
-    showToast('3/3 جاري التنزيل...');
     
     const imgData = canvas.toDataURL('image/png');
     const a = document.createElement('a');
@@ -2014,63 +2025,27 @@ async function generateImage(elementId, filename) {
     a.click();
     document.body.removeChild(a);
     
-    showToast('تم! الصورة نزلت في الملفات');
-  } catch (err) {
-    area.style.left = '-9999px';
-    showToast('فشل: ' + err.message);
-  }
-}async function generateImage(elementId, filename) {
-  const area = document.getElementById(elementId);
-  if (!area) { 
-    showToast('خطأ: العنصر ' + elementId + ' غير موجود'); 
-    return; 
-  }
-  
-  if (typeof html2canvas === 'undefined') { 
-    showToast('خطأ: html2canvas ما تحمّل. ارجع حط سطر السكربت في head'); 
-    return; 
-  }
-  
-  area.style.left = '0';
-  showToast('1/3 جاري تحضير الصورة...');
-  
-  try {
-    showToast('2/3 جاري التصوير...');
-    const canvas = await html2canvas(area, {
-      backgroundColor: '#fff',
-      scale: 2,
-      useCORS: false // غيرتها لـ false عشان ما توقف على الجوال
-    });
-    
-    area.style.left = '-9999px';
-    showToast('3/3 جاري التنزيل...');
-    
-    const imgData = canvas.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = imgData;
-    a.download = filename + '.png';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    showToast('تم! الصورة نزلت في الملفات');
+    showToast('تم تنزيل الصورة');
   } catch (err) {
     area.style.left = '-9999px';
     showToast('فشل: ' + err.message);
   }
 }
+// ========== نهاية كود التصوير ==========
 
 
 
 
 // ربط الزر
-document.getElementById('btnPrintImg').addEventListener('click', () => {
-  if (window.selectedRowData) {
-    printRowAsImage();
-  } else if (selectedTableId) {
-    printTableAsImage();
-  } else {
-    showToast('اختر صف او جدول اولاً');
+document.addEventListener('click', (e) => {
+  if (e.target.closest('#btnPrintImg')) {
+    if (window.selectedRowData) {
+      printRowAsImage();
+    } else if (selectedTableId) {
+      printTableAsImage();
+    } else {
+      showToast('اختر صف او جدول اولاً');
+    }
   }
 });
 
