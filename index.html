@@ -1861,6 +1861,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 // ====== Responsive + Horizontal Scroll للجداول ======
 (function fixTablesResponsive() {
+  // لف كل جدول بـ div للسكرول
   document.querySelectorAll('table').forEach(tbl => {
     if (tbl.closest('.table-wrap')) return;
     const wrap = document.createElement('div');
@@ -1869,25 +1870,22 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     wrap.appendChild(tbl);
   });
 
-  document.getElementById('responsive-fix')?.remove();
-  
-  const style = document.createElement('style');
-  style.id = 'responsive-fix';
-  style.textContent = `
+  const css = `
     .table-wrap {
       width: 100%;
+      overflow: auto; /* سكرول افقي وراسي */
       max-height: 240px;
-      overflow: auto;
-      border: 1px solid var(--border-color);
+      -webkit-overflow-scrolling: touch;
       border-radius: 8px;
+      border: 1px solid var(--border-color);
       background: var(--bg-panel);
     }
     
     .table-wrap table {
-      width: max-content;
+      width: max-content; /* الجدول يتمدد حسب المحتوى */
       min-width: 100%;
       border-collapse: collapse;
-      table-layout: auto;
+      table-layout: auto; /* العرض يعتمد على المحتوى */
     }
     
     .table-wrap thead {
@@ -1897,10 +1895,10 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       background: var(--bg-dark);
     }
     
-    /* لا تلمس display ابداً */
+    /* لا تلمس display حق tbody و tr ابداً */
     
     .table-wrap th {
-      white-space: nowrap;
+      white-space: nowrap; /* العنوان ما يتكسر */
       padding: 8px 14px;
       font-size: 14px;
       font-weight: 600;
@@ -1910,20 +1908,41 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     }
     
     .table-wrap td {
-      white-space: nowrap;
+      white-space: nowrap; /* البيانات سطر واحد */
       padding: 8px 14px;
       font-size: 14px;
       text-align: center;
       border: 1px solid var(--border-color);
     }
     
-    /* الغي اي قطع للنص */
-    .table-wrap th, .table-wrap td {
-      text-overflow: clip;
-      overflow: visible;
+    .table-wrap::after {
+      content: '← اسحب يمين/يسار لمشاهدة الباقي →';
+      display: none;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding: 6px 0;
+      background: var(--bg-panel);
+    }
+    
+    @media (max-width: 768px) {
+      .table-wrap::after { display: block; }
+      .table-wrap th, .table-wrap td { 
+        padding: 6px 10px; 
+        font-size: 13px; 
+      }
+      .row { flex-direction: column; }
+      .row > * { min-width: 100% !important; width: 100%; }
     }
   `;
+  
+  document.getElementById('responsive-fix')?.remove();
+  const style = document.createElement('style');
+  style.id = 'responsive-fix';
+  style.textContent = css;
   document.head.appendChild(style);
+
+  console.log("📌 TABLES FIXED - HEADER WIDTH ONLY");
 })();
 
 
