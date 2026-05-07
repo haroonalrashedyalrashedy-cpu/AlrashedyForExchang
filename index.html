@@ -477,10 +477,19 @@ table.table-selected {
   <button onclick="clearDateFilter('depositTable')">مسح</button>
 </div>
          
-          <table id="depositTable">
-            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
+         <table id="adminDepositTable">
+  <thead>
+    <tr>
+      <th onclick="sortTable('adminDepositTable', 0)" style="cursor:pointer;">الحساب</th>
+      <th onclick="sortTable('adminDepositTable', 1)" style="cursor:pointer;">المبلغ</th>
+      <th onclick="sortTable('adminDepositTable', 2)" style="cursor:pointer;">العملة</th>
+      <th onclick="sortTable('adminDepositTable', 3)" style="cursor:pointer;">المودع</th>
+      <th onclick="sortTable('adminDepositTable', 4)" style="cursor:pointer;">الموظف</th>
+      <th onclick="sortTable('adminDepositTable', 5)" style="cursor:pointer;">الوقت</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
           <div class="row">
             <select id="depositFilterUser"><option value="all">الكل</option></select>
           </div>
@@ -509,10 +518,19 @@ table.table-selected {
   <button onclick="applyDateFilter('withdrawTable')">فلترة</button>
   <button onclick="clearDateFilter('withdrawTable')">مسح</button>
 </div>
-          <table id="withdrawTable">
-            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
+         <table id="adminWithdrawTable">
+  <thead>
+    <tr>
+      <th onclick="sortTable('adminWithdrawTable', 0)" style="cursor:pointer;">الحساب</th>
+      <th onclick="sortTable('adminWithdrawTable', 1)" style="cursor:pointer;">المبلغ</th>
+      <th onclick="sortTable('adminWithdrawTable', 2)" style="cursor:pointer;">العملة</th>
+      <th onclick="sortTable('adminWithdrawTable', 3)" style="cursor:pointer;">المستلم</th>
+      <th onclick="sortTable('adminWithdrawTable', 4)" style="cursor:pointer;">الموظف</th>
+      <th onclick="sortTable('adminWithdrawTable', 5)" style="cursor:pointer;">الوقت</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
           <div class="row">
             <select id="withdrawFilterUser"><option value="all">الكل</option></select>
           </div>
@@ -794,10 +812,17 @@ table.table-selected {
 </div>
          
          
-          <table id="staffDepositTable">
-            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
+         <table id="staffDepositTable">
+  <thead>
+    <tr>
+      <th onclick="sortTable('staffDepositTable', 0)" style="cursor:pointer;">الحساب</th>
+      <th onclick="sortTable('staffDepositTable', 1)" style="cursor:pointer;">المبلغ</th>
+      <th onclick="sortTable('staffDepositTable', 2)" style="cursor:pointer;">العملة</th>
+      <th onclick="sortTable('staffDepositTable', 3)" style="cursor:pointer;">الوقت</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
         </div>
       </div>
 
@@ -824,10 +849,18 @@ table.table-selected {
 </div>
           
           
-          <table id="staffWithdrawTable">
-            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
+         <table id="staffWithdrawTable">
+  <thead>
+    <tr>
+      <th onclick="sortTable('staffWithdrawTable', 0)" style="cursor:pointer;">الحساب</th>
+      <th onclick="sortTable('staffWithdrawTable', 1)" style="cursor:pointer;">المبلغ</th>
+      <th onclick="sortTable('staffWithdrawTable', 2)" style="cursor:pointer;">العملة</th>
+      <th onclick="sortTable('staffWithdrawTable', 3)" style="cursor:pointer;">المستلم</th>
+      <th onclick="sortTable('staffWithdrawTable', 4)" style="cursor:pointer;">الوقت</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
         </div>
       </div>
     </div>
@@ -1574,6 +1607,62 @@ function renderTable(tableId, data) {
     tbody.innerHTML += row;
   });
 }
+
+
+
+
+let sortState = {}; // يحفظ حالة الترتيب لكل جدول
+
+window.sortTable = function(tableId, colIndex) {
+  const table = document.getElementById(tableId);
+  const tbody = table.querySelector('tbody');
+  const rows = Array.from(tbody.rows);
+
+  if (!rows.length) return;
+
+  // حدد الاتجاه: لو نفس العمود اضغط مرة ثانية = اعكس الاتجاه
+  const key = `${tableId}-${colIndex}`;
+  const currentDir = sortState[key] || 'asc';
+  const newDir = currentDir === 'asc'? 'desc' : 'asc';
+  sortState[key] = newDir;
+
+  // رتب الصفوف
+  rows.sort((a, b) => {
+    let valA = a.cells[colIndex].innerText.trim();
+    let valB = b.cells[colIndex].innerText.trim();
+
+    // لو رقمي حوله لرقم
+    const numA = parseFloat(valA.replace(/,/g, ''));
+    const numB = parseFloat(valB.replace(/,/g, ''));
+    const isNum =!isNaN(numA) &&!isNaN(numB);
+
+    if (isNum) {
+      return newDir === 'asc'? numA - numB : numB - numA;
+    } else {
+      // ترتيب عربي: أ الى ي
+      return newDir === 'asc'
+       ? valA.localeCompare(valB, 'ar')
+        : valB.localeCompare(valA, 'ar');
+    }
+  });
+
+  // اعد اضافة الصفوف المرتبة للجدول
+  tbody.innerHTML = '';
+  rows.forEach(row => tbody.appendChild(row));
+
+  // غير شكل الهيدر عشان يبين الاتجاه
+  const headers = table.querySelectorAll('th');
+  headers.forEach((th, i) => {
+    th.innerText = th.innerText.replace(' ▲', '').replace(' ▼', '');
+    if (i === colIndex) {
+      th.innerText += newDir === 'asc'? ' ▲' : ' ▼';
+    }
+  });
+}
+
+
+
+
 
 
 function applyDateFilter(tableId) {
