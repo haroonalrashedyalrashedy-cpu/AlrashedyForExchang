@@ -1531,6 +1531,7 @@ async function loadStaffTransactions() {
   // فلترة بيانات الموظف الحالي فقط
   data = data.filter(d => d.userId === currentUser.uid);
   
+  // هنا لازم تحدد نوع كل جدول
   renderTable('staffBuyTable', data.filter(d => d.type === 'buy'));
   renderTable('staffSellTable', data.filter(d => d.type === 'sell'));
   renderTable('staffDepositTable', data.filter(d => d.type === 'deposit'));
