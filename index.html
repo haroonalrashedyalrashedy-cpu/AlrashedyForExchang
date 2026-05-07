@@ -1810,6 +1810,7 @@ document.addEventListener('click', (e) => {
   const tr = e.target.closest('tbody tr');
   const table = e.target.closest('table');
 
+  // تحديد الجدول كامل عند الضغط على اول خلية هيدر
   if (th && table) {
     document.querySelectorAll('table').forEach(t => t.classList.remove('table-selected'));
     table.classList.add('table-selected');
@@ -1819,25 +1820,13 @@ document.addEventListener('click', (e) => {
     return;
   }
 
+  // تحديد صف واحد
   if (tr) {
     document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('selected'));
     tr.classList.add('selected');
     selectedRow = tr;
     selectedTable = null;
-    tr.onclick = () => {
-  window.selectedRowData = {
-    type: d.type,
-    accountId: d.accountId,
-    currency: d.currency,
-    amount: d.amount,
-    depositor: d.depositor || '',
-    recipient: d.recipient || '',
-    userName: d.userName,
-    time: d.time
-  };
-  printPDF('row');
-}
-    //showToast('تم تحديد الصف');
+    // showToast('تم تحديد الصف');
   }
 });
 
