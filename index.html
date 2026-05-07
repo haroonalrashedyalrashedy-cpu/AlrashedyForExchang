@@ -1870,22 +1870,25 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     wrap.appendChild(tbl);
   });
 
-  const css = `
+  document.getElementById('responsive-fix')?.remove();
+  
+  const style = document.createElement('style');
+  style.id = 'responsive-fix';
+  style.textContent = `
     .table-wrap {
       width: 100%;
-      overflow: auto; /* سكرول افقي وراسي */
+      overflow: auto;
       max-height: 240px;
-      -webkit-overflow-scrolling: touch;
-      border-radius: 8px;
       border: 1px solid var(--border-color);
+      border-radius: 8px;
       background: var(--bg-panel);
     }
     
     .table-wrap table {
-      width: max-content; /* الجدول يتمدد حسب المحتوى */
+      width: max-content;
       min-width: 100%;
       border-collapse: collapse;
-      table-layout: auto; /* العرض يعتمد على المحتوى */
+      table-layout: auto;
     }
     
     .table-wrap thead {
@@ -1895,10 +1898,10 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       background: var(--bg-dark);
     }
     
-    /* لا تلمس display حق tbody و tr ابداً */
+    /* لا تلمس display حق tbody و tr ولا td */
     
     .table-wrap th {
-      white-space: nowrap; /* العنوان ما يتكسر */
+      white-space: nowrap;
       padding: 8px 14px;
       font-size: 14px;
       font-weight: 600;
@@ -1908,41 +1911,21 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     }
     
     .table-wrap td {
-      white-space: nowrap; /* البيانات سطر واحد */
+      white-space: nowrap;
       padding: 8px 14px;
       font-size: 14px;
       text-align: center;
       border: 1px solid var(--border-color);
     }
     
-    .table-wrap::after {
-      content: '← اسحب يمين/يسار لمشاهدة الباقي →';
-      display: none;
-      text-align: center;
-      font-size: 12px;
-      color: var(--text-secondary);
-      padding: 6px 0;
-      background: var(--bg-panel);
-    }
-    
     @media (max-width: 768px) {
-      .table-wrap::after { display: block; }
       .table-wrap th, .table-wrap td { 
         padding: 6px 10px; 
         font-size: 13px; 
       }
-      .row { flex-direction: column; }
-      .row > * { min-width: 100% !important; width: 100%; }
     }
   `;
-  
-  document.getElementById('responsive-fix')?.remove();
-  const style = document.createElement('style');
-  style.id = 'responsive-fix';
-  style.textContent = css;
   document.head.appendChild(style);
-
-  console.log("📌 TABLES FIXED - HEADER WIDTH ONLY");
 })();
 
 
