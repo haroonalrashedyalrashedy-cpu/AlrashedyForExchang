@@ -1861,17 +1861,17 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 // ====== Responsive + Horizontal Scroll للجداول ======
 (function fixTablesResponsive() {
-  // 1. لف الجداول بدون ما تغير اي display
+  // لف كل جدول بـ div للسكرول
   document.querySelectorAll('table').forEach(tbl => {
-    if (tbl.parentElement.classList.contains('table-wrap')) return;
-    
+    if (tbl.closest('.table-wrap')) return;
     const wrap = document.createElement('div');
     wrap.className = 'table-wrap';
     tbl.parentNode.insertBefore(wrap, tbl);
     wrap.appendChild(tbl);
   });
 
-  // 2. CSS بسيط ما يلمس display
+  document.getElementById('responsive-fix')?.remove();
+  
   const style = document.createElement('style');
   style.id = 'responsive-fix';
   style.textContent = `
@@ -1881,12 +1881,14 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       overflow: auto; /* سكرول افقي وراسي */
       border: 1px solid var(--border-color);
       border-radius: 8px;
+      background: var(--bg-panel);
     }
     
     .table-wrap table {
-      width: 100%;
+      width: max-content; /* مهم: خلي الجدول يتمدد حسب المحتوى */
+      min-width: 100%;
       border-collapse: collapse;
-      table-layout: auto; /* العرض ديناميكي حسب المحتوى */
+      table-layout: auto; /* العرض حسب المحتوى */
     }
     
     .table-wrap thead {
@@ -1897,8 +1899,11 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     }
     
     .table-wrap th {
-      white-space: nowrap; /* اسم العمود ما يتكسر */
-      padding: 8px 12px;
+      white-space: nowrap; /* لا تكسر العنوان */
+      text-overflow: clip; /* الغي النقاط ... */
+      overflow: visible;
+      padding: 8px 14px;
+      font-size: 14px;
       font-weight: 600;
       text-align: center;
       border: 1px solid var(--border-color);
@@ -1906,26 +1911,27 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     }
     
     .table-wrap td {
-      white-space: nowrap;
-      padding: 8px 12px;
+      white-space: nowrap; /* البيانات سطر واحد */
+      text-overflow: clip;
+      overflow: visible;
+      padding: 8px 14px;
+      font-size: 14px;
       text-align: center;
       border: 1px solid var(--border-color);
     }
     
-    /* الجوال بس */
     @media (max-width: 768px) {
       .table-wrap {
         max-height: 200px;
       }
       .table-wrap th, .table-wrap td {
-        padding: 6px 8px;
+        padding: 6px 10px;
         font-size: 13px;
       }
     }
   `;
-  
-  document.getElementById('responsive-fix')?.remove();
   document.head.appendChild(style);
+  console.log("📌 TABLES FIXED V2");
 })();
 
 
