@@ -1861,36 +1861,32 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 // ====== Responsive + Horizontal Scroll للجداول ======
 (function fixTablesResponsive() {
-  // لف كل جدول بـ div للسكرول لو ما كان ملفوف
+  // 1. لف الجداول بدون ما تغير اي display
   document.querySelectorAll('table').forEach(tbl => {
-    if (!tbl.parentElement.classList.contains('table-wrap')) {
-      const wrap = document.createElement('div');
-      wrap.className = 'table-wrap';
-      tbl.parentNode.insertBefore(wrap, tbl);
-      wrap.appendChild(tbl);
-    }
+    if (tbl.parentElement.classList.contains('table-wrap')) return;
+    
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+    tbl.parentNode.insertBefore(wrap, tbl);
+    wrap.appendChild(tbl);
   });
 
-  document.getElementById('responsive-fix')?.remove();
-  
+  // 2. CSS بسيط ما يلمس display
   const style = document.createElement('style');
   style.id = 'responsive-fix';
   style.textContent = `
     .table-wrap {
       width: 100%;
       max-height: 240px;
-      overflow: auto; /* سكرول افقي وراسي مع بعض */
-      -webkit-overflow-scrolling: touch;
-      border-radius: 8px;
+      overflow: auto; /* سكرول افقي وراسي */
       border: 1px solid var(--border-color);
-      background: var(--bg-panel);
+      border-radius: 8px;
     }
     
     .table-wrap table {
-      width: max-content;
-      min-width: 100%;
+      width: 100%;
       border-collapse: collapse;
-      table-layout: auto; /* العرض حسب المحتوى */
+      table-layout: auto; /* العرض ديناميكي حسب المحتوى */
     }
     
     .table-wrap thead {
@@ -1900,12 +1896,9 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       background: var(--bg-dark);
     }
     
-    /* لا تلمس display ابداً. خلي المتصفح يرسم الجدول طبيعي */
-    
     .table-wrap th {
       white-space: nowrap; /* اسم العمود ما يتكسر */
       padding: 8px 12px;
-      font-size: 14px;
       font-weight: 600;
       text-align: center;
       border: 1px solid var(--border-color);
@@ -1915,30 +1908,23 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     .table-wrap td {
       white-space: nowrap;
       padding: 8px 12px;
-      font-size: 14px;
       text-align: center;
       border: 1px solid var(--border-color);
     }
     
-    .table-wrap::after {
-      content: '← اسحب يمين/يسار →';
-      display: none;
-      text-align: center;
-      font-size: 12px;
-      color: var(--text-secondary);
-      padding: 6px 0;
-    }
-    
+    /* الجوال بس */
     @media (max-width: 768px) {
-      .table-wrap::after { display: block; }
-      .table-wrap th, .table-wrap td { 
-        padding: 6px 10px; 
-        font-size: 13px; 
+      .table-wrap {
+        max-height: 200px;
       }
-      .row { flex-direction: column; }
-      .row > * { min-width: 100% !important; width: 100%; }
+      .table-wrap th, .table-wrap td {
+        padding: 6px 8px;
+        font-size: 13px;
+      }
     }
   `;
+  
+  document.getElementById('responsive-fix')?.remove();
   document.head.appendChild(style);
 })();
 
