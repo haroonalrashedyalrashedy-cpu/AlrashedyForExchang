@@ -1861,6 +1861,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 // ====== Responsive + Horizontal Scroll للجداول ======
 (function fixTablesResponsive() {
+  // لف كل جدول بـ div للسكرول لو ما كان ملفوف
   document.querySelectorAll('table').forEach(tbl => {
     if (!tbl.parentElement.classList.contains('table-wrap')) {
       const wrap = document.createElement('div');
@@ -1878,8 +1879,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     .table-wrap {
       width: 100%;
       max-height: 240px;
-      overflow-y: auto;
-      overflow-x: auto;
+      overflow: auto; /* سكرول افقي وراسي مع بعض */
       -webkit-overflow-scrolling: touch;
       border-radius: 8px;
       border: 1px solid var(--border-color);
@@ -1890,7 +1890,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       width: max-content;
       min-width: 100%;
       border-collapse: collapse;
-      table-layout: auto; /* يوزع العرض حسب المحتوى */
+      table-layout: auto; /* العرض حسب المحتوى */
     }
     
     .table-wrap thead {
@@ -1900,9 +1900,10 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       background: var(--bg-dark);
     }
     
-    /* مفتاح الحل: خلي عرض العمود يعتمد على الراس */
+    /* لا تلمس display ابداً. خلي المتصفح يرسم الجدول طبيعي */
+    
     .table-wrap th {
-      white-space: nowrap; /* لا تكسر اسم العمود */
+      white-space: nowrap; /* اسم العمود ما يتكسر */
       padding: 8px 12px;
       font-size: 14px;
       font-weight: 600;
@@ -1912,7 +1913,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     }
     
     .table-wrap td {
-      white-space: nowrap; /* البيانات سطر واحد */
+      white-space: nowrap;
       padding: 8px 12px;
       font-size: 14px;
       text-align: center;
@@ -1920,13 +1921,12 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     }
     
     .table-wrap::after {
-      content: '← اسحب يمين/يسار لمشاهدة الباقي →';
+      content: '← اسحب يمين/يسار →';
       display: none;
       text-align: center;
       font-size: 12px;
       color: var(--text-secondary);
       padding: 6px 0;
-      background: var(--bg-panel);
     }
     
     @media (max-width: 768px) {
@@ -1937,12 +1937,9 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       }
       .row { flex-direction: column; }
       .row > * { min-width: 100% !important; width: 100%; }
-      .tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .tab { flex-shrink: 0; min-width: 90px; }
     }
   `;
   document.head.appendChild(style);
-  console.log("📌 TABLES FIXED - HEADER WIDTH");
 })();
 
 
