@@ -1871,26 +1871,26 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     }
   });
 
-  // 2. CSS مصح - بدون display:block للـ tbody
+  // 2. CSS مصح
   const css = `
     .table-wrap {
       width: 100%;
       overflow-x: auto;
       overflow-y: auto;
-      max-height: 320px; /* 3 صفوف تقريبا */
+      max-height: 240px; /* 3 صفوف تقريباً */
       -webkit-overflow-scrolling: touch;
       border-radius: 8px;
       border: 1px solid var(--border-color);
+      position: relative;
     }
     
     .table-wrap table {
       width: 100%;
-      min-width: 600px; /* يخلي السكرول الافقي يشتغل */
+      min-width: 500px; /* خليته 500 عشان العناوين ما تنضغط */
       border-collapse: collapse;
-      table-layout: fixed; /* يرجع العرض ثابت */
+      table-layout: auto; /* مهم: auto بدل fixed عشان العناوين ما تتخرب */
     }
     
-    /* خلي thead ثابت فوق */
     .table-wrap thead {
       position: sticky;
       top: 0;
@@ -1898,24 +1898,25 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       background: var(--bg-dark);
     }
     
-    /* خلي tbody طبيعي عشان البيانات تطلع */
-    .table-wrap tbody {
-      display: table-row-group; /* مهم جدا */
-    }
-    
+    .table-wrap tbody,
     .table-wrap tr {
+      display: table-row-group;
       display: table-row;
     }
     
     .table-wrap th, 
     .table-wrap td {
-      padding: 8px;
+      padding: 8px 10px;
       font-size: 14px;
       text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
       border: 1px solid var(--border-color);
+      white-space: normal; /* خليتها normal عشان العنوان يظهر كامل */
+      word-break: break-word;
+    }
+    
+    .table-wrap th {
+      font-weight: 600;
+      background: var(--bg-dark);
     }
     
     .table-wrap::after {
@@ -1925,12 +1926,13 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       font-size: 12px;
       color: var(--text-secondary);
       padding: 6px 0;
+      background: var(--bg-panel);
     }
     
     @media (max-width: 768px) {
       .table-wrap::after { display: block; }
       .table-wrap th, .table-wrap td { 
-        padding: 6px; 
+        padding: 6px 8px; 
         font-size: 13px; 
       }
       .row { flex-direction: column; }
@@ -1940,7 +1942,6 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     }
   `;
   
-  // احذف الستايل القديم لو موجود
   document.getElementById('responsive-fix')?.remove();
   
   const style = document.createElement('style');
@@ -1950,6 +1951,8 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
   console.log("📌 TABLES FIXED");
 })();
+
+
 
 </script>
 
