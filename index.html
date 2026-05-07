@@ -1861,7 +1861,6 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 // ====== Responsive + Horizontal Scroll للجداول ======
 (function fixTablesResponsive() {
-  // لف كل جدول بـ div للسكرول
   document.querySelectorAll('table').forEach(tbl => {
     if (tbl.closest('.table-wrap')) return;
     const wrap = document.createElement('div');
@@ -1878,17 +1877,17 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     .table-wrap {
       width: 100%;
       max-height: 240px;
-      overflow: auto; /* سكرول افقي وراسي */
+      overflow: auto;
       border: 1px solid var(--border-color);
       border-radius: 8px;
       background: var(--bg-panel);
     }
     
     .table-wrap table {
-      width: max-content; /* مهم: خلي الجدول يتمدد حسب المحتوى */
+      width: max-content;
       min-width: 100%;
       border-collapse: collapse;
-      table-layout: auto; /* العرض حسب المحتوى */
+      table-layout: auto;
     }
     
     .table-wrap thead {
@@ -1898,10 +1897,10 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       background: var(--bg-dark);
     }
     
+    /* لا تلمس display ابداً */
+    
     .table-wrap th {
-      white-space: nowrap; /* لا تكسر العنوان */
-      text-overflow: clip; /* الغي النقاط ... */
-      overflow: visible;
+      white-space: nowrap;
       padding: 8px 14px;
       font-size: 14px;
       font-weight: 600;
@@ -1911,27 +1910,20 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     }
     
     .table-wrap td {
-      white-space: nowrap; /* البيانات سطر واحد */
-      text-overflow: clip;
-      overflow: visible;
+      white-space: nowrap;
       padding: 8px 14px;
       font-size: 14px;
       text-align: center;
       border: 1px solid var(--border-color);
     }
     
-    @media (max-width: 768px) {
-      .table-wrap {
-        max-height: 200px;
-      }
-      .table-wrap th, .table-wrap td {
-        padding: 6px 10px;
-        font-size: 13px;
-      }
+    /* الغي اي قطع للنص */
+    .table-wrap th, .table-wrap td {
+      text-overflow: clip;
+      overflow: visible;
     }
   `;
   document.head.appendChild(style);
-  console.log("📌 TABLES FIXED V2");
 })();
 
 
