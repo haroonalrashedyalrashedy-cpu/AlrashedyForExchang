@@ -1861,7 +1861,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 // ====== Responsive + Horizontal Scroll للجداول ======
 (function fixTablesResponsive() {
-  // لف كل جدول بـ div للسكرول
+  // 1. لف كل جدول بـ div للسكرول الرأسي لو ما كان ملفوف
   document.querySelectorAll('table').forEach(tbl => {
     if (!tbl.parentElement.classList.contains('table-wrap')) {
       const wrap = document.createElement('div');
@@ -1871,23 +1871,28 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     }
   });
 
+  // 2. CSS كامل مصح
   const css = `
+    /* حاوية السكرول الرأسي فقط */
     .table-wrap {
       width: 100%;
-      overflow-x: auto;
+      max-height: 240px;
       overflow-y: auto;
-      max-height: 240px; /* ارتفاع ثابت للسكرول الرأسي */
       -webkit-overflow-scrolling: touch;
       border-radius: 8px;
       border: 1px solid var(--border-color);
+      background: var(--bg-panel);
     }
     
+    /* الجدول نفسه يشيل السكرول الأفقي */
     .table-wrap table {
-      width: 100%;
+      width: max-content;
+      min-width: 100%;
       border-collapse: collapse;
       table-layout: auto; /* ديناميكي حسب المحتوى */
     }
     
+    /* تثبيت الراس فوق */
     .table-wrap thead {
       position: sticky;
       top: 0;
@@ -1895,28 +1900,29 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       background: var(--bg-dark);
     }
     
+    /* لا تغير display حق tbody و tr */
     .table-wrap tbody,
     .table-wrap tr {
-      display: table-row-group;
-      display: table-row;
+      display: revert;
     }
     
+    /* تنسيق الخلايا */
     .table-wrap th, 
     .table-wrap td {
       padding: 8px 12px;
       font-size: 14px;
       text-align: center;
       border: 1px solid var(--border-color);
-      white-space: nowrap; /* خليها nowrap عشان البيانات ما تلف سطرين */
-      width: auto; /* العرض ديناميكي */
+      white-space: nowrap; /* البيانات ما تلف سطرين */
     }
     
     .table-wrap th {
+      white-space: normal; /* العنوان يلف لو طال */
       font-weight: 600;
       background: var(--bg-dark);
-      white-space: normal; /* العنوان يلف لو طال */
     }
     
+    /* رسالة السحب للجوال */
     .table-wrap::after {
       content: '← اسحب يمين/يسار لمشاهدة الباقي →';
       display: none;
@@ -1927,6 +1933,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       background: var(--bg-panel);
     }
     
+    /* الجوال */
     @media (max-width: 768px) {
       .table-wrap::after { display: block; }
       .table-wrap th, .table-wrap td { 
@@ -1938,15 +1945,24 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       .tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
       .tab { flex-shrink: 0; min-width: 90px; }
     }
+    
+    /* منع الزوم في الايفون */
+    @media (max-width: 768px) {
+      input, select, textarea {
+        font-size: 16px;
+      }
+    }
   `;
   
+  // احذف الستايل القديم لو موجود
   document.getElementById('responsive-fix')?.remove();
+  
   const style = document.createElement('style');
   style.id = 'responsive-fix';
   style.textContent = css;
   document.head.appendChild(style);
 
-  console.log("📌 TABLES DYNAMIC WIDTH");
+  console.log("📌 TABLES FIXED - DYNAMIC WIDTH");
 })();
 
 
