@@ -1861,7 +1861,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 // ====== Responsive + Horizontal Scroll للجداول ======
 (function fixTablesResponsive() {
-  // 1. لف كل جدول بـ div للسكرول لو ما كان ملفوف
+  // لف كل جدول بـ div للسكرول
   document.querySelectorAll('table').forEach(tbl => {
     if (!tbl.parentElement.classList.contains('table-wrap')) {
       const wrap = document.createElement('div');
@@ -1871,24 +1871,21 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     }
   });
 
-  // 2. CSS مصح
   const css = `
     .table-wrap {
       width: 100%;
       overflow-x: auto;
       overflow-y: auto;
-      max-height: 240px; /* 3 صفوف تقريباً */
+      max-height: 240px; /* ارتفاع ثابت للسكرول الرأسي */
       -webkit-overflow-scrolling: touch;
       border-radius: 8px;
       border: 1px solid var(--border-color);
-      position: relative;
     }
     
     .table-wrap table {
       width: 100%;
-      min-width: 500px; /* خليته 500 عشان العناوين ما تنضغط */
       border-collapse: collapse;
-      table-layout: auto; /* مهم: auto بدل fixed عشان العناوين ما تتخرب */
+      table-layout: auto; /* ديناميكي حسب المحتوى */
     }
     
     .table-wrap thead {
@@ -1906,17 +1903,18 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     
     .table-wrap th, 
     .table-wrap td {
-      padding: 8px 10px;
+      padding: 8px 12px;
       font-size: 14px;
       text-align: center;
       border: 1px solid var(--border-color);
-      white-space: normal; /* خليتها normal عشان العنوان يظهر كامل */
-      word-break: break-word;
+      white-space: nowrap; /* خليها nowrap عشان البيانات ما تلف سطرين */
+      width: auto; /* العرض ديناميكي */
     }
     
     .table-wrap th {
       font-weight: 600;
       background: var(--bg-dark);
+      white-space: normal; /* العنوان يلف لو طال */
     }
     
     .table-wrap::after {
@@ -1932,7 +1930,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     @media (max-width: 768px) {
       .table-wrap::after { display: block; }
       .table-wrap th, .table-wrap td { 
-        padding: 6px 8px; 
+        padding: 6px 10px; 
         font-size: 13px; 
       }
       .row { flex-direction: column; }
@@ -1943,15 +1941,13 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
   `;
   
   document.getElementById('responsive-fix')?.remove();
-  
   const style = document.createElement('style');
   style.id = 'responsive-fix';
   style.textContent = css;
   document.head.appendChild(style);
 
-  console.log("📌 TABLES FIXED");
+  console.log("📌 TABLES DYNAMIC WIDTH");
 })();
-
 
 
 </script>
