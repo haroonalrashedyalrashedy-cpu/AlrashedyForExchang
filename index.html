@@ -9,9 +9,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.png">
-   
+
   <title>الراشدي للصرافة والتحويلات</title>
-  
+
   <style>
     /* 📌 القسم 2: ستايل الواجهة + Responsive */
     :root {
@@ -25,8 +25,8 @@
     }
     * {margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent;}
     body {height: 100dvh; background: var(--bg-dark); color: var(--text-primary); font-family: 'Segoe UI', Tahoma, Arial, sans-serif; overflow: hidden; font-size: 16px;}
-   .screen {display: none; flex-direction: column; height: 100dvh; width: 100vw; overflow: hidden;}
-   .screen.active {display: flex;}
+  .screen {display: none; flex-direction: column; height: 100dvh; width: 100vw; overflow: hidden;}
+  .screen.active {display: flex;}
     button {background: var(--accent-green); color: var(--bg-dark); border: none; border-radius: 8px; padding: 12px 20px; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.2s, transform 0.1s;}
     button:active {opacity: 0.8; transform: scale(0.98);}
     button:disabled {opacity: 0.5; cursor: not-allowed;}
@@ -35,40 +35,39 @@
     input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}
     input[type="number"] {-moz-appearance: textfield;}
     input[readonly], input[readOnly] {user-select: none; -webkit-user-select: none;}
-   .login-container {display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 24px; gap: 20px; max-width: 400px; margin: 0 auto;}
-   .login-logo {font-size: 64px; margin-bottom: 8px;}
-   .login-title {font-size: 28px; font-weight: 700; margin-bottom: 12px;}
-   .dropdown {position: relative; width: 100%;}
-   .dropdown-list {position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; max-height: 200px; overflow-y: auto; display: none; z-index: 10; margin-top: 4px;}
-   .dropdown-list.active {display: block;}
-   .dropdown-item {padding: 12px 16px; cursor: pointer; transition: background 0.2s;}
-   .dropdown-item:hover {background: var(--bg-dark);}
-   .dropdown-search {position: sticky; top: 0; background: var(--bg-panel); padding: 8px; border-bottom: 1px solid var(--border-color); z-index: 1;}
-   .password-box {position: relative; width: 100%;}
-   .password-box .eye {position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; opacity: 0.7;}
-   .password-box.eye:hover {opacity: 1;}
-   .overlay {position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 5; background: rgba(0,0,0,0.3);}
-   .overlay.active {display: block;}
-   
-   
-   .header {height: 64px; background: #4ade80; font-size: 18px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;}
-   
-   .tabs {display: flex; min-width: 50px; border-bottom: 1px solid var(--border-color); font-weight: bold; overflow-x: auto; flex-shrink: 0;}
-   
-   .tab {flex: 1; min-width: 100px; padding: 14px; text-align: center;  cursor: pointer; font-weight: bold; color: var(--text-secondary); transition: color 0.2s, border-bottom 0.2s; white-space: nowrap;}
-   .tab.active {color: var(--accent-green); border-bottom: 2px solid var(--accent-green);}
-   .tab-content {display: none; flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch;}
-   .tab-content.active {display: block;}
-   .card {background: var(--bg-panel); padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border-color);}
-   .row {display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;}
-   .row > * {flex: 1; min-width: 120px;}
+  .login-container {display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 24px; gap: 20px; max-width: 400px; margin: 0 auto;}
+  .login-logo {font-size: 64px; margin-bottom: 8px;}
+  .login-title {font-size: 28px; font-weight: 700; margin-bottom: 12px;}
+  .dropdown {position: relative; width: 100%;}
+  .dropdown-list {position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; max-height: 200px; overflow-y: auto; display: none; z-index: 10; margin-top: 4px;}
+  .dropdown-list.active {display: block;}
+  .dropdown-item {padding: 12px 16px; cursor: pointer; transition: background 0.2s;}
+  .dropdown-item:hover {background: var(--bg-dark);}
+  .dropdown-search {position: sticky; top: 0; background: var(--bg-panel); padding: 8px; border-bottom: 1px solid var(--border-color); z-index: 1;}
+  .password-box {position: relative; width: 100%;}
+  .password-box.eye {position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; opacity: 0.7;}
+  .password-box.eye:hover {opacity: 1;}
+  .overlay {position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 5; background: rgba(0,0,0,0.3);}
+  .overlay.active {display: block;}
+
+  .header {height: 64px; background: #4ade80; font-size: 18px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;}
+
+  .tabs {display: flex; min-width: 50px; border-bottom: 1px solid var(--border-color); font-weight: bold; overflow-x: auto; flex-shrink: 0;}
+
+  .tab {flex: 1; min-width: 100px; padding: 14px; text-align: center; cursor: pointer; font-weight: bold; color: var(--text-secondary); transition: color 0.2s, border-bottom 0.2s; white-space: nowrap;}
+  .tab.active {color: var(--accent-green); border-bottom: 2px solid var(--accent-green);}
+  .tab-content {display: none; flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch;}
+  .tab-content.active {display: block;}
+  .card {background: var(--bg-panel); padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border-color);}
+  .row {display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;}
+  .row > * {flex: 1; min-width: 120px;}
     table {width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px;}
     th, td {border: 1px solid var(--border-color); padding: 8px; text-align: center; word-break: break-word;}
     th {background: var(--bg-dark); font-weight: 600;}
-   .modal {position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-panel); padding: 20px; border-radius: 12px; z-index: 20; display: none; min-width: 280px; max-width: 90%; box-shadow: 0 8px 24px rgba(0,0,0,0.5);}
-   .modal.active {display: block;}
-   .toast {position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--bg-panel); padding: 12px 24px; border-radius: 8px; display: none; z-index: 30; border: 1px solid var(--border-color);}
-   .toast.show {display: block; animation: fade 3s forwards;}
+  .modal {position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-panel); padding: 20px; border-radius: 12px; z-index: 20; display: none; min-width: 280px; max-width: 90%; box-shadow: 0 8px 24px rgba(0,0,0,0.5);}
+  .modal.active {display: block;}
+  .toast {position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--bg-panel); padding: 12px 24px; border-radius: 8px; display: none; z-index: 30; border: 1px solid var(--border-color);}
+  .toast.show {display: block; animation: fade 3s forwards;}
     @keyframes fade {
       0% {opacity: 0; transform: translateX(-50%) translateY(20px);}
       10% {opacity: 1; transform: translateX(-50%) translateY(0);}
@@ -76,210 +75,197 @@
       100% {opacity: 0; transform: translateX(-50%) translateY(20px);}
     }
     @media (max-width: 480px) {
-     .row > * {min-width: 100%;}
-     .login-title {font-size: 24px;}
-     .login-logo {font-size: 56px;}
+    .row > * {min-width: 100%;}
+    .login-title {font-size: 24px;}
+    .login-logo {font-size: 56px;}
       button, input, select {font-size: 15px; padding: 10px 14px;}
     }
-    
-    
+
     /* زر خروج الادمن والموظف */
+    #btnLogoutAdmin,
+    #btnLogoutStaff {
+      background: #dc2626!important;
+      color: #ffffff!important;
+      padding: 4px 10px!important;
+      font-size: 13px!important;
+      border-radius: 5px!important;
+      font-weight: bold!important;
+      border: none!important;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s, transform 0.1s;
+    }
+    #btnLogoutAdmin:hover,
+    #btnLogoutStaff:hover { background: #ef4444!important; }
+    #btnLogoutAdmin:active,
+    #btnLogoutStaff:active { background: #f87171!important; transform: scale(0.98); }
 
+    /* === MOD: علقت على كود tbody القديم لأنه يخفي الجدول ===
+    tbody {
+      display: block;
+      max-height: calc(3 * 34px);
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    thead {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+      position: sticky;
+      top: 0;
+      background: var(--bg-dark);
+      z-index: 2;
+    }
+    tbody tr {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+    }
+    === END MOD === */
 
-/* زر خروج الادمن والموظف - مصغر */
-#btnLogoutAdmin,
-#btnLogoutStaff {
-  background: #dc2626!important;
-  color: #ffffff!important;
-  padding: 4px 10px!important;  /* كان 8px 14px، قللته */
-  font-size: 13px!important;    /* حجم الخط صغرته */
-  border-radius: 5px!important; /* خليته اصغر شوي */
-  font-weight: bold!important;
-  border: none!important;
-  cursor: pointer;
-  transition: background 0.2s, opacity 0.2s, transform 0.1s;
-}
+    /* === ADD: Fix Responsive للجداول - لا تحذفه === */
+   .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-top: 12px;
+    }
+   .table-wrap table {
+      width: 100%;
+      min-width: 600px;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+   .table-wrap th,.table-wrap td {
+      padding: 6px 4px;
+      font-size: 13px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border: 1px solid var(--border-color);
+      height: 36px;
+    }
+   .table-wrap th {
+      position: sticky;
+      top: 0;
+      background: var(--bg-dark);
+      z-index: 2;
+      cursor: pointer;
+    }
+    /* === END ADD === */
 
-#btnLogoutAdmin:hover,
-#btnLogoutStaff:hover {
-  background: #ef4444!important;
-}
+    /* تقليل ارتفاع الصف */
+    th, td {
+      padding: 3px 2px;
+      font-size: 12px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border: 1px solid var(--border-color);
+      height: 34px;
+    }
 
-#btnLogoutAdmin:active,
-#btnLogoutStaff:active {
-  background: #f87171!important;
-  transform: scale(0.98);
-}
-    
-    
-/* ===== حل الجداول بدون كسر التصميم ===== */
+    /* تحديد الصف عند الضغط */
+    tbody tr.selected {
+      background: rgba(37, 211, 102, 0.25)!important;
+    }
 
-/* حاوية السكرول لكل جدول */
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+    /* عرض الاعمدة - جداول الموظف 4 اعمدة */
+    #staffBuyTable th:nth-child(1), #staffBuyTable td:nth-child(1),
+    #staffSellTable th:nth-child(1), #staffSellTable td:nth-child(1) { width: 25%; }
+    #staffBuyTable th:nth-child(2), #staffBuyTable td:nth-child(2),
+    #staffSellTable th:nth-child(2), #staffSellTable td:nth-child(2) { width: 15%; }
+    #staffBuyTable th:nth-child(3), #staffBuyTable td:nth-child(3),
+    #staffSellTable th:nth-child(3), #staffSellTable td:nth-child(3) {
+      width: 35%; font-size: 15px; font-weight: 700;
+    }
+    #staffBuyTable th:nth-child(4), #staffBuyTable td:nth-child(4),
+    #staffSellTable th:nth-child(4), #staffSellTable td:nth-child(4) {
+      width: 25%; font-size: 11px;
+    }
 
-/* لف الـ tbody داخل سكرول 3 صفوف بس */
-tbody {
-  display: block;
-  max-height: calc(3 * 34px); /* 3 صفوف × 34px */
-  overflow-y: auto;
-  overflow-x: hidden;
-}
+    /* تكبير مربع النتيجة */
+    #staffBuyResult, #staffSellResult,
+    #buyResult, #sellResult {
+      font-size: 20px!important;
+      font-weight: 700!important;
+      color: var(--accent-green)!important;
+    }
 
-/* خلي thead ثابت فوق */
-thead {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-  position: sticky;
-  top: 0;
-  background: var(--bg-dark);
-  z-index: 2;
-}
-
-/* خلي tr عادي بس الصفوف جواه block */
-tbody tr {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-}
-
-/* تقليل ارتفاع الصف */
-th, td {
-  padding: 3px 2px;
-  font-size: 12px;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border: 1px solid var(--border-color);
-  height: 34px; /* ارتفاع ثابت للصف */
-}
-
-/* تحديد الصف عند الضغط */
-tbody tr.selected {
-  background: rgba(37, 211, 102, 0.25) !important;
-}
-
-/* عرض الاعمدة - جداول الموظف 4 اعمدة */
-#staffBuyTable th:nth-child(1), #staffBuyTable td:nth-child(1),
-#staffSellTable th:nth-child(1), #staffSellTable td:nth-child(1) { width: 25%; }
-
-#staffBuyTable th:nth-child(2), #staffBuyTable td:nth-child(2),
-#staffSellTable th:nth-child(2), #staffSellTable td:nth-child(2) { width: 15%; }
-
-#staffBuyTable th:nth-child(3), #staffBuyTable td:nth-child(3),
-#staffSellTable th:nth-child(3), #staffSellTable td:nth-child(3) { 
-  width: 35%; font-size: 15px; font-weight: 700; 
-}
-
-#staffBuyTable th:nth-child(4), #staffBuyTable td:nth-child(4),
-#staffSellTable th:nth-child(4), #staffSellTable td:nth-child(4) { 
-  width: 25%; font-size: 11px; 
-}
-
-/* تكبير مربع النتيجة */
-#staffBuyResult, #staffSellResult, 
-#buyResult, #sellResult {
-  font-size: 20px !important;
-  font-weight: 700 !important;
-  color: var(--accent-green) !important;
-}
-    
     /* الشريط السفلي */
-#bottomBar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 52px;
-  background: rgba(139, 69, 19, 0.75); /* بني شفاف 75% */
-  backdrop-filter: blur(6px); /* يخلي اللي تحته يطلع متموه شوي */
-  -webkit-backdrop-filter: blur(6px); /* للايفون */
-  display: none;
-  justify-content: space-around;
-  align-items: center;
-  z-index: 50;
-  border-top: 1px solid rgba(93, 58, 26, 0.6);
-  box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
-}
-
-#bottomBar.active {
-  display: flex; /* يظهر بس لما نضيف كلاس active */
-}
-
-#bottomBar button {
-  background: #4ade80;  /* نفس لون الهيدر */
-  color: #111b21;       /* خليته غامق عشان يبان على الاخضر */
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 15px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 110px;
-  justify-content: center;
-  transition: opacity 0.2s, transform 0.1s;
-}
-
-#bottomBar button:active {
-  transform: scale(0.97);
-  opacity: 0.9;
-}
-
-#bottomBar button:active {
-  transform: scale(0.97);
-}
-
-#bottomBar button:disabled {
-  opacity: 0.6;
-}
-
-/* أنيميشن الدائرة وقت التحديث */
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid #fff;
-  border-top: 2px solid transparent;
-  border-radius: 50%;
-  display: none;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin {
- 100% { transform: rotate(360deg); }
-}
-.loading .spinner { display: inline-block; }
-.loading .txt { display: none; }
-
-/* خلي الصفحة ما تنخفي تحت الشريط */
-.tab-content {
-  padding-bottom: 60px;
-}
-
-/* تحديد الجدول كامل عند الضغط على الركن */
-table.table-selected {
-  outline: 2px solid #8B4513;
-  outline-offset: -2px;
-}
-    
-    
-    
+    #bottomBar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
+      background: rgba(139, 69, 19, 0.75);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: none;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 50;
+      border-top: 1px solid rgba(93, 58, 26, 0.6);
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
+    }
+    #bottomBar.active { display: flex; }
+    #bottomBar button {
+      background: #4ade80;
+      color: #111b21;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 110px;
+      justify-content: center;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    #bottomBar button:active { transform: scale(0.97); opacity: 0.9; }
+    #bottomBar button:disabled { opacity: 0.6; }
+   .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fff;
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      display: none;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+   .loading.spinner { display: inline-block; }
+   .loading.txt { display: none; }
+   .tab-content { padding-bottom: 60px; }
+    table.table-selected {
+      outline: 2px solid #8B4513;
+      outline-offset: -2px;
+    }
   </style>
 </head>
+
+
+
+
+
+
+<!-- === الجزء الثاني  === -->
+
+
+
+
 
 
 <body>
   <!-- 📌 القسم 3: شاشات الـ HTML -->
   <div id="loginScreen" class="screen active">
-    
-        <div class="login-container">
+    <div class="login-container">
       <div class="login-logo">💰</div>
-<h1 class="login-title"> الراشدي للصرافة</h1>
-
+      <h1 class="login-title"> الراشدي للصرافة</h1>
 
       <div class="dropdown">
         <input type="text" id="userSelect" placeholder="اختر المستخدم" readonly>
@@ -335,8 +321,17 @@ table.table-selected {
         <div class="tab" data-subtab="withdraw">صرف</div>
       </div>
 
+      <!-- === MOD: تبويب الشراء - ضفت عمود العملة والعملية + فلتر التاريخ === -->
       <div id="buy" class="tab-content active">
         <div class="card">
+          <!-- === ADD: فلتر التاريخ === -->
+          <div class="row" style="margin-bottom:8px">
+            <input type="date" id="buyDateFrom" placeholder="من">
+            <input type="date" id="buyDateTo" placeholder="الى">
+            <button id="btnBuyFilter" style="flex:0 0 auto">فلترة</button>
+            <button id="btnBuyReset" style="flex:0 0 auto;background:var(--border-color)">الغاء</button>
+          </div>
+
           <div class="row">
             <input type="number" id="buyAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
             <select id="buyCurrency"></select>
@@ -344,18 +339,43 @@ table.table-selected {
             <input type="text" id="buyResult" placeholder="النتيجة" readonly>
             <button id="btnSaveBuy">حفظ</button>
           </div>
-          <table id="buyTable">
-            <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الموظف</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
+
+          <!-- === MOD: غلفت الجدول بـ table-wrap وضفت الاعمدة الجديدة === -->
+          <div class="table-wrap">
+            <table id="buyTable">
+              <thead>
+                <tr>
+                  <th data-col="amount">المبلغ</th>
+                  <th data-col="rate">السعر</th>
+                  <th data-col="currency">العملة</th>
+                  <th data-col="total">النتيجة</th>
+                  <th data-col="type">العملية</th>
+                  <th data-col="employee">الموظف</th>
+                  <th data-col="time">الوقت</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
           <div class="row">
             <select id="buyFilterUser"><option value="all">الكل</option></select>
           </div>
         </div>
       </div>
+      <!-- === END MOD === -->
 
+      <!-- === MOD: تبويب البيع - نفس تعديلات الشراء === -->
       <div id="sell" class="tab-content">
         <div class="card">
+          <!-- === ADD: فلتر التاريخ === -->
+          <div class="row" style="margin-bottom:8px">
+            <input type="date" id="sellDateFrom" placeholder="من">
+            <input type="date" id="sellDateTo" placeholder="الى">
+            <button id="btnSellFilter" style="flex:0 0 auto">فلترة</button>
+            <button id="btnSellReset" style="flex:0 0 auto;background:var(--border-color)">الغاء</button>
+          </div>
+
           <div class="row">
             <input type="number" id="sellAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
             <select id="sellCurrency"></select>
@@ -363,51 +383,136 @@ table.table-selected {
             <input type="text" id="sellResult" placeholder="النتيجة" readonly>
             <button id="btnSaveSell">حفظ</button>
           </div>
-          <table id="sellTable">
-            <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الموظف</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
+
+          <div class="table-wrap">
+            <table id="sellTable">
+              <thead>
+                <tr>
+                  <th data-col="amount">المبلغ</th>
+                  <th data-col="rate">السعر</th>
+                  <th data-col="currency">العملة</th>
+                  <th data-col="total">النتيجة</th>
+                  <th data-col="type">العملية</th>
+                  <th data-col="employee">الموظف</th>
+                  <th data-col="time">الوقت</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
           <div class="row">
             <select id="sellFilterUser"><option value="all">الكل</option></select>
           </div>
         </div>
       </div>
+      <!-- === END MOD === -->
 
-      <div id="deposit" class="tab-content">
-        <div class="card">
-          <div class="row">
-            <select id="depositAccount" class="searchable"></select>
-            <input type="number" id="depositAmount" placeholder="المبلغ" inputmode="numeric">
-            <select id="depositCurrency"></select>
-            <button id="btnSaveDeposit">حفظ</button>
-          </div>
-          <table id="depositTable">
-            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
+      <!-- === MOD: قبض/ايداع - غلفت الجدول + صف واحد للمدخلات + حقل المودع === -->
+   
+   
+    <div id="deposit" class="tab-content">
+  <div class="card">
+    <!-- صف 1: الحساب -->
+    <div class="row">
+      <select id="depositAccount" class="searchable" style="flex:1"></select>
+    </div>
+
+    <!-- صف 2: المبلغ + العملة -->
+    <div class="row" style="flex-wrap:nowrap">
+      <input type="number" id="depositAmount" placeholder="المبلغ" inputmode="numeric" style="flex:2">
+      <select id="depositCurrency" style="flex:1"></select>
+    </div>
+
+    <!-- صف 3: المودع -->
+    <div class="row">
+      <input type="text" id="depositDepositor" placeholder="اسم المودع" style="flex:1">
+    </div>
+
+    <!-- زر الحفظ -->
+    <div class="row">
+      <button id="btnSaveDeposit" style="flex:1">حفظ</button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="depositTable">
+        <thead>
+          <tr>
+            <th>الحساب</th>
+            <th>المبلغ</th>
+            <th>العملة</th>
+            <th>المودع</th>
+            <th>الموظف</th>
+            <th>الوقت</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+      
+      
+      
           <div class="row">
             <select id="depositFilterUser"><option value="all">الكل</option></select>
           </div>
         </div>
       </div>
+      <!-- === END MOD === -->
 
-      <div id="withdraw" class="tab-content">
-        <div class="card">
-          <div class="row">
-            <select id="withdrawAccount" class="searchable"></select>
-            <input type="number" id="withdrawAmount" placeholder="المبلغ" inputmode="numeric">
-            <select id="withdrawCurrency"></select>
-            <button id="btnSaveWithdraw">حفظ</button>
-          </div>
-          <table id="withdrawTable">
-            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
+      <!-- === MOD: صرف - نفس تعديلات القبض === -->
+    <div id="withdraw" class="tab-content">
+  <div class="card">
+    <!-- صف 1: الحساب -->
+    <div class="row">
+      <select id="withdrawAccount" class="searchable" style="flex:1"></select>
+    </div>
+
+    <!-- صف 2: المبلغ + العملة -->
+    <div class="row" style="flex-wrap:nowrap">
+      <input type="number" id="withdrawAmount" placeholder="المبلغ" inputmode="numeric" style="flex:2">
+      <select id="withdrawCurrency" style="flex:1"></select>
+    </div>
+
+    <!-- صف 3: المستلم -->
+    <div class="row">
+      <input type="text" id="withdrawReceiver" placeholder="اسم المستلم" style="flex:1">
+    </div>
+
+    <!-- زر الحفظ -->
+    <div class="row">
+      <button id="btnSaveWithdraw" style="flex:1">حفظ</button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="withdrawTable">
+        <thead>
+          <tr>
+            <th>الحساب</th>
+            <th>المبلغ</th>
+            <th>العملة</th>
+            <th>المستلم</th>
+            <th>الموظف</th>
+            <th>الوقت</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+      
+      
+      
           <div class="row">
             <select id="withdrawFilterUser"><option value="all">الكل</option></select>
           </div>
         </div>
       </div>
+      <!-- === END MOD === -->
     </div>
 
     <div id="accounts" class="tab-content">
@@ -439,10 +544,12 @@ table.table-selected {
             <button id="btnViewAcc">عرض</button>
             <button id="btnClearAcc">تصفية</button>
           </div>
-          <table id="accBalanceTable">
-            <thead><tr><th>العملة</th><th>الرصيد</th></tr></thead>
-            <tbody></tbody>
-          </table>
+          <div class="table-wrap">
+            <table id="accBalanceTable">
+              <thead><tr><th>العملة</th><th>الرصيد</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </div>
       </div>
       <div id="editAcc" class="tab-content">
@@ -466,7 +573,6 @@ table.table-selected {
           <div class="row">
             <select id="deleteAccSelect" class="searchable"></select>
             <button id="btnSuspendAcc">ايقاف</button>
-            
             <button id="btnActivateAcc" style="background: var(--accent-green);">تفعيل</button>
             <button id="btnDeleteAcc" style="background: var(--danger);">حذف</button>
           </div>
@@ -475,8 +581,6 @@ table.table-selected {
     </div>
 
     <div id="permissions" class="tab-content">
-        
-        
       <div class="card">
         <h3>تعديل الاسعار</h3>
         <div class="row">
@@ -484,22 +588,20 @@ table.table-selected {
           <input type="number" id="buyRateInput" placeholder="سعر الشراء" inputmode="decimal">
           <button id="btnSaveBuyRate">حفظ شراء</button>
         </div>
-        
-        
         <div class="row">
           <input type="number" id="sellRateInput" placeholder="سعر البيع" inputmode="decimal">
           <button id="btnSaveSellRate">حفظ بيع</button>
         </div>
-        <table id="rateLogTable">
-          <thead><tr><th>العملة</th><th>النوع</th><th>السعر</th><th>الوقت</th><th>بواسطة</th></tr></thead>
-          <tbody></tbody>
-        </table>
+        <div class="table-wrap">
+          <table id="rateLogTable">
+            <thead><tr><th>العملة</th><th>النوع</th><th>السعر</th><th>الوقت</th><th>بواسطة</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
-      
-      
-         <div class="card">
+
+      <div class="card">
         <h3>تحديد العملات</h3>
-       
         <div class="row">
           <label><input type="checkbox" value="YER" class="activeCurrency" checked> ريال يمني</label>
           <label><input type="checkbox" value="SAR" class="activeCurrency" checked> ريال سعودي</label>
@@ -507,9 +609,8 @@ table.table-selected {
           <label><input type="checkbox" value="EUR" class="activeCurrency" checked> يورو</label>
         </div>
         <button id="btnSaveCurrencies">حفظ العملات</button>
-          </div>
-        
-          
+      </div>
+
       <div class="card">
         <h3>صلاحيات الموظفين</h3>
         <div class="row">
@@ -519,8 +620,8 @@ table.table-selected {
         </div>
         <button id="btnSavePerm">حفظ الصلاحيات</button>
       </div>
-      
-        <div class="card">
+
+      <div class="card">
         <h3>ارصدة ومطابقات الموظفين</h3>
         <div class="row">
           <select id="matchEmpSelect"></select>
@@ -528,40 +629,47 @@ table.table-selected {
           <button id="btnViewBalance">عرض الرصيد</button>
           <button id="btnViewMatch">عرض المطابقة</button>
         </div>
-        <table id="matchTable">
-          <thead><tr><th>العملة</th><th>رصيد النظام</th><th>رصيد الواقع</th><th>الفرق</th></tr></thead>
-          <tbody></tbody>
-        </table>
+        <div class="table-wrap">
+          <table id="matchTable">
+            <thead><tr><th>العملة</th><th>رصيد النظام</th><th>رصيد الواقع</th><th>الفرق</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
-      
-      
-        <div class="card">
+
+      <div class="card">
         <h3>الاعدادات العامة</h3>
-       
         <div class="row">
           <label>الوان: </label>
           <input type="color" id="colorAccent" value="#25d366">
           <input type="color" id="colorBg" value="#111b21">
           <button id="btnSaveColors">حفظ الالوان</button>
         </div>
-
       </div>
-      
-         <div class="card">
+
+      <div class="card">
         <h3>تغيير كلمة المرور</h3>
-       
         <div class="row">
           <input type="password" id="adminNewPass" placeholder="كلمة مرور المدير الجديدة" inputmode="numeric">
           <button id="btnChangeAdminPass">تغيير كلمة المرور</button>
         </div>
-       </div>
-
-    
+      </div>
     </div>
   </div>
   
   
+  
+  
+  
+  
+  
 
+      <!-- === الجزء الثالث === -->
+  
+  
+  
+  
+  
   <div id="staffScreen" class="screen">
     <div class="header">
       <span>موظف</span>
@@ -582,8 +690,17 @@ table.table-selected {
         <div class="tab " data-subtab="staffWithdraw">صرف</div>
       </div>
 
+      <!-- === MOD: شراء موظف - ضفت العملة والعملية + فلتر التاريخ === -->
       <div id="staffBuy" class="tab-content active">
         <div class="card">
+          <!-- === ADD: فلتر التاريخ === -->
+          <div class="row" style="margin-bottom:8px">
+            <input type="date" id="staffBuyDateFrom">
+            <input type="date" id="staffBuyDateTo">
+            <button id="btnStaffBuyFilter" style="flex:0 0 auto">فلترة</button>
+            <button id="btnStaffBuyReset" style="flex:0 0 auto;background:var(--border-color)">الغاء</button>
+          </div>
+
           <div class="row">
             <input type="number" id="staffBuyAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
             <select id="staffBuyCurrency"></select>
@@ -591,15 +708,36 @@ table.table-selected {
             <input type="text" id="staffBuyResult" placeholder="النتيجة" readonly>
             <button id="btnSaveStaffBuy">حفظ</button>
           </div>
-          <table id="staffBuyTable">
-            <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
+
+          <div class="table-wrap">
+            <table id="staffBuyTable">
+              <thead>
+                <tr>
+                  <th data-col="amount">المبلغ</th>
+                  <th data-col="rate">السعر</th>
+                  <th data-col="currency">العملة</th>
+                  <th data-col="total">النتيجة</th>
+                  <th data-col="type">العملية</th>
+                  <th data-col="time">الوقت</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </div>
       </div>
+      <!-- === END MOD === -->
 
+      <!-- === MOD: بيع موظف - نفس تعديلات الشراء === -->
       <div id="staffSell" class="tab-content">
         <div class="card">
+          <div class="row" style="margin-bottom:8px">
+            <input type="date" id="staffSellDateFrom">
+            <input type="date" id="staffSellDateTo">
+            <button id="btnStaffSellFilter" style="flex:0 0 auto">فلترة</button>
+            <button id="btnStaffSellReset" style="flex:0 0 auto;background:var(--border-color)">الغاء</button>
+          </div>
+
           <div class="row">
             <input type="number" id="staffSellAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
             <select id="staffSellCurrency"></select>
@@ -607,112 +745,224 @@ table.table-selected {
             <input type="text" id="staffSellResult" placeholder="النتيجة" readonly>
             <button id="btnSaveStaffSell">حفظ</button>
           </div>
-          <table id="staffSellTable">
-            <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
 
-      <div id="staffDeposit" class="tab-content">
-        <div class="card">
-          <div class="row">
-            <select id="staffDepositAccount" class="searchable"></select>
-            <input type="number" id="staffDepositAmount" placeholder="المبلغ" inputmode="numeric">
-            <select id="staffDepositCurrency"></select>
-            <button id="btnSaveStaffDeposit">حفظ</button>
+          <div class="table-wrap">
+            <table id="staffSellTable">
+              <thead>
+                <tr>
+                  <th data-col="amount">المبلغ</th>
+                  <th data-col="rate">السعر</th>
+                  <th data-col="currency">العملة</th>
+                  <th data-col="total">النتيجة</th>
+                  <th data-col="type">العملية</th>
+                  <th data-col="time">الوقت</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
-          <table id="staffDepositTable">
-            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
         </div>
       </div>
+      <!-- === END MOD === -->
 
-      <div id="staffWithdraw" class="tab-content">
-        <div class="card">
-          <div class="row">
-            <select id="staffWithdrawAccount" class="searchable"></select>
-            <input type="number" id="staffWithdrawAmount" placeholder="المبلغ" inputmode="numeric">
-            <select id="staffWithdrawCurrency"></select>
-            <button id="btnSaveStaffWithdraw">حفظ</button>
-          </div>
-          <table id="staffWithdrawTable">
-            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div id="staffMatch" class="tab-content">
-      <div class="card">
-        <div class="row">
-          <select id="staffMatchCurrency"></select>
-          <input type="number" id="staffActualBalance" placeholder="الرصيد في الواقع" inputmode="decimal">
-          <input type="text" id="staffSystemBalance" placeholder="رصيد النظام" readonly>
-          <input type="text" id="staffDiff" placeholder="الفرق" readonly>
-          <button id="btnDoMatch">مطابقة</button>
-        </div>
-      </div>
-    </div>
-
- <div id="staffPerm" class="tab-content">
-        
+      <!-- === MOD: قبض موظف - ضفت حقل المودع وغلفت الجدول === -->
+  
+  
+  
+   <!-- قبض موظف -->
+<div id="staffDeposit" class="tab-content">
   <div class="card">
-    <h3>انشاء حساب عميل</h3>
+    <!-- صف 1: الحساب -->
     <div class="row">
-      <input type="text" id="staffAccName" placeholder="اسم العميل">
-      <input type="number" id="staffAccPhone" placeholder="رقم الهاتف" inputmode="numeric">
+      <select id="staffDepositAccount" class="searchable" style="flex:1"></select>
     </div>
+
+    <!-- صف 2: المبلغ + العملة -->
+    <div class="row" style="flex-wrap:nowrap">
+      <input type="number" id="staffDepositAmount" placeholder="المبلغ" inputmode="numeric" style="flex:2">
+      <select id="staffDepositCurrency" style="flex:1"></select>
+    </div>
+
+    <!-- صف 3: المودع -->
     <div class="row">
-      <label><input type="checkbox" value="YER" class="staffAccCurrency"> ريال يمني</label>
-      <label><input type="checkbox" value="SAR" class="staffAccCurrency"> ريال سعودي</label>
-      <label><input type="checkbox" value="USD" class="staffAccCurrency"> دولار</label>
-      <label><input type="checkbox" value="EUR" class="staffAccCurrency"> يورو</label>
+      <input type="text" id="staffDepositDepositor" placeholder="اسم المودع" style="flex:1">
     </div>
-    <button id="btnStaffCreateAcc">حفظ الحساب</button>
+
+    <!-- زر الحفظ -->
+    <div class="row">
+      <button id="btnSaveStaffDeposit" style="flex:1">حفظ</button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="staffDepositTable">
+        <thead>
+          <tr>
+            <th>الحساب</th>
+            <th>المبلغ</th>
+            <th>العملة</th>
+            <th>المودع</th>
+            <th>الوقت</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
-
-  <div class="card">
-    <h3>تغيير كلمة المرور</h3>
-    <div class="row">
-      <input type="password" id="staffNewPass" placeholder="كلمة المرور الجديدة" inputmode="numeric">
-      <button id="btnChangeStaffPass">حفظ</button>
-    </div>
-  </div>
-
-  <!-- حط الكود الجديد هنا 👇 تحت كرت تغيير كلمة المرور -->
-
-  <!-- كرت تعديل الاسعار - يظهر لو عنده editRate -->
-  <div class="card" id="staffEditRateCard" style="display:none">
-    <h3>تعديل الاسعار</h3>
-    <div class="row">
-      <select id="staffRateCurrency"></select>
-      <input type="number" id="staffBuyRateInput" placeholder="سعر الشراء" inputmode="decimal">
-      <button id="btnSaveStaffBuyRate">حفظ شراء</button>
-    </div>
-    <div class="row">
-      <input type="number" id="staffSellRateInput" placeholder="سعر البيع" inputmode="decimal">
-      <button id="btnSaveStaffSellRate">حفظ بيع</button>
-    </div>
-  </div>
-
-  <!-- كرت عرض الحسابات - يظهر لو عنده viewAcc -->
-  <div class="card" id="staffViewAccCard" style="display:none">
-    <h3>عرض حساب عميل</h3>
-    <div class="row">
-      <select id="staffViewAccSelect" class="searchable"></select>
-      <button id="btnStaffViewAcc">عرض</button>
-    </div>
-    <table id="staffAccBalanceTable">
-      <thead><tr><th>العملة</th><th>الرصيد</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
 </div>
 
+<!-- صرف موظف -->
+<div id="staffWithdraw" class="tab-content">
+  <div class="card">
+    <!-- صف 1: الحساب -->
+    <div class="row">
+      <select id="staffWithdrawAccount" class="searchable" style="flex:1"></select>
+    </div>
+
+    <!-- صف 2: المبلغ + العملة -->
+    <div class="row" style="flex-wrap:nowrap">
+      <input type="number" id="staffWithdrawAmount" placeholder="المبلغ" inputmode="numeric" style="flex:2">
+      <select id="staffWithdrawCurrency" style="flex:1"></select>
+    </div>
+
+    <!-- صف 3: المستلم -->
+    <div class="row">
+      <input type="text" id="staffWithdrawReceiver" placeholder="اسم المستلم" style="flex:1">
+    </div>
+
+    <!-- زر الحفظ -->
+    <div class="row">
+      <button id="btnSaveStaffWithdraw" style="flex:1">حفظ</button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="staffWithdrawTable">
+        <thead>
+          <tr>
+            <th>الحساب</th>
+            <th>المبلغ</th>
+            <th>العملة</th>
+            <th>المستلم</th>
+            <th>الوقت</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+      <!-- === END MOD === -->
+    </div>
+
+    <!-- === MOD: تبويب المطابقات 4x4 === -->
+    <div id="staffMatch" class="tab-content">
+      <div class="card">
+        <h3>مطابقة الأرصدة</h3>
+        <div class="table-wrap">
+          <table id="staffMatchTable">
+            <thead>
+              <tr>
+                <th>العملة</th>
+                <th>رصيد فعلي</th>
+                <th>رصيد النظام</th>
+                <th>الفرق</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <select class="matchCurrency">
+                    <option value="YER">YER</option>
+                    <option value="SAR">SAR</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                  </select>
+                </td>
+                <td><input type="number" class="matchActual" placeholder="0" inputmode="decimal"></td>
+                <td><input type="text" class="matchSystem" readonly placeholder="0"></td>
+                <td><input type="text" class="matchDiff" readonly placeholder="0"></td>
+              </tr>
+              <tr>
+                <td><select class="matchCurrency"></select></td>
+                <td><input type="number" class="matchActual" placeholder="0" inputmode="decimal"></td>
+                <td><input type="text" class="matchSystem" readonly placeholder="0"></td>
+                <td><input type="text" class="matchDiff" readonly placeholder="0"></td>
+              </tr>
+              <tr>
+                <td><select class="matchCurrency"></select></td>
+                <td><input type="number" class="matchActual" placeholder="0" inputmode="decimal"></td>
+                <td><input type="text" class="matchSystem" readonly placeholder="0"></td>
+                <td><input type="text" class="matchDiff" readonly placeholder="0"></td>
+              </tr>
+              <tr>
+                <td><select class="matchCurrency"></select></td>
+                <td><input type="number" class="matchActual" placeholder="0" inputmode="decimal"></td>
+                <td><input type="text" class="matchSystem" readonly placeholder="0"></td>
+                <td><input type="text" class="matchDiff" readonly placeholder="0"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button id="btnDoMatch">حساب ومطابقة</button>
+          <button id="btnSaveMatch" style="background:var(--accent-green)">حفظ المطابقة</button>
+        </div>
+      </div>
+    </div>
+    <!-- === END MOD === -->
+
+    <div id="staffPerm" class="tab-content">
+      <div class="card">
+        <h3>انشاء حساب عميل</h3>
+        <div class="row">
+          <input type="text" id="staffAccName" placeholder="اسم العميل">
+          <input type="number" id="staffAccPhone" placeholder="رقم الهاتف" inputmode="numeric">
+        </div>
+        <div class="row">
+          <label><input type="checkbox" value="YER" class="staffAccCurrency"> ريال يمني</label>
+          <label><input type="checkbox" value="SAR" class="staffAccCurrency"> ريال سعودي</label>
+          <label><input type="checkbox" value="USD" class="staffAccCurrency"> دولار</label>
+          <label><input type="checkbox" value="EUR" class="staffAccCurrency"> يورو</label>
+        </div>
+        <button id="btnStaffCreateAcc">حفظ الحساب</button>
+      </div>
+
+      <div class="card">
+        <h3>تغيير كلمة المرور</h3>
+        <div class="row">
+          <input type="password" id="staffNewPass" placeholder="كلمة المرور الجديدة" inputmode="numeric">
+          <button id="btnChangeStaffPass">حفظ</button>
+        </div>
+      </div>
+
+      <!-- كرت تعديل الاسعار - يظهر لو عنده editRate -->
+      <div class="card" id="staffEditRateCard" style="display:none">
+        <h3>تعديل الاسعار</h3>
+        <div class="row">
+          <select id="staffRateCurrency"></select>
+          <input type="number" id="staffBuyRateInput" placeholder="سعر الشراء" inputmode="decimal">
+          <button id="btnSaveStaffBuyRate">حفظ شراء</button>
+        </div>
+        <div class="row">
+          <input type="number" id="staffSellRateInput" placeholder="سعر البيع" inputmode="decimal">
+          <button id="btnSaveStaffSellRate">حفظ بيع</button>
+        </div>
+      </div>
+
+      <!-- كرت عرض الحسابات - يظهر لو عنده viewAcc -->
+      <div class="card" id="staffViewAccCard" style="display:none">
+        <h3>عرض حساب عميل</h3>
+        <div class="row">
+          <select id="staffViewAccSelect" class="searchable"></select>
+          <button id="btnStaffViewAcc">عرض</button>
+        </div>
+        <div class="table-wrap">
+          <table id="staffAccBalanceTable">
+            <thead><tr><th>العملة</th><th>الرصيد</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
   <div id="modalOverlay" class="overlay"></div>
   <div id="editEmpModal" class="modal">
@@ -758,6 +1008,7 @@ let selectedUser = null;
 let allAccounts = [];
 let activeCurrencies = ["YER", "SAR", "USD", "EUR"];
 let rates = { buy: {}, sell: {} };
+let isSaving = false; // === ADD: منع الضغط المزدوج ===
 
 function showToast(msg) {
   const toast = document.getElementById('toast');
@@ -897,6 +1148,20 @@ async function loadUsersForLogin() {
   console.log("📌 USERS LOADED:", allUsers.length);
 }
 
+
+
+
+
+
+//      الجزء الرابع
+
+
+
+
+
+
+
+
 window.filterDropdown = function(input, listId) {
   const filter = input.value.toLowerCase();
   const list = document.getElementById(listId);
@@ -951,20 +1216,13 @@ document.getElementById('btnLogin').addEventListener('click', async () => {
     await loadSettings();
     applyPermissions(currentUser.permissions || {});
     
-    
-    
-
     if (currentUser.role === 'admin') {
-        
-        resetTabsToDefault(); 
-     
+      resetTabsToDefault(); 
       showScreen('adminScreen');
       document.getElementById('adminName').textContent = currentUser.name;
       initAdminPanel();
     } else {
-        
-        resetTabsToDefault(); 
-        
+      resetTabsToDefault(); 
       showScreen('staffScreen');
       document.getElementById('staffName').textContent = currentUser.name;
       initStaffPanel();
@@ -978,14 +1236,11 @@ document.getElementById('btnLogin').addEventListener('click', async () => {
 });
 
 function logout() {
-  // 1. رجع زر الدخول لوضعه الطبيعي لو كان معلق
-  
   document.getElementById('bottomBar').classList.remove('active');
   
   const loginBtn = document.getElementById('btnLogin');
   setLoading(loginBtn, false);
 
-  // 2. اغلق القائمة المنسدلة والـ overlay
   document.getElementById('userList').classList.remove('active');
   document.getElementById('dropdownOverlay').classList.remove('active');
 
@@ -1022,14 +1277,13 @@ window.addEventListener('load', async () => {
         showScreen('adminScreen');
         document.getElementById('adminName').textContent = currentUser.name;
         initAdminPanel();
-        document.getElementById('bottomBar').classList.add('active'); // اضفت هذا السطر
+        document.getElementById('bottomBar').classList.add('active');
       } else {
         showScreen('staffScreen');
         document.getElementById('staffName').textContent = currentUser.name;
         initStaffPanel();
-        document.getElementById('bottomBar').classList.add('active'); // واضفت هذا السطر
+        document.getElementById('bottomBar').classList.add('active');
       }
-      
     } else {
       logout();
     }
@@ -1072,16 +1326,21 @@ function initAdminPanel() {
   loadEmployees();
   loadAccounts();
   loadCurrencies();
-  loadRatesRealtime(); // ضيفها هنا
+  loadRatesRealtime();
   loadTransactions();
   loadRateLogs();
+  initTableSorting(); // === ADD: تفعيل الترتيب ===
+  initDateFilters(); // === ADD: تفعيل الفلتر ===
 }
 
 function initStaffPanel() {
   loadAccounts();
   loadCurrencies();
   loadStaffTransactions();
-  loadRatesRealtime(); // وضيفها هنا
+  loadRatesRealtime();
+  initTableSorting(); // === ADD: تفعيل الترتيب ===
+  initDateFilters(); // === ADD: تفعيل الفلتر ===
+  initMatchTable();  // === ADD: تفعيل المطابقة ===
   onValue(ref(db, `users/${currentUser.uid}/permissions`), (snap) => {
     const perms = snap.exists()? snap.val() : {};
     currentUser.permissions = perms;
@@ -1191,11 +1450,119 @@ document.getElementById('btnDeleteEmp').addEventListener('click', async () => {
   console.log("📌 EMPLOYEE DELETED:", uid);
 });
 
+// === ADD: دالة حفظ العمليات مع الاعمدة الجديدة ومنع الضغط المزدوج ===
+async function saveTransaction(type, amountId, currencyId, rateId, resultId, btnId) {
+  if (isSaving) return; // منع الضغط المزدوج
+  isSaving = true;
+  const btn = document.getElementById(btnId);
+  setLoading(btn, true);
+
+  try {
+    const amount = parseFloat(document.getElementById(amountId).value);
+    const currency = document.getElementById(currencyId).value;
+    const rate = parseFloat(document.getElementById(rateId).value);
+    const total = parseFloat(document.getElementById(resultId).value);
+
+    if (!amount || !currency || !rate) {
+      showToast('املا جميع الحقول');
+      return;
+    }
+
+    const transaction = {
+      type: type,
+      amount: amount,
+      currency: currency,
+      rate: rate,
+      total: total,
+      userId: currentUser.uid,
+      userName: currentUser.name,
+      timestamp: Date.now()
+    };
+
+    await push(ref(db, 'transactions'), transaction);
+
+    // تحديث الرصيد التراكمي
+    const balRef = ref(db, `balances/${currentUser.uid}/${currency}`);
+    const balSnap = await get(balRef);
+    const oldBal = balSnap.exists() ? balSnap.val().amount : 0;
+    const newBal = type === 'buy' || type === 'deposit' ? oldBal + amount : oldBal - amount;
+    await set(balRef, { amount: newBal, updatedAt: Date.now() });
+
+    showToast('تم الحفظ بنجاح');
+    document.getElementById(amountId).value = ''; // مسح المدخلات
+    document.getElementById(resultId).value = '';
+
+    // تحديث الجداول بدون ريفرش للصفحة
+    if (currentUser.role === 'admin') loadTransactions();
+    else loadStaffTransactions();
+
+    // === ADD: فلاش اللمبة الصفراء ===
+    flashOperationLight();
+
+  } catch (err) {
+    console.error(err);
+    showToast('حدث خطأ اثناء الحفظ');
+  } finally {
+    setTimeout(() => {
+      isSaving = false;
+      setLoading(btn, false);
+    }, 500);
+  }
+}
+
+// === ADD: ربط ازرار الحفظ بالدالة الجديدة ===
+document.getElementById('btnSaveBuy').addEventListener('click', () => {
+  saveTransaction('buy', 'buyAmount', 'buyCurrency', 'buyRate', 'buyResult', 'btnSaveBuy');
+});
+document.getElementById('btnSaveSell').addEventListener('click', () => {
+  saveTransaction('sell', 'sellAmount', 'sellCurrency', 'sellRate', 'sellResult', 'btnSaveSell');
+});
+document.getElementById('btnSaveStaffBuy').addEventListener('click', () => {
+  saveTransaction('buy', 'staffBuyAmount', 'staffBuyCurrency', 'staffBuyRate', 'staffBuyResult', 'btnSaveStaffBuy');
+});
+document.getElementById('btnSaveStaffSell').addEventListener('click', () => {
+  saveTransaction('sell', 'staffSellAmount', 'staffSellCurrency', 'staffSellRate', 'staffSellResult', 'btnSaveStaffSell');
+});
+
+// === ADD: دالة عرض الجدول مع الاعمدة الجديدة ===
+function renderTable(tbodyId, transactions) {
+  const tbody = document.querySelector(`#${tbodyId} tbody`);
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  transactions.forEach(t => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${t.amount || ''}</td>
+      <td>${t.rate || ''}</td>
+      <td>${t.currency || ''}</td>
+      <td>${t.total || ''}</td>
+      <td>${t.type === 'buy' ? 'شراء' : t.type === 'sell' ? 'بيع' : t.type}</td>
+      <td>${t.userName || ''}</td>
+      <td>${new Date(t.timestamp).toLocaleString('ar-SA')}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+
+
+
+
+
+
+//   الجزء الخامس
+
+
+
+
+
+
 function loadCurrencies() {
   const selects = ['buyCurrency', 'sellCurrency', 'depositCurrency', 'withdrawCurrency',
                    'staffBuyCurrency', 'staffSellCurrency', 'staffDepositCurrency', 'staffWithdrawCurrency',
                    'staffMatchCurrency', 'rateCurrency', 'matchCurrencySelect',
-                   'staffRateCurrency']; // اضف هذا السطر
+                   'staffRateCurrency'];
   selects.forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
@@ -1227,9 +1594,6 @@ function loadRatesRealtime() {
   });
 }
 
-
-
-
 ['buyCurrency', 'sellCurrency', 'staffBuyCurrency', 'staffSellCurrency'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener('change', () => {
@@ -1249,121 +1613,175 @@ function calcResult(type) {
   document.getElementById(type + 'Result').value = (amount * rate).toFixed(2);
 }
 
-async function saveTransaction(type, amountId, currencyId, rateId, resultId) {
-  const amount = parseFloat(document.getElementById(amountId).value);
-  const currency = document.getElementById(currencyId).value;
-  const rate = parseFloat(document.getElementById(rateId).value);
-  const result = parseFloat(document.getElementById(resultId).value);
-  if (!amount ||!rate) { showToast('املا المبلغ والسعر'); return; }
+// === MOD: دالة حفظ العمليات - ضفت الاعمدة الجديدة ومنع الضغط المزدوج ===
+let isSaving = false;
+async function saveTransaction(type, amountId, currencyId, rateId, resultId, btnId, depositorId = null, receiverId = null, accountId = null) {
+  if (isSaving) return;
+  isSaving = true;
+  const btn = document.getElementById(btnId);
+  setLoading(btn, true);
 
-  await push(ref(db, 'transactions'), {
-    type, amount, currency, rate, result,
-    userId: currentUser.uid, userName: currentUser.name, time: Date.now()
-  });
-  showToast(`تم حفظ عملية ${type}`);
-  console.log("📌 TRANSACTION SAVED:", type, amount, currency);
-  document.getElementById(amountId).value = '';
-  document.getElementById(resultId).value = '';
-  loadTransactions();
-  loadStaffTransactions();
+  try {
+    const amount = parseFloat(document.getElementById(amountId).value);
+    const currency = document.getElementById(currencyId).value;
+    const rate = parseFloat(document.getElementById(rateId)?.value) || 0;
+    const result = parseFloat(document.getElementById(resultId)?.value) || 0;
+    const depositor = depositorId? document.getElementById(depositorId).value.trim() : null;
+    const receiver = receiverId? document.getElementById(receiverId).value.trim() : null;
+    const account = accountId? document.getElementById(accountId).value : null;
+
+    if (!amount ||!currency) { showToast('املا المبلغ والعملة'); return; }
+
+    const transaction = {
+      type, amount, currency, rate, result,
+      depositor, receiver, accountId: account,
+      userId: currentUser.uid, userName: currentUser.name,
+      timestamp: Date.now()
+    };
+
+    await push(ref(db, 'transactions'), transaction);
+
+    // تحديث الرصيد التراكمي
+    const balRef = ref(db, `balances/${currentUser.uid}/${currency}`);
+    const balSnap = await get(balRef);
+    const oldBal = balSnap.exists()? balSnap.val().amount : 0;
+    let newBal = oldBal;
+    if (type === 'buy' || type === 'deposit') newBal += amount;
+    if (type === 'sell' || type === 'withdraw') newBal -= amount;
+    await set(balRef, { amount: newBal, updatedAt: Date.now() });
+
+    showToast(`تم حفظ عملية ${type} بنجاح`);
+
+    // مسح المدخلات
+    document.getElementById(amountId).value = '';
+    if (resultId) document.getElementById(resultId).value = '';
+    if (depositorId) document.getElementById(depositorId).value = '';
+    if (receiverId) document.getElementById(receiverId).value = '';
+
+    // تحديث الجداول
+    loadTransactions();
+    loadStaffTransactions();
+    flashOperationLight(); // فلاش اللمبة الصفراء
+
+  } catch (err) {
+    console.error(err);
+    showToast('خطأ: ' + err.message);
+  } finally {
+    setTimeout(() => {
+      isSaving = false;
+      setLoading(btn, false);
+    }, 500);
+  }
 }
 
-document.getElementById('btnSaveBuy').addEventListener('click', () => saveTransaction('buy', 'buyAmount', 'buyCurrency', 'buyRate', 'buyResult'));
-document.getElementById('btnSaveSell').addEventListener('click', () => saveTransaction('sell', 'sellAmount', 'sellCurrency', 'sellRate', 'sellResult'));
-document.getElementById('btnSaveStaffBuy').addEventListener('click', () => saveTransaction('buy', 'staffBuyAmount', 'staffBuyCurrency', 'staffBuyRate', 'staffBuyResult'));
-document.getElementById('btnSaveStaffSell').addEventListener('click', () => saveTransaction('sell', 'staffSellAmount', 'staffSellCurrency', 'staffSellRate', 'staffSellResult'));
+// === MOD: ربط الازرار بالدالة الجديدة ===
+document.getElementById('btnSaveBuy').addEventListener('click', () =>
+  saveTransaction('buy', 'buyAmount', 'buyCurrency', 'buyRate', 'buyResult', 'btnSaveBuy'));
+document.getElementById('btnSaveSell').addEventListener('click', () =>
+  saveTransaction('sell', 'sellAmount', 'sellCurrency', 'sellRate', 'sellResult', 'btnSaveSell'));
+document.getElementById('btnSaveStaffBuy').addEventListener('click', () =>
+  saveTransaction('buy', 'staffBuyAmount', 'staffBuyCurrency', 'staffBuyRate', 'staffBuyResult', 'btnSaveStaffBuy'));
+document.getElementById('btnSaveStaffSell').addEventListener('click', () =>
+  saveTransaction('sell', 'staffSellAmount', 'staffSellCurrency', 'staffSellRate', 'staffSellResult', 'btnSaveStaffSell'));
 
-async function saveCashTransaction(type, accountId, amountId, currencyId) {
-  const account = document.getElementById(accountId).value;
-  const amount = parseFloat(document.getElementById(amountId).value);
-  const currency = document.getElementById(currencyId).value;
-  if (!account ||!amount) { showToast('اختر الحساب وادخل المبلغ'); return; }
+document.getElementById('btnSaveDeposit').addEventListener('click', () =>
+  saveTransaction('deposit', 'depositAmount', 'depositCurrency', 'depositAccount', null, 'btnSaveDeposit', 'depositDepositor', null, 'depositAccount'));
+document.getElementById('btnSaveWithdraw').addEventListener('click', () =>
+  saveTransaction('withdraw', 'withdrawAmount', 'withdrawCurrency', 'withdrawAccount', null, 'btnSaveWithdraw', null, 'withdrawReceiver', 'withdrawAccount'));
+document.getElementById('btnSaveStaffDeposit').addEventListener('click', () =>
+  saveTransaction('deposit', 'staffDepositAmount', 'staffDepositCurrency', 'staffDepositAccount', null, 'btnSaveStaffDeposit', 'staffDepositDepositor', null, 'staffDepositAccount'));
+document.getElementById('btnSaveStaffWithdraw').addEventListener('click', () =>
+  saveTransaction('withdraw', 'staffWithdrawAmount', 'staffWithdrawCurrency', 'staffWithdrawAccount', null, 'btnSaveStaffWithdraw', null, 'staffWithdrawReceiver', 'staffWithdrawAccount'));
 
-  await push(ref(db, 'transactions'), {
-    type, accountId: account, amount, currency,
-    userId: currentUser.uid, userName: currentUser.name, time: Date.now()
-  });
-  showToast(`تم حفظ عملية ${type}`);
-  document.getElementById(amountId).value = '';
-  loadTransactions();
-  loadStaffTransactions();
-  console.log("📌 CASH TRANSACTION SAVED:", type, account, amount);
-}
-
-document.getElementById('btnSaveDeposit').addEventListener('click', () => saveCashTransaction('deposit', 'depositAccount', 'depositAmount', 'depositCurrency'));
-document.getElementById('btnSaveWithdraw').addEventListener('click', () => saveCashTransaction('withdraw', 'withdrawAccount', 'withdrawAmount', 'withdrawCurrency'));
-document.getElementById('btnSaveStaffDeposit').addEventListener('click', () => saveCashTransaction('deposit', 'staffDepositAccount', 'staffDepositAmount', 'staffDepositCurrency'));
-document.getElementById('btnSaveStaffWithdraw').addEventListener('click', () => saveCashTransaction('withdraw', 'staffWithdrawAccount', 'staffWithdrawAmount', 'staffWithdrawCurrency'));
-
+// === MOD: تحميل العمليات مع الفلترة ===
+let allTransactions = [];
 async function loadTransactions() {
   const snap = await get(ref(db, 'transactions'));
-  let data = snap.exists()? Object.values(snap.val()) : [];
-  data = filterDataByUser(data, currentUser.uid, currentUser.role === 'admin');
+  allTransactions = snap.exists()? Object.entries(snap.val()).map(([id, d]) => ({id,...d})) : [];
 
-  renderTable('buyTable', data.filter(d => d.type === 'buy'));
-  renderTable('sellTable', data.filter(d => d.type === 'sell'));
-  renderTable('depositTable', data.filter(d => d.type === 'deposit'));
-  renderTable('withdrawTable', data.filter(d => d.type === 'withdraw'));
-  console.log("📌 TRANSACTIONS LOADED:", data.length);
+  applyFiltersAndRender();
+  console.log("📌 TRANSACTIONS LOADED:", allTransactions.length);
 }
 
 async function loadStaffTransactions() {
   const snap = await get(ref(db, 'transactions'));
-  let data = snap.exists()? Object.values(snap.val()) : [];
-  data = filterDataByUser(data, currentUser.uid, false);
-
-  renderTable('staffBuyTable', data.filter(d => d.type === 'buy'));
-  renderTable('staffSellTable', data.filter(d => d.type === 'sell'));
-  renderTable('staffDepositTable', data.filter(d => d.type === 'deposit'));
-  renderTable('staffWithdrawTable', data.filter(d => d.type === 'withdraw'));
-  console.log("📌 STAFF TRANSACTIONS LOADED:", data.length);
+  allTransactions = snap.exists()? Object.entries(snap.val()).map(([id, d]) => ({id,...d})) : [];
+  applyFiltersAndRender();
+  console.log("📌 STAFF TRANSACTIONS LOADED:", allTransactions.length);
 }
 
+// === ADD: فلترة التاريخ + المستخدم + العرض ===
+function applyFiltersAndRender() {
+  const isAdmin = currentUser.role === 'admin';
+  let data = isAdmin? allTransactions : allTransactions.filter(d => d.userId === currentUser.uid);
+
+  // فلترة الشراء
+  const buyFrom = document.getElementById('buyDateFrom')?.value;
+  const buyTo = document.getElementById('buyDateTo')?.value;
+  const buyUser = document.getElementById('buyFilterUser')?.value;
+  renderFilteredTable('buyTable', data.filter(d => d.type === 'buy'), buyFrom, buyTo, buyUser);
+
+  // فلترة البيع
+  const sellFrom = document.getElementById('sellDateFrom')?.value;
+  const sellTo = document.getElementById('sellDateTo')?.value;
+  const sellUser = document.getElementById('sellFilterUser')?.value;
+  renderFilteredTable('sellTable', data.filter(d => d.type === 'sell'), sellFrom, sellTo, sellUser);
+
+  // فلترة القبض والصرف
+  renderFilteredTable('depositTable', data.filter(d => d.type === 'deposit'));
+  renderFilteredTable('withdrawTable', data.filter(d => d.type === 'withdraw'));
+
+  // الموظف
+  renderFilteredTable('staffBuyTable', data.filter(d => d.type === 'buy'));
+  renderFilteredTable('staffSellTable', data.filter(d => d.type === 'sell'));
+  renderFilteredTable('staffDepositTable', data.filter(d => d.type === 'deposit'));
+  renderFilteredTable('staffWithdrawTable', data.filter(d => d.type === 'withdraw'));
+}
+
+function renderFilteredTable(tableId, data, fromDate, toDate, userId) {
+  if (fromDate) {
+    const from = new Date(fromDate).setHours(0,0,0,0);
+    data = data.filter(d => d.timestamp >= from);
+  }
+  if (toDate) {
+    const to = new Date(toDate).setHours(23,59,59,999);
+    data = data.filter(d => d.timestamp <= to);
+  }
+  if (userId && userId!== 'all') {
+    data = data.filter(d => d.userId === userId);
+  }
+
+  renderTable(tableId, data);
+}
+
+// === MOD: عرض الجدول بالاعمدة الجديدة ===
 function renderTable(tableId, data) {
   const tbody = document.querySelector(`#${tableId} tbody`);
   if (!tbody) return;
   tbody.innerHTML = '';
+
   data.forEach(d => {
-    const time = new Date(d.time).toLocaleString('ar');
-    
-    // جداول الادمن - 5 اعمدة: المبلغ | السعر | النتيجة | الموظف | الوقت
-    if (tableId === 'buyTable' || tableId === 'sellTable' || 
-        tableId === 'depositTable' || tableId === 'withdrawTable') {
+    const time = new Date(d.timestamp).toLocaleString('ar-SA');
+    const acc = allAccounts.find(a => a.id === d.accountId);
+
+    // جداول الشراء/البيع - 7 اعمدة
+    if (tableId.includes('buyTable') || tableId.includes('sellTable')) {
       tbody.innerHTML += `<tr>
         <td>${d.amount || '-'}</td>
         <td>${d.rate || '-'}</td>
+        <td>${d.currency || '-'}</td>
         <td>${d.result || '-'}</td>
+        <td>${d.type === 'buy'? 'شراء' : 'بيع'}</td>
         <td>${d.userName || '-'}</td>
         <td>${time}</td>
       </tr>`;
     }
-    
-    // جداول الموظف شراء/بيع - 4 اعمدة: المبلغ | السعر | النتيجة | الوقت
-    else if (tableId === 'staffBuyTable' || tableId === 'staffSellTable') {
-      tbody.innerHTML += `<tr>
-        <td>${d.amount || '-'}</td>
-        <td>${d.rate || '-'}</td>
-        <td>${d.result || '-'}</td>
-        <td>${time}</td>
-      </tr>`;
-    }
-    
-    // جداول الموظف قبض/صرف - 4 اعمدة: الحساب | المبلغ | العملة | الوقت
-    else if (tableId === 'staffDepositTable' || tableId === 'staffWithdrawTable') {
-      const acc = allAccounts.find(a => a.id === d.accountId);
-      tbody.innerHTML += `<tr>
-        <td>${acc?acc.name:'-'}</td>
-        <td>${d.amount || '-'}</td>
-        <td>${d.currency || '-'}</td>
-        <td>${time}</td>
-      </tr>`;
-    }
-    
-    // باقي الجداول
+
+    // جداول القبض/الصرف - 6 اعمدة
     else {
-      const acc = allAccounts.find(a => a.id === d.accountId);
       tbody.innerHTML += `<tr>
-        <td>${acc?acc.name:'-'}</td>
+        <td>${d.depositor || d.receiver || '-'}</td>
+        <td>${acc? acc.name : '-'}</td>
         <td>${d.amount || '-'}</td>
         <td>${d.currency || '-'}</td>
         <td>${d.userName || '-'}</td>
@@ -1373,9 +1791,135 @@ function renderTable(tableId, data) {
   });
 }
 
+// === ADD: الترتيب بالضغط على الراس ===
+let sortState = {};
+function initTableSorting() {
+  document.querySelectorAll('th[data-col]').forEach(th => {
+    th.style.cursor = 'pointer';
+    th.onclick = () => {
+      const tableId = th.closest('table').id;
+      const col = th.dataset.col;
+      const key = tableId + '_' + col;
+      sortState[key] = sortState[key] === 'asc'? 'desc' : 'asc';
+      sortTable(tableId, col, sortState[key]);
+    };
+  });
+}
+
+function sortTable(tableId, col, dir) {
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  const rows = Array.from(tbody.rows);
+
+  rows.sort((a, b) => {
+    const idx = Array.from(a.parentElement.parentElement.querySelectorAll('th')).findIndex(th => th.dataset.col === col);
+    const valA = a.cells[idx]?.textContent.trim();
+    const valB = b.cells[idx]?.textContent.trim();
+
+    const numA = parseFloat(valA);
+    const numB = parseFloat(valB);
+    if (!isNaN(numA) &&!isNaN(numB)) {
+      return dir === 'asc'? numA - numB : numB - numA;
+    }
+    return dir === 'asc'? valA.localeCompare(valB) : valB.localeCompare(valA);
+  });
+
+  tbody.innerHTML = '';
+  rows.forEach(row => tbody.appendChild(row));
+}
+
+// === ADD: فلترة التاريخ ===
+function initDateFilters() {
+  ['buy', 'sell', 'staffBuy', 'staffSell'].forEach(prefix => {
+    const btnFilter = document.getElementById(`btn${prefix.charAt(0).toUpperCase() + prefix.slice(1)}Filter`);
+    const btnReset = document.getElementById(`btn${prefix.charAt(0).toUpperCase() + prefix.slice(1)}Reset`);
+    if (btnFilter) btnFilter.onclick = () => applyFiltersAndRender();
+    if (btnReset) btnReset.onclick = () => {
+      document.getElementById(`${prefix}DateFrom`).value = '';
+      document.getElementById(`${prefix}DateTo`).value = '';
+      applyFiltersAndRender();
+    };
+  });
+}
+
+// === ADD: فلاش اللمبة الصفراء ===
+function flashOperationLight() {
+  const light = document.getElementById('opLight');
+  if (!light) return;
+  light.style.background = '#ffeb3b';
+  setTimeout(() => light.style.background = '#555', 400);
+}
+
+// === ADD: لمبة النت ===
+function initNetLight() {
+  const netLight = document.getElementById('netLight');
+  if (!netLight) return;
+  const update = () => {
+    netLight.style.background = navigator.onLine? '#4ade80' : '#d32f2f';
+  };
+  window.addEventListener('online', update);
+  window.addEventListener('offline', update);
+  update();
+}
+initNetLight();
+
+// === ADD: المطابقة 4x4 ===
+function initMatchTable() {
+  const rows = document.querySelectorAll('#staffMatchTable tbody tr');
+  rows.forEach(row => {
+    const curSel = row.querySelector('.matchCurrency');
+    const actualInp = row.querySelector('.matchActual');
+    const sysInp = row.querySelector('.matchSystem');
+    const diffInp = row.querySelector('.matchDiff');
+
+    curSel.onchange = async () => {
+      const balSnap = await get(ref(db, `balances/${currentUser.uid}/${curSel.value}`));
+      const sysBal = balSnap.exists()? balSnap.val().amount : 0;
+      sysInp.value = sysBal.toFixed(2);
+      calcDiff(actualInp, sysInp, diffInp);
+    };
+
+    actualInp.oninput = () => calcDiff(actualInp, sysInp, diffInp);
+  });
+
+  document.getElementById('btnDoMatch').onclick = async () => {
+    const rows = document.querySelectorAll('#staffMatchTable tbody tr');
+    rows.forEach(row => {
+      const curSel = row.querySelector('.matchCurrency');
+      const actualInp = row.querySelector('.matchActual');
+      const sysInp = row.querySelector('.matchSystem');
+      const diffInp = row.querySelector('.matchDiff');
+      if (curSel.value && actualInp.value) calcDiff(actualInp, sysInp, diffInp);
+    });
+  };
+}
+
+function calcDiff(actualInp, sysInp, diffInp) {
+  const actual = parseFloat(actualInp.value) || 0;
+  const system = parseFloat(sysInp.value) || 0;
+  const diff = actual - system;
+  diffInp.value = diff.toFixed(2);
+
+  diffInp.style.background = diff === 0? '#4ade80' : diff > 0? '#ffeb3b' : '#d32f2f';
+  diffInp.style.color = '#111b21';
+}
+
+document.getElementById('btnSaveMatch').onclick = async () => {
+  const rows = document.querySelectorAll('#staffMatchTable tbody tr');
+  const matches = [];
+  rows.forEach(row => {
+    const currency = row.querySelector('.matchCurrency').value;
+    const actual = parseFloat(row.querySelector('.matchActual').value) || 0;
+    const system = parseFloat(row.querySelector('.matchSystem').value) || 0;
+    const diff = parseFloat(row.querySelector('.matchDiff').value) || 0;
+    if (currency) matches.push({currency, actual, system, diff, timestamp: Date.now()});
+  });
+  await push(ref(db, 'matches'), {userId: currentUser.uid, userName: currentUser.name, matches});
+  showToast('تم حفظ المطابقة');
+};
+
 ['buyFilterUser', 'sellFilterUser', 'depositFilterUser', 'withdrawFilterUser'].forEach(id => {
   const el = document.getElementById(id);
-  if (el) el.addEventListener('change', loadTransactions);
+  if (el) el.addEventListener('change', applyFiltersAndRender);
 });
 
 async function loadAccounts() {
@@ -1384,9 +1928,8 @@ async function loadAccounts() {
   if (snap.exists()) {
     allAccounts = Object.entries(snap.val()).map(([id, a]) => ({id,...a}));
   }
-  const selects = ['depositAccount', 'withdrawAccount', 'staffDepositAccount', 'staffWithdrawAccount', 
-                   'viewAccSelect', 'editAccSelect', 'deleteAccSelect',
-                   'staffViewAccSelect']; // اضف هذا السطر
+  const selects = ['depositAccount', 'withdrawAccount', 'staffDepositAccount', 'staffWithdrawAccount',
+                   'viewAccSelect', 'editAccSelect', 'deleteAccSelect', 'staffViewAccSelect'];
   selects.forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
@@ -1479,6 +2022,7 @@ document.getElementById('btnActivateAcc').addEventListener('click', async () => 
   loadAccounts();
   console.log("📌 ACCOUNT ACTIVATED:", id);
 });
+
 document.getElementById('btnDeleteAcc').addEventListener('click', async () => {
   const id = document.getElementById('deleteAccSelect').value;
   if (!id) return;
@@ -1497,7 +2041,7 @@ document.getElementById('btnSaveBuyRate').addEventListener('click', async () => 
     if (!rate || rate <= 0) { showToast('ادخل سعر صحيح'); return; }
 
     showToast('جاري الحفظ...');
-    await set(ref(db, `rates/buy/${currency}`), rate); // set بدل update
+    await set(ref(db, `rates/buy/${currency}`), rate);
     await push(ref(db, 'rateLogs'), {
       currency, type: 'buy', rate,
       userId: currentUser?.uid || 'unknown',
@@ -1576,6 +2120,18 @@ document.getElementById('btnSaveStaffSellRate').addEventListener('click', async 
 
 
 
+
+
+
+
+
+
+//   الجزء السادس
+
+
+
+
+
 async function loadRateLogs() {
   const snap = await get(ref(db, 'rateLogs'));
   const tbody = document.querySelector('#rateLogTable tbody');
@@ -1583,7 +2139,13 @@ async function loadRateLogs() {
   tbody.innerHTML = '';
   if (snap.exists()) {
     Object.values(snap.val()).forEach(log => {
-      tbody.innerHTML += `<tr><td>${log.currency}</td><td>${log.type}</td><td>${log.rate}</td><td>${new Date(log.time).toLocaleString('ar')}</td><td>${log.userName}</td></tr>`;
+      tbody.innerHTML += `<tr>
+        <td>${log.currency}</td>
+        <td>${log.type}</td>
+        <td>${log.rate}</td>
+        <td>${new Date(log.time || log.timestamp).toLocaleString('ar-SA')}</td>
+        <td>${log.userName}</td>
+      </tr>`;
     });
   }
 }
@@ -1646,16 +2208,10 @@ document.getElementById('permEmpSelect').addEventListener('change', async () => 
   console.log("📌 PERMS LOADED:", uid, perms);
 });
 
+// === MOD: calcSystemBalance صارت تقرا من balances بدل ما تحسب كل مرة ===
 async function calcSystemBalance(userId, currency) {
-  const snap = await get(ref(db, 'transactions'));
-  let data = snap.exists()? Object.values(snap.val()) : [];
-  data = data.filter(d => d.userId === userId && d.currency === currency);
-  let balance = 0;
-  data.forEach(d => {
-    if (d.type === 'deposit' || d.type === 'buy') balance += d.amount;
-    if (d.type === 'withdraw' || d.type === 'sell') balance -= d.amount;
-  });
-  return balance;
+  const snap = await get(ref(db, `balances/${userId}/${currency}`));
+  return snap.exists()? snap.val().amount : 0;
 }
 
 document.getElementById('btnViewBalance').addEventListener('click', async () => {
@@ -1672,7 +2228,8 @@ document.getElementById('btnDoMatch').addEventListener('click', async () => {
   const system = parseFloat(document.getElementById('staffSystemBalance').value) || 0;
   const diff = actual - system;
   await push(ref(db, 'matches'), {
-    userId: currentUser.uid, currency, systemBalance: system, actualBalance: actual, diff, timestamp: Date.now()
+    userId: currentUser.uid, userName: currentUser.name,
+    currency, systemBalance: system, actualBalance: actual, diff, timestamp: Date.now()
   });
   document.getElementById('staffDiff').value = diff.toFixed(2);
   showToast('تمت المطابقة');
@@ -1685,16 +2242,16 @@ document.getElementById('btnViewMatch').addEventListener('click', async () => {
   const snap = await get(query(ref(db, 'matches'), orderByChild('userId'), equalTo(uid), limitToLast(1)));
   if (!snap.exists()) { showToast('لا توجد مطابقة'); return; }
   const match = Object.values(snap.val())[0];
-  document.getElementById('staffSystemBalance').value = match.systemBalance || 0;
-  document.getElementById('staffActualBalance').value = match.actualBalance || 0;
-  document.getElementById('staffDiff').value = match.diff || 0;
+  const m = match.matches? match.matches.find(x => x.currency === currency) : match;
+  if (m) {
+    document.getElementById('staffSystemBalance').value = m.systemBalance || m.system || 0;
+    document.getElementById('staffActualBalance').value = m.actualBalance || m.actual || 0;
+    document.getElementById('staffDiff').value = m.diff || 0;
+  }
   console.log("📌 MATCH VIEWED:", uid, currency);
 });
 
 console.log("📌 SCRIPT LOADED SUCCESSFULLY");
-
-
-
 
 let hideTabsTimer = null;
 
@@ -1724,7 +2281,6 @@ function resetHideTabsTimer() {
 
 resetHideTabsTimer();
 
-// بقية الكود تبع الجداول والطباعة والتحديث يجي هنا
 let selectedRow = null;
 let selectedTable = null;
 
@@ -1849,19 +2405,8 @@ function printPDF(type, tableId) {
   win.document.close();
 }
 
-console.log("📌 SCRIPT LOADED SUCCESSFULLY");
-
-
-
-
-
-
-
-
-
 // ====== Responsive + Horizontal Scroll للجداول ======
-(function fixTablesResponsive() {
-  // لف كل جدول بـ div للسكرول
+(function fixTables() {
   document.querySelectorAll('table').forEach(tbl => {
     if (tbl.closest('.table-wrap')) return;
     const wrap = document.createElement('div');
@@ -1870,11 +2415,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     wrap.appendChild(tbl);
   });
 
-  document.getElementById('responsive-fix')?.remove();
-  
-  const style = document.createElement('style');
-  style.id = 'responsive-fix';
-  style.textContent = `
+  const css = `
     .table-wrap {
       width: 100%;
       overflow: auto;
@@ -1883,54 +2424,53 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       border-radius: 8px;
       background: var(--bg-panel);
     }
-    
     .table-wrap table {
       width: max-content;
       min-width: 100%;
       border-collapse: collapse;
       table-layout: auto;
     }
-    
     .table-wrap thead {
       position: sticky;
       top: 0;
-      z-index: 2;
       background: var(--bg-dark);
+      z-index: 2;
     }
-    
-    /* لا تلمس display حق tbody و tr ولا td */
-    
     .table-wrap th {
       white-space: nowrap;
       padding: 8px 14px;
-      font-size: 14px;
       font-weight: 600;
-      text-align: center;
-      border: 1px solid var(--border-color);
-      background: var(--bg-dark);
     }
-    
     .table-wrap td {
       white-space: nowrap;
       padding: 8px 14px;
-      font-size: 14px;
-      text-align: center;
-      border: 1px solid var(--border-color);
-    }
-    
-    @media (max-width: 768px) {
-      .table-wrap th, .table-wrap td { 
-        padding: 6px 10px; 
-        font-size: 13px; 
-      }
     }
   `;
-  document.head.appendChild(style);
+  const s = document.createElement('style');
+  s.id = 'responsive-fix';
+  if (!document.getElementById('responsive-fix')) {
+    s.textContent = css;
+    document.head.appendChild(s);
+  }
 })();
 
-
+// === ADD: لمبة النت والعمليات ===
+(function initStatusLights() {
+  if (!document.getElementById('statusLights')) {
+    const lights = document.createElement('div');
+    lights.id = 'statusLights';
+    lights.style.cssText = 'position:fixed;bottom:60px;right:10px;display:flex;gap:8px;z-index:60';
+    lights.innerHTML = `
+      <div id="netLight" title="حالة الانترنت" style="width:12px;height:12px;border-radius:50%;background:#555"></div>
+      <div id="opLight" title="عملية" style="width:12px;height:12px;border-radius:50%;background:#555"></div>
+    `;
+    document.body.appendChild(lights);
+  }
+  initNetLight();
+})();
 </script>
 
+<!-- === MOD: الشريط السفلي مع اللمبات === -->
 <div id="bottomBar">
   <button id="btnRefreshAll">
     <span class="spinner"></span>
