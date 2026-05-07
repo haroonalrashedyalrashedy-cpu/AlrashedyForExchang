@@ -1907,6 +1907,265 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
   document.head.appendChild(s);
 })();
 
+
+
+
+/************ ملحق نهائي - بدون تعديل HTML/JS قديم ************/
+(function(){
+  const $ = s => document.querySelector(s);
+  const $$ = s => document.querySelectorAll(s);
+  const sortState = {};
+
+  // 1. حقن حقول المودع/المستلم تلقائياً في كروت القبض والصرف
+  function injectPersonInputs() {
+    const configs = [
+      {pre: 'deposit', label: 'اسم المودع'},
+      {pre: 'withdraw', label: 'اسم المستلم'},
+      {pre: 'staffDeposit', label: 'اسم المودع'},
+      {pre: 'staffWithdraw', label: 'اسم المستلم'}
+    ];
+
+    configs.forEach(cfg => {
+      const card = $(`#${cfg.pre}.card`);
+      if (!card || card.dataset.injected === '1') return;
+      card.dataset.injected = '1';
+
+      // صف المبلغ + العملة - نخليهم جنب بعض ونصغرهم
+      const amountEl = $(`#${cfg.pre}Amount`);
+      const currencyEl = $(`#${cfg.pre}Currency`);
+      if (amountEl) amountEl.style.maxWidth = '140px';
+      if (currencyEl) currencyEl.style.maxWidth = '140px';
+
+      // صف جديد للمودع/المستلم
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `<input type="text" id="${cfg.pre}Person" placeholder="${cfg.label}">`;
+      card.appendChild(row);
+
+      // نعدل دالة الحفظ عشان ترسل الحقل الجديد بدون ما نلمس الكود القديم
+      const saveBtn = $(`#btnSave${cfg.pre.charAt(0).toUpperCase() + cfg.pre.slice(1)}`);
+      if (saveBtn && !saveBtn.dataset.hooked) {
+        saveBtn.dataset.hooked = '1';
+        saveBtn.addEventListener('click', async () => {
+          const personVal = $(`#${cfg.pre}Person`)?.value?.trim() || '';
+          // نحفظه مؤقتاً في global عشان الدالة القديمة ما تعرفه
+          window.__personBuffer = {[cfg.pre]: personVal};
+        }, true);
+      }
+    });
+  }
+
+  // 2. لف على دوال الحفظ القديمة عشان نضيف المودع/المستلم ونمنع التكرار ونصفر الحقول
+  function wrapSaves() {
+    const map = {
+      saveDeposit: {amount: 'depositAmount', currency: 'depositCurrency', person: 'depositPerson', node: 'deposit'},
+      saveWithdraw: {amount: 'withdrawAmount', currency: 'withdrawCurrency', person: 'withdrawPerson', node: 'withdraw'},
+      saveStaffDeposit: {amount: 'staffDepositAmount', currency: 'staffDepositCurrency', person: 'staffDepositPerson', node: 'staffDeposit'},
+      saveStaffWithdraw: {amount: 'staffWithdrawAmount', currency: 'staffWithdrawCurrency', person: 'staffWithdrawPerson', node: 'staffWithdraw'},
+      saveBuy: {amount: 'buyAmount', currency: 'buyCurrency', result: 'buyResult', node: 'buy'},
+      saveSell: {amount: 'sellAmount', currency: 'sellCurrency', result: 'sellResult', node: 'sell'},
+      saveStaffBuy: {amount: 'staffBuyAmount', currency: 'staffBuyCurrency', result: 'staffBuyResult', node: 'staffBuy'},
+      saveStaffSell: {amount: 'staffSellAmount', currency: 'staffSellCurrency', result: 'staffSellResult', node: 'staffSell'}
+    };
+
+    Object.entries(map).forEach(([fnName, ids]) => {
+      const orig = window[fnName];
+      if (!orig || orig.__wrapped) return;
+
+      window[fnName] = async function(...args) {
+        const btn = $(`#btn${fnName.replace('save','Save')}`);
+        if (btn) {
+          if (btn.disabled) return;
+          btn.disabled = true;
+          btn.dataset.old = btn.textContent;
+          btn.textContent = 'جارٍ الحفظ...';
+        }
+
+        try {
+          // لو فيه شخص مخزن نحطه قبل الحفظ
+          const personVal = window.__personBuffer?.[ids.node];
+          if (personVal !== undefined) {
+            // نعمل override مؤقت لـ push عشان نضيف الحقل
+            const origPush = window.push;
+            window.push = (ref, data) => {
+              if (ids.person && data) data[ids.node.includes('Deposit')? 'depositor' : 'receiver'] = personVal;
+              if (ids.currency && data) data.currency = $(`#${ids.currency}`)?.value || data.currency;
+              if (['buy','sell'].includes(ids.node)) data.type = ids.node === 'buy'? 'شراء' : 'بيع';
+              return origPush(ref, data);
+            };
+            await orig.apply(this, args);
+            window.push = origPush;
+            window.__personBuffer = {};
+          } else {
+            await orig.apply(this, args);
+          }
+
+          // تصفير الحقول
+          [ids.amount, ids.result, ids.person].forEach(id => {
+            const el = $(`#${id}`);
+            if (el) el.value = '';
+          });
+
+        } finally {
+          if (btn) {
+            setTimeout(() => {
+              btn.disabled = false;
+              btn.textContent = btn.dataset.old || 'حفظ';
+            }, 1200);
+          }
+        }
+      };
+      window[fnName].__wrapped = true;
+    });
+  }
+
+  // 3. تعديل عرض الجداول لاضافة الأعمدة الجديدة بدون ما نلمس renderTable الأصلية
+  const origRender = window.renderTable;
+  window.renderTable = function(tblId, data) {
+    const tbody = $(`#${tblId} tbody`);
+    if (!tbody) return origRender?.(tblId, data);
+
+    tbody.innerHTML = '';
+    data.forEach(d => {
+      const time = new Date(d.time).toLocaleString('ar');
+      if (tblId === 'buyTable' || tblId === 'staffBuyTable') {
+        tbody.innerHTML += `<tr>
+          <td>${d.amount||'-'}</td><td>${d.rate||'-'}</td><td>${d.currency||'-'}</td>
+          <td>${d.result||'-'}</td><td>شراء</td><td>${time}</td>
+        </tr>`;
+      } else if (tblId === 'sellTable' || tblId === 'staffSellTable') {
+        tbody.innerHTML += `<tr>
+          <td>${d.amount||'-'}</td><td>${d.rate||'-'}</td><td>${d.currency||'-'}</td>
+          <td>${d.result||'-'}</td><td>بيع</td><td>${time}</td>
+        </tr>`;
+      } else if (tblId === 'depositTable' || tblId === 'staffDepositTable') {
+        const acc = allAccounts?.find(a => a.id === d.accountId);
+        tbody.innerHTML += `<tr>
+          <td>${acc?.name||'-'}</td><td>${d.amount||'-'}</td><td>${d.currency||'-'}</td>
+          <td>${d.depositor||'-'}</td><td>${time}</td>
+        </tr>`;
+      } else if (tblId === 'withdrawTable' || tblId === 'staffWithdrawTable') {
+        const acc = allAccounts?.find(a => a.id === d.accountId);
+        tbody.innerHTML += `<tr>
+          <td>${acc?.name||'-'}</td><td>${d.amount||'-'}</td><td>${d.currency||'-'}</td>
+          <td>${d.receiver||'-'}</td><td>${time}</td>
+        </tr>`;
+      } else {
+        return origRender?.(tblId, data);
+      }
+    });
+
+    makeSortable(tblId);
+    addDateFilter(tblId);
+  };
+
+  // 4. ترتيب الجداول بالضغط على الهيدر
+  function makeSortable(tblId) {
+    const tbl = $(`#${tblId}`);
+    if (!tbl || tbl.dataset.sortable === '1') return;
+    tbl.dataset.sortable = '1';
+    sortState[tblId] = {col:null, dir:'asc'};
+
+    tbl.querySelectorAll('thead th').forEach((th, idx) => {
+      th.style.cursor = 'pointer';
+      th.title = 'اضغط للترتيب';
+      th.onclick = () => {
+        const rows = Array.from(tbl.querySelectorAll('tbody tr'));
+        const dir = sortState[tblId].col === idx && sortState[tblId].dir === 'asc'? 'desc' : 'asc';
+        sortState[tblId] = {col:idx, dir};
+        rows.sort((a,b) => {
+          const va = a.cells[idx]?.textContent.trim()||'';
+          const vb = b.cells[idx]?.textContent.trim()||'';
+          const na = parseFloat(va.replace(/,/g,'')); const nb = parseFloat(vb.replace(/,/g,''));
+          const isNum = !isNaN(na) && !isNaN(nb);
+          return isNum ? (dir==='asc'? na-nb : nb-na) : (dir==='asc'? va.localeCompare(vb,'ar') : vb.localeCompare(va,'ar'));
+        });
+        const tb = tbl.querySelector('tbody');
+        tb.innerHTML = ''; rows.forEach(r => tb.appendChild(r));
+      };
+    });
+  }
+
+  // 5. فلترة بالتاريخ
+  function addDateFilter(tblId) {
+    const tbl = $(`#${tblId}`);
+    if (!tbl || tbl.dataset.dateFilter === '1') return;
+    tbl.dataset.dateFilter = '1';
+    const wrap = document.createElement('div');
+    wrap.className = 'row';
+    wrap.style.marginBottom = '8px';
+    wrap.innerHTML = `<input type="date" id="${tblId}From"><input type="date" id="${tblId}To"><button id="${tblId}Clear">مسح</button>`;
+    tbl.parentNode.insertBefore(wrap, tbl);
+
+    const filter = () => {
+      const from = $(`#${tblId}From`).value; const to = $(`#${tblId}To`).value;
+      const fromTs = from? new Date(from).setHours(0,0,0,0) : 0;
+      const toTs = to? new Date(to).setHours(23,59,59,999) : 9999;
+      tbl.querySelectorAll('tbody tr').forEach(tr => {
+        const ts = new Date(tr.cells[tr.cells.length-1]?.textContent).getTime();
+        tr.style.display = (!isNaN(ts) && ts>=fromTs && ts<=toTs)? '' : 'none';
+      });
+    };
+    wrap.querySelectorAll('input').forEach(i => i.onchange = filter);
+    $(`#${tblId}Clear`).onclick = () => {
+      wrap.querySelectorAll('input').forEach(i => i.value='');
+      tbl.querySelectorAll('tbody tr').forEach(tr => tr.style.display='');
+    };
+  }
+
+  // 6. بناء جدول المطابقة 4x4 للموظف
+  function buildMatchTable() {
+    const wrap = $('#staffMatch');
+    if (!wrap || wrap.dataset.built === '1') return;
+    wrap.dataset.built = '1';
+    wrap.innerHTML = `
+      <div class="card">
+        <table id="matchDyn">
+          <thead><tr><th>العملة</th><th>الرصيد الفعلي</th><th>رصيد النظام</th><th>نتيجة المطابقة</th></tr></thead>
+          <tbody>
+            ${[1,2,3,4].map(i => `
+              <tr>
+                <td><select class="mCur" data-i="${i}"><option value="">اختر</option>${activeCurrencies.map(c=>`<option>${c}</option>`).join('')}</select></td>
+                <td><input type="number" class="mAct" data-i="${i}" inputmode="decimal"></td>
+                <td><input type="text" class="mSys" data-i="${i}" readonly></td>
+                <td><input type="text" class="mDiff" data-i="${i}" readonly></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <div class="row"><button id="btnMatchDyn">مطابقة</button></div>
+      </div>
+    `;
+
+    $('#btnMatchDyn').onclick = async () => {
+      for (let tr of $$('#matchDyn tbody tr')) {
+        const cur = tr.querySelector('.mCur').value;
+        const act = parseFloat(tr.querySelector('.mAct').value) || 0;
+        if (!cur) continue;
+        const sys = await calcSystemBalance(currentUser.uid, cur);
+        const diff = act - sys;
+        tr.querySelector('.mSys').value = sys.toFixed(2);
+        tr.querySelector('.mDiff').value = diff.toFixed(2);
+        tr.querySelector('.mDiff').style.color = diff===0? 'var(--accent-green)' : diff<0? 'var(--danger)' : '#facc15';
+        if (act>0) await push(ref(db,'matches'), {userId:currentUser.uid,currency:cur,systemBalance:sys,actualBalance:act,diff,time:Date.now()});
+      }
+      showToast('تمت المطابقة');
+    };
+  }
+
+  // 7. شغل كل شي بعد التحميل
+  document.addEventListener('DOMContentLoaded', () => {
+    injectPersonInputs();
+    wrapSaves();
+    buildMatchTable();
+    ['buyTable','sellTable','depositTable','withdrawTable','staffBuyTable','staffSellTable','staffDepositTable','staffWithdrawTable'].forEach(t => {
+      makeSortable(t); addDateFilter(t);
+    });
+  });
+
+})();
+
+
 </script>
 
 <div id="bottomBar">
