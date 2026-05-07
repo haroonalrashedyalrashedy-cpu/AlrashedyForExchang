@@ -122,7 +122,7 @@ table {
 
 /* لف الـ tbody داخل سكرول 3 صفوف بس */
 tbody {
-  display: block;
+ /* display: block; */
   max-height: calc(3 * 34px); /* 3 صفوف × 34px */
   overflow-y: auto;
   overflow-x: hidden;
@@ -130,7 +130,7 @@ tbody {
 
 /* خلي thead ثابت فوق */
 thead {
-  display: table;
+display: table; 
   width: 100%;
   table-layout: fixed;
   position: sticky;
@@ -141,7 +141,7 @@ thead {
 
 /* خلي tr عادي بس الصفوف جواه block */
 tbody tr {
-  display: table;
+ /* display: table;*/
   width: 100%;
   table-layout: fixed;
 }
@@ -1860,8 +1860,8 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 
 // ====== Responsive + Horizontal Scroll للجداول ======
-(function fixTablesResponsive() {
-  // لف كل جدول بـ div للسكرول
+// حط هذا اخر الـ script
+(function fixTables() {
   document.querySelectorAll('table').forEach(tbl => {
     if (tbl.closest('.table-wrap')) return;
     const wrap = document.createElement('div');
@@ -1870,11 +1870,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     wrap.appendChild(tbl);
   });
 
-  document.getElementById('responsive-fix')?.remove();
-  
-  const style = document.createElement('style');
-  style.id = 'responsive-fix';
-  style.textContent = `
+  const css = `
     .table-wrap {
       width: 100%;
       overflow: auto;
@@ -1883,51 +1879,33 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       border-radius: 8px;
       background: var(--bg-panel);
     }
-    
     .table-wrap table {
       width: max-content;
       min-width: 100%;
       border-collapse: collapse;
       table-layout: auto;
     }
-    
     .table-wrap thead {
       position: sticky;
       top: 0;
-      z-index: 2;
       background: var(--bg-dark);
+      z-index: 2;
     }
-    
-    /* لا تلمس display حق tbody و tr ولا td */
-    
     .table-wrap th {
       white-space: nowrap;
       padding: 8px 14px;
-      font-size: 14px;
       font-weight: 600;
-      text-align: center;
-      border: 1px solid var(--border-color);
-      background: var(--bg-dark);
     }
-    
     .table-wrap td {
       white-space: nowrap;
       padding: 8px 14px;
-      font-size: 14px;
-      text-align: center;
-      border: 1px solid var(--border-color);
-    }
-    
-    @media (max-width: 768px) {
-      .table-wrap th, .table-wrap td { 
-        padding: 6px 10px; 
-        font-size: 13px; 
-      }
     }
   `;
-  document.head.appendChild(style);
+  const s = document.createElement('style');
+  s.id = 'responsive-fix';
+  s.textContent = css;
+  document.head.appendChild(s);
 })();
-
 
 </script>
 
