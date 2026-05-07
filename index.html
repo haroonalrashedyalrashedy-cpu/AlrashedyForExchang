@@ -377,7 +377,7 @@ table.table-selected {
             <select id="buyCurrency"></select>
             <input type="text" id="buyRate" placeholder="السعر" readonly>
             <input type="text" id="buyResult" placeholder="النتيجة" readonly>
-            <button id="btnSaveBuy">حفظ</button>
+          <button id="btnSaveBuy" onclick="saveBuy()">حفظ</button>
           </div>
           
         <div class="filter-compact">
@@ -420,7 +420,7 @@ table.table-selected {
             <select id="sellCurrency"></select>
             <input type="text" id="sellRate" placeholder="السعر" readonly>
             <input type="text" id="sellResult" placeholder="النتيجة" readonly>
-            <button id="btnSaveSell">حفظ</button>
+          <button id="btnSaveSell" onclick="saveSell()">حفظ</button>
           </div>
           
         <div class="filter-compact">
@@ -461,7 +461,7 @@ table.table-selected {
             <select id="depositAccount" class="searchable"></select>
             <input type="number" id="depositAmount" placeholder="المبلغ" inputmode="numeric">
             <select id="depositCurrency"></select>
-            <button id="btnSaveDeposit">حفظ</button>
+         <button id="btnSaveDeposit" onclick="saveDeposit()">حفظ</button>
           </div>
          
        <div class="filter-compact">
@@ -502,7 +502,7 @@ table.table-selected {
             <select id="withdrawAccount" class="searchable"></select>
             <input type="number" id="withdrawAmount" placeholder="المبلغ" inputmode="numeric">
             <select id="withdrawCurrency"></select>
-            <button id="btnSaveWithdraw">حفظ</button>
+          <button id="btnSaveWithdraw" onclick="saveWithdraw()">حفظ</button>
           </div>
           
           
@@ -1001,6 +1001,306 @@ function showScreen(id) {
   console.log("📌 SCREEN:", id);
 }
 
+
+
+let isSaving = false;
+
+async function refreshAll() {
+  try {
+    // جيب كل البيانات من Firebase بالتوازي
+    const [buySnap, sellSnap, depositSnap, withdrawSnap, ratesSnap, transSnap] = await Promise.all([
+      get(ref(db, 'buy')),
+      get(ref(db, 'sell')),
+      get(ref(db, 'deposit')),
+      get(ref(db, 'withdraw')),
+      get(ref(db, 'rates')),
+      get(ref(db, 'transactions'))
+    ]);
+
+    // حوّلها لمصفوفات
+    const data = {
+      buy: buySnap.val()? Object.values(buySnap.val()) : [],
+      sell: sellSnap.val()? Object.values(sellSnap.val()) : [],
+      deposit: depositSnap.val()? Object.values(depositSnap.val()) : [],
+      withdraw: withdrawSnap.val()? Object.values(withdrawSnap.val()) : [],
+      rates: ratesSnap.val() || { buy: {}, sell: {} },
+      transactions: transSnap.val()? Object.values(transSnap.val()) : []
+    };
+
+    // رتب من الاحدث للاقدم
+    data.buy.sort((a, b) => (b.time || 0) - (a.time || 0));
+    data.sell.sort((a, b) => (b.time || 0) - (a.time || 0));
+    data.deposit.sort((a, b) => (b.time || 0) - (a.time || 0));
+    data.withdraw.sort((a, b) => (b.time || 0) - (a.time || 0));
+    data.transactions.sort((a, b) => (b.time || 0) - (a.time || 0));
+
+    // 1. حدث جداول الادمن
+    updateTable('buyTable', data.buy.slice(0, 100));
+    updateTable('sellTable', data.sell.slice(0, 100));
+    updateTable('adminDepositTable', data.deposit.slice(0, 100));
+    updateTable('adminWithdrawTable', data.withdraw.slice(0, 100));
+
+    // 2. حدث جداول الموظف لو فيه مستخدم مسجل
+    if (currentUser && currentUser.uid) {
+      const userTrans = data.transactions.filter(t => t.userId === currentUser.uid);
+      updateTable('staffBuyTable', userTrans.filter(t => t.type === 'buy').slice(0, 100));
+      updateTable('staffSellTable', userTrans.filter(t => t.type === 'sell').slice(0, 100));
+      updateTable('staffDepositTable', userTrans.filter(t => t.type === 'deposit').slice(0, 100));
+      updateTable('staffWithdrawTable', userTrans.filter(t => t.type === 'withdraw').slice(0, 100));
+    }
+
+    // 3. حدث اسعار الصرف في الحقول
+    if (data.rates.buy) {
+      const buyCur = document.getElementById('buyCurrency')?.value;
+      const staffBuyCur = document.getElementById('staffBuyCurrency')?.value;
+      if (buyCur && data.rates.buy[buyCur]!== undefined) {
+        document.getElementById('buyRate').value = data.rates.buy[buyCur];
+      }
+      if (staffBuyCur && data.rates.buy[staffBuyCur]!== undefined) {
+        document.getElementById('staffBuyRate').value = data.rates.buy[staffBuyCur];
+      }
+    }
+    if (data.rates.sell) {
+      const sellCur = document.getElementById('sellCurrency')?.value;
+      const staffSellCur = document.getElementById('staffSellCurrency')?.value;
+      if (sellCur && data.rates.sell[sellCur]!== undefined) {
+        document.getElementById('sellRate').value = data.rates.sell[sellCur];
+      }
+      if (staffSellCur && data.rates.sell[staffSellCur]!== undefined) {
+        document.getElementById('staffSellRate').value = data.rates.sell[staffSellCur];
+      }
+    }
+
+    console.log("📌 Refreshed all data");
+  } catch (err) {
+    console.error('Refresh failed:', err);
+    showToast('فشل تحديث البيانات: ' + err.message);
+  }
+}
+
+function updateTable(tableId, rows) {
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if (!rows.length) {
+    const cols = tableId.includes('staff')? 6 : 7;
+    tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center;opacity:0.6">لا توجد بيانات</td></tr>`;
+    return;
+  }
+
+  const isAdminTable = ['buyTable', 'sellTable', 'adminDepositTable', 'adminWithdrawTable'].includes(tableId);
+
+  rows.forEach(r => {
+    const time = r.time? new Date(r.time).toLocaleString('ar-YE') : '-';
+    const opType = r.type === 'buy'? 'شراء' : r.type === 'sell'? 'بيع' : r.type === 'deposit'? 'ايداع' : 'سحب';
+
+    let row = '<tr>';
+
+    if (isAdminTable) {
+      // جداول الادمن: 7 اعمدة
+      row += `
+        <td>${r.amount?? '-'}</td>
+        <td>${r.rate?? '-'}</td>
+        <td>${r.currency?? '-'}</td>
+        <td>${r.result?? '-'}</td>
+        <td>${opType}</td>
+        <td>${r.staffName?? r.userName?? '-'}</td>
+        <td>${time}</td>
+      `;
+    } else {
+      // جداول الموظف: 6 اعمدة بدون عمود الموظف
+      row += `
+        <td>${r.amount?? '-'}</td>
+        <td>${r.rate?? '-'}</td>
+        <td>${r.currency?? '-'}</td>
+        <td>${r.result?? '-'}</td>
+        <td>${opType}</td>
+        <td>${time}</td>
+      `;
+    }
+
+    row += '</tr>';
+    tbody.innerHTML += row;
+  });
+}
+
+
+
+
+
+
+
+
+
+
+// 1. حفظ شراء
+async function saveBuy() {
+  if (isSaving) return;
+  const amount = document.getElementById('buyAmount').value.trim();
+  const currency = document.getElementById('buyCurrency').value;
+  const btn = document.getElementById('btnSaveBuy');
+  if (!amount || amount <= 0) return showToast('ادخل مبلغ صحيح');
+
+  try {
+    isSaving = true;
+    btn.disabled = true;
+    btn.textContent = 'جاري الحفظ...';
+
+    await push(ref(db, 'buy'), {
+      amount: parseFloat(amount),
+      currency: currency,
+      rate: parseFloat(document.getElementById('buyRate').value) || 0,
+      result: parseFloat(document.getElementById('buyResult').value) || 0,
+      time: Date.now(),
+      staffId: currentUser?.uid || null,
+      staffName: currentUser?.name || null,
+      type: 'buy'
+    });
+
+    await refreshAll();
+    document.getElementById('buyAmount').value = '';
+    document.getElementById('buyResult').value = '';
+    showToast('تم حفظ الشراء');
+  } catch (err) {
+    showToast('فشل الحفظ: ' + err.message);
+  } finally {
+    isSaving = false;
+    btn.disabled = false;
+    btn.textContent = 'حفظ';
+  }
+}
+
+// 2. حفظ بيع
+async function saveSell() {
+  if (isSaving) return;
+  const amount = document.getElementById('sellAmount').value.trim();
+  const currency = document.getElementById('sellCurrency').value;
+  const btn = document.getElementById('btnSaveSell');
+  if (!amount || amount <= 0) return showToast('ادخل مبلغ صحيح');
+
+  try {
+    isSaving = true;
+    btn.disabled = true;
+    btn.textContent = 'جاري الحفظ...';
+
+    await push(ref(db, 'sell'), {
+      amount: parseFloat(amount),
+      currency: currency,
+      rate: parseFloat(document.getElementById('sellRate').value) || 0,
+      result: parseFloat(document.getElementById('sellResult').value) || 0,
+      time: Date.now(),
+      staffId: currentUser?.uid || null,
+      staffName: currentUser?.name || null,
+      type: 'sell'
+    });
+
+    await refreshAll();
+    document.getElementById('sellAmount').value = '';
+    document.getElementById('sellResult').value = '';
+    showToast('تم حفظ البيع');
+  } catch (err) {
+    showToast('فشل الحفظ: ' + err.message);
+  } finally {
+    isSaving = false;
+    btn.disabled = false;
+    btn.textContent = 'حفظ';
+  }
+}
+
+// 3. حفظ ايداع
+async function saveDeposit() {
+  if (isSaving) return;
+  const account = document.getElementById('depositAccount').value;
+  const amount = document.getElementById('depositAmount').value.trim();
+  const btn = document.getElementById('btnSaveDeposit');
+  if (!account || !amount || amount <= 0) return showToast('اختر الحساب وادخل مبلغ صحيح');
+
+  try {
+    isSaving = true;
+    btn.disabled = true;
+    btn.textContent = 'جاري الحفظ...';
+
+    await push(ref(db, 'deposit'), {
+      accountId: account,
+      amount: parseFloat(amount),
+      currency: document.getElementById('depositCurrency').value,
+      time: Date.now(),
+      staffId: currentUser?.uid || null,
+      staffName: currentUser?.name || null,
+      type: 'deposit'
+    });
+
+    await refreshAll();
+    document.getElementById('depositAmount').value = '';
+    showToast('تم حفظ الايداع');
+  } catch (err) {
+    showToast('فشل الحفظ: ' + err.message);
+  } finally {
+    isSaving = false;
+    btn.disabled = false;
+    btn.textContent = 'حفظ';
+  }
+}
+
+// 4. حفظ سحب
+async function saveWithdraw() {
+  if (isSaving) return;
+  const account = document.getElementById('withdrawAccount').value;
+  const amount = document.getElementById('withdrawAmount').value.trim();
+  const btn = document.getElementById('btnSaveWithdraw');
+  if (!account || !amount || amount <= 0) return showToast('اختر الحساب وادخل مبلغ صحيح');
+
+  try {
+    isSaving = true;
+    btn.disabled = true;
+    btn.textContent = 'جاري الحفظ...';
+
+    await push(ref(db, 'withdraw'), {
+      accountId: account,
+      amount: parseFloat(amount),
+      currency: document.getElementById('withdrawCurrency').value,
+      time: Date.now(),
+      staffId: currentUser?.uid || null,
+      staffName: currentUser?.name || null,
+      type: 'withdraw'
+    });
+
+    await refreshAll();
+    document.getElementById('withdrawAmount').value = '';
+    showToast('تم حفظ السحب');
+  } catch (err) {
+    showToast('فشل الحفظ: ' + err.message);
+  } finally {
+    isSaving = false;
+    btn.disabled = false;
+    btn.textContent = 'حفظ';
+  }
+}
+
+// لازم هذا عشان onclick يشتغل مع modules
+window.saveBuy = saveBuy;
+window.saveSell = saveSell;
+window.saveDeposit = saveDeposit;
+window.saveWithdraw = saveWithdraw;
+
+
+
+
+// عشان modules تخلي الدوال تشتغل مع onclick في HTML
+window.saveBuy = saveBuy;
+window.saveSell = saveSell;
+window.saveDeposit = saveDeposit;
+window.saveWithdraw = saveWithdraw;
+
+
+
+
+
+
+
+
 function resetTabsToDefault() {
   // شيل active من كل التابات والمحتوى فقط، لا تفعل اي شيء بعده
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1469,7 +1769,6 @@ function calcResult(type) {
   document.getElementById(type + 'Result').value = (amount * rate).toFixed(2);
 }
 
-let isSaving = false;
 
 async function saveTransaction(type, amountId, currencyId, rateId, resultId) {
   if (isSaving) return;
@@ -1518,10 +1817,9 @@ async function saveTransaction(type, amountId, currencyId, rateId, resultId) {
 
 
 
-document.getElementById('btnSaveBuy').addEventListener('click', () => saveTransaction('buy', 'buyAmount', 'buyCurrency', 'buyRate', 'buyResult'));
-document.getElementById('btnSaveSell').addEventListener('click', () => saveTransaction('sell', 'sellAmount', 'sellCurrency', 'sellRate', 'sellResult'));
-document.getElementById('btnSaveStaffBuy').addEventListener('click', () => saveTransaction('buy', 'staffBuyAmount', 'staffBuyCurrency', 'staffBuyRate', 'staffBuyResult'));
-document.getElementById('btnSaveStaffSell').addEventListener('click', () => saveTransaction('sell', 'staffSellAmount', 'staffSellCurrency', 'staffSellRate', 'staffSellResult'));
+
+
+
 
 async function saveCashTransaction(type, accountId, amountId, currencyId) {
   const account = document.getElementById(accountId).value;
@@ -1540,10 +1838,7 @@ async function saveCashTransaction(type, accountId, amountId, currencyId) {
   console.log("📌 CASH TRANSACTION SAVED:", type, account, amount);
 }
 
-document.getElementById('btnSaveDeposit').addEventListener('click', () => saveCashTransaction('deposit', 'depositAccount', 'depositAmount', 'depositCurrency'));
-document.getElementById('btnSaveWithdraw').addEventListener('click', () => saveCashTransaction('withdraw', 'withdrawAccount', 'withdrawAmount', 'withdrawCurrency'));
-document.getElementById('btnSaveStaffDeposit').addEventListener('click', () => saveCashTransaction('deposit', 'staffDepositAccount', 'staffDepositAmount', 'staffDepositCurrency'));
-document.getElementById('btnSaveStaffWithdraw').addEventListener('click', () => saveCashTransaction('withdraw', 'staffWithdrawAccount', 'staffWithdrawAmount', 'staffWithdrawCurrency'));
+
 
 async function loadTransactions() {
   const snap = await get(ref(db, 'transactions'));
