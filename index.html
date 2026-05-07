@@ -1831,15 +1831,7 @@ document.addEventListener('click', (e) => {
 });
 
 // 3. زر الطباعة PDF
-document.getElementById('btnPrint').addEventListener('click', () => {
-  if (selectedTable) {
-    printPDF('table', selectedTable.id);
-  } else if (selectedRow) {
-    printPDF('row', null);
-  } else {
-    showToast('حدد صف او جدول اولاً');
-  }
-});
+
 
 
 
@@ -1965,11 +1957,167 @@ async function generateImage(elementId, filename) {
 // ========== نهاية كود التصوير ==========
 
 
+// ====== Responsive + Dynamic UI ======
 
+// 1. ضبط الـ viewport للجوال + منع الزووم الغلط
+(function fixViewport(){
+  let viewport = document.querySelector('meta[name="viewport"]');
+  if(!viewport){
+    viewport = document.createElement('meta');
+    viewport.name = "viewport";
+    document.head.appendChild(viewport);
+  }
+  viewport.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover";
+  
+  // حل مشكلة شريط العنوان في الجوال
+  const setVH = () => {
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  };
+  setVH();
+  window.addEventListener('resize', setVH);
+  window.addEventListener('orientationchange', setVH);
+})();
 
-// ربط الزر
+// 2. خلي كل الشاشات تاخذ ارتفاع الشاشة الحقي
+const style = document.createElement('style');
+style.innerHTML = `
+  :root {
+    --vh: 1vh;
+  }
+  
+  body, .screen {
+    height: 100vh; 
+    height: calc(var(--vh) * 100);
+    height: 100dvh; /* للجوالات الحديثة */
+  }
+  
+  /* 3. الجداول: سكرول افقي للشاشات الصغيرة */
+  .card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    min-width: 480px; /* عشان ما يتكسر الجدول */
+  }
+  
+  @media (max-width: 768px) {
+    /* 4. تبويبات: خليها سكرول افقي بدل ما تنكسر */
+    .tabs {
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+    .tab {
+      flex-shrink: 0;
+      min-width: 90px;
+      font-size: 14px;
+      padding: 12px 10px;
+    }
+    
+    /* 5. الصفوف: عمود واحد في الجوال */
+    .row {
+      flex-direction: column;
+      gap: 10px;
+    }
+    .row > * {
+      min-width: 100% !important;
+      width: 100%;
+    }
+    
+    /* 6. تصغير الخط والبادنج للجوال */
+    body {
+      font-size: 15px;
+    }
+    .card, .modal {
+      padding: 12px;
+    }
+    button, input, select {
+      font-size: 15px;
+      padding: 10px 14px;
+    }
+    
+    /* 7. الهيدر: يصغر شوي */
+    .header {
+      height: 56px;
+      font-size: 16px;
+      padding: 0 12px;
+    }
+    
+    /* 8. المودال: ياخذ عرض الشاشة */
+    .modal {
+      width: 92%;
+      max-width: 92%;
+      min-width: unset;
+    }
+    
+    /* 9. التوست: ينزل شوي */
+    .toast {
+      bottom: 70px;
+      max-width: 90%;
+      font-size: 14px;
+    }
+    
+    /* 10. الشريط السفلي: يصغر */
+    #bottomBar {
+      height: 48px;
+    }
+    #bottomBar button {
+      min-width: 90px;
+      font-size: 14px;
+      padding: 6px 12px;
+    }
+  }
+  
+  @media (min-width: 769px) and (max-width: 1024px) {
+    /* 11. التابلت: وسط بين الجوال والكمبيوتر */
+    .row > * {
+      min-width: 180px;
+    }
+    table {
+      font-size: 14px;
+    }
+  }
+  
+  /* 12. لمس افضل للجوال */
+  button, .dropdown-item, .tab, tbody tr {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(37, 211, 102, 0.2);
+  }
+  
+  /* 13. منع التحديد العرضي */
+    * {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+`;
+document.head.appendChild(style);
 
+// 14. خلي القوائم المنسدلة تغلق لما تغير اتجاه الشاشة
+window.addEventListener('orientationchange', () => {
+  document.getElementById('userList')?.classList.remove('active');
+  document.getElementById('dropdownOverlay')?.classList.remove('active');
+  document.getElementById('modalOverlay')?.classList.remove('active');
+});
 
+// 15. تحسين الاداء: تأجيل الايفنتات الثقيلة
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    // اعد حساب اي شيء يحتاج عرض الشاشة
+    console.log("📌 RESIZED:", window.innerWidth, window.innerHeight);
+  }, 250);
+});
 
 </script>
 
