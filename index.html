@@ -1349,55 +1349,74 @@ function renderTable(tableId, data) {
   const tbody = document.querySelector(`#${tableId} tbody`);
   if (!tbody) return;
   tbody.innerHTML = '';
+  
   data.forEach(d => {
     const time = new Date(d.time).toLocaleString('ar');
+    const tr = document.createElement('tr');
     
-    // جداول الادمن - 5 اعمدة: المبلغ | السعر | النتيجة | الموظف | الوقت
-    if (tableId === 'buyTable' || tableId === 'sellTable' || 
-        tableId === 'depositTable' || tableId === 'withdrawTable') {
-      tbody.innerHTML += `<tr>
+    // جداول الادمن شراء/بيع
+    if (tableId === 'buyTable' || tableId === 'sellTable') {
+      tr.innerHTML = `
         <td>${d.amount || '-'}</td>
         <td>${d.rate || '-'}</td>
         <td>${d.result || '-'}</td>
         <td>${d.userName || '-'}</td>
         <td>${time}</td>
-      </tr>`;
+      `;
     }
-    
-    // جداول الموظف شراء/بيع - 4 اعمدة: المبلغ | السعر | النتيجة | الوقت
+    // جداول الادمن قبض/صرف
+    else if (tableId === 'depositTable' || tableId === 'withdrawTable') {
+      const acc = allAccounts.find(a => a.id === d.accountId);
+      tr.innerHTML = `
+        <td>${acc ? acc.name : '-'}</td>
+        <td>${d.amount || '-'}</td>
+        <td>${d.currency || '-'}</td>
+        <td>${d.userName || '-'}</td>
+        <td>${time}</td>
+      `;
+    }
+    // جداول الموظف شراء/بيع
     else if (tableId === 'staffBuyTable' || tableId === 'staffSellTable') {
-      tbody.innerHTML += `<tr>
+      tr.innerHTML = `
         <td>${d.amount || '-'}</td>
         <td>${d.rate || '-'}</td>
         <td>${d.result || '-'}</td>
         <td>${time}</td>
-      </tr>`;
+      `;
     }
-    
-    // جداول الموظف قبض/صرف - 4 اعمدة: الحساب | المبلغ | العملة | الوقت
+    // جداول الموظف قبض/صرف
     else if (tableId === 'staffDepositTable' || tableId === 'staffWithdrawTable') {
       const acc = allAccounts.find(a => a.id === d.accountId);
-      tbody.innerHTML += `<tr>
-        <td>${acc?acc.name:'-'}</td>
+      tr.innerHTML = `
+        <td>${acc ? acc.name : '-'}</td>
         <td>${d.amount || '-'}</td>
         <td>${d.currency || '-'}</td>
         <td>${time}</td>
-      </tr>`;
+      `;
     }
     
-    // باقي الجداول
-    else {
-      const acc = allAccounts.find(a => a.id === d.accountId);
-      tbody.innerHTML += `<tr>
-        <td>${acc?acc.name:'-'}</td>
-        <td>${d.amount || '-'}</td>
-        <td>${d.currency || '-'}</td>
-        <td>${d.userName || '-'}</td>
-        <td>${time}</td>
-      </tr>`;
-    }
+    // اهم جزء: خزن البيانات كاملة للطباعة
+    tr.onclick = () => {
+      window.selectedRowData = {
+        type: d.type,
+        accountId: d.accountId,
+        currency: d.currency,
+        amount: d.amount,
+        depositor: d.depositor || '',
+        recipient: d.recipient || '',
+        userName: d.userName,
+        time: d.time
+      };
+      printPDF('row');
+    };
+    
+    tbody.appendChild(tr);
   });
 }
+
+
+
+
 
 ['buyFilterUser', 'sellFilterUser', 'depositFilterUser', 'withdrawFilterUser'].forEach(id => {
   const el = document.getElementById(id);
