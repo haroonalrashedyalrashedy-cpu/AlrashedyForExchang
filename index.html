@@ -163,6 +163,39 @@ tbody tr.selected {
   background: rgba(37, 211, 102, 0.25) !important;
 }
 
+.filter-compact {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  margin-bottom: 8px;
+  flex-wrap: nowrap; /* يمنع النزول سطر جديد */
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column; /* يخلي label فوق input */
+}
+
+.filter-item label {
+  font-size: 11px; /* حجم صغير */
+  opacity: 0.7;
+  margin-bottom: 2px;
+}
+
+.filter-compact input[type="date"] {
+  font-size: 12px;
+  padding: 4px 6px;
+  height: 28px;
+  width: 110px; /* صغر العرض */
+}
+
+.filter-compact button {
+  font-size: 12px;
+  padding: 4px 10px;
+  height: 28px;
+}
+
+
 /* عرض الاعمدة - جداول الموظف 4 اعمدة */
 #staffBuyTable th:nth-child(1), #staffBuyTable td:nth-child(1),
 #staffSellTable th:nth-child(1), #staffSellTable td:nth-child(1) { width: 25%; }
@@ -345,12 +378,18 @@ table.table-selected {
             <button id="btnSaveBuy">حفظ</button>
           </div>
           
-         <div style="margin-bottom:10px; display:flex; gap:8px;">
-  من: <input type="date" id="buyTableDateFrom">
-  إلى: <input type="date" id="buyTableDateTo">
+        <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="buyTableDateFrom">
+  </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="buyTableDateTo">
+  </div>
   <button onclick="applyDateFilter('buyTable')">فلترة</button>
   <button onclick="clearDateFilter('buyTable')">مسح</button>
-</div> 
+</div>
           
           <table id="buyTable">
            <thead>
@@ -382,9 +421,15 @@ table.table-selected {
             <button id="btnSaveSell">حفظ</button>
           </div>
           
-          <div style="margin-bottom:10px; display:flex; gap:8px; flex-wrap:wrap;">
-  من: <input type="date" id="sellTableDateFrom">
-  إلى: <input type="date" id="sellTableDateTo">
+        <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="sellTableDateFrom">
+  </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="sellTableDateTo">
+  </div>
   <button onclick="applyDateFilter('sellTable')">فلترة</button>
   <button onclick="clearDateFilter('sellTable')">مسح</button>
 </div>
@@ -417,9 +462,15 @@ table.table-selected {
             <button id="btnSaveDeposit">حفظ</button>
           </div>
          
-         <div style="margin-bottom:10px; display:flex; gap:8px; flex-wrap:wrap;">
-  من: <input type="date" id="depositTableDateFrom">
-  إلى: <input type="date" id="depositTableDateTo">
+       <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="depositTableDateFrom">
+  </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="depositTableDateTo">
+  </div>
   <button onclick="applyDateFilter('depositTable')">فلترة</button>
   <button onclick="clearDateFilter('depositTable')">مسح</button>
 </div>
@@ -444,12 +495,18 @@ table.table-selected {
           </div>
           
           
-        <div style="margin-bottom:10px; display:flex; gap:8px; flex-wrap:wrap;">
-  من: <input type="date" id="withdrawTableDateFrom">
-  إلى: <input type="date" id="withdrawTableDateTo">
+        <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="withdrawTableDateFrom">
+  </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="withdrawTableDateTo">
+  </div>
   <button onclick="applyDateFilter('withdrawTable')">فلترة</button>
   <button onclick="clearDateFilter('withdrawTable')">مسح</button>
-</div>  
+</div>
           <table id="withdrawTable">
             <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
@@ -643,9 +700,15 @@ table.table-selected {
             <button id="btnSaveStaffBuy">حفظ</button>
           </div>
           
-          <div style="margin-bottom:10px; display:flex; gap:8px; flex-wrap:wrap;">
-  من: <input type="date" id="staffBuyTableDateFrom">
-  إلى: <input type="date" id="staffBuyTableDateTo">
+          <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="staffBuyTableDateFrom">
+  </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="staffBuyTableDateTo">
+  </div>
   <button onclick="applyDateFilter('staffBuyTable')">فلترة</button>
   <button onclick="clearDateFilter('staffBuyTable')">مسح</button>
 </div>
@@ -676,9 +739,15 @@ table.table-selected {
             <button id="btnSaveStaffSell">حفظ</button>
           </div>
          
-         <div style="margin-bottom:10px; display:flex; gap:8px; flex-wrap:wrap;">
-  من: <input type="date" id="staffSellTableDateFrom">
-  إلى: <input type="date" id="staffSellTableDateTo">
+       <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="staffSellTableDateFrom">
+  </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="staffSellTableDateTo">
+  </div>
   <button onclick="applyDateFilter('staffSellTable')">فلترة</button>
   <button onclick="clearDateFilter('staffSellTable')">مسح</button>
 </div>
@@ -709,12 +778,18 @@ table.table-selected {
           </div>
          
          
-          <div style="margin-bottom:10px; display:flex; gap:8px; flex-wrap:wrap;">
-    من: <input type="date" id="staffDepositTableDateFrom">
-    إلى: <input type="date" id="staffDepositTableDateTo">
-    <button onclick="applyDateFilter('staffDepositTable')">فلترة</button>
-    <button onclick="clearDateFilter('staffDepositTable')">مسح</button>
+        <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="staffDepositTableDateFrom">
   </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="staffDepositTableDateTo">
+  </div>
+  <button onclick="applyDateFilter('staffDepositTable')">فلترة</button>
+  <button onclick="clearDateFilter('staffDepositTable')">مسح</button>
+</div>
          
          
           <table id="staffDepositTable">
@@ -733,12 +808,18 @@ table.table-selected {
             <button id="btnSaveStaffWithdraw">حفظ</button>
           </div>
           
-          <div style="margin-bottom:10px; display:flex; gap:8px; flex-wrap:wrap;">
-    من: <input type="date" id="staffWithdrawTableDateFrom">
-    إلى: <input type="date" id="staffWithdrawTableDateTo">
-    <button onclick="applyDateFilter('staffWithdrawTable')">فلترة</button>
-    <button onclick="clearDateFilter('staffWithdrawTable')">مسح</button>
+         <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="staffWithdrawTableDateFrom">
   </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="staffWithdrawTableDateTo">
+  </div>
+  <button onclick="applyDateFilter('staffWithdrawTable')">فلترة</button>
+  <button onclick="clearDateFilter('staffWithdrawTable')">مسح</button>
+</div>
           
           
           <table id="staffWithdrawTable">
