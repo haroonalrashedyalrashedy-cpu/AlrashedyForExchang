@@ -12,8 +12,6 @@
    
   <title>الراشدي للصرافة والتحويلات</title>
   
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  
   <style>
     /* 📌 القسم 2: ستايل الواجهة + Responsive */
     :root {
@@ -375,46 +373,36 @@ table.table-selected {
         </div>
       </div>
 
-    <div id="deposit" class="tab-content">
-    <div class="card">
-      <div class="row">
-        <select id="depositAccount" class="searchable"></select>
-        <input type="number" id="depositAmount" placeholder="المبلغ" inputmode="numeric">
-        <select id="depositCurrency"></select>
-      </div>
-      <div class="row">
-        <input type="text" id="depositDepositor" placeholder="اسم المودع" style="width:100%">
-      </div>
-      <button id="btnSaveDeposit">حفظ</button>
-    </div>
-    <table id="depositTable">
-      <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
-      <tbody></tbody>
-    </table>
-</div>
+      <div id="deposit" class="tab-content">
+        <div class="card">
+          <div class="row">
+            <select id="depositAccount" class="searchable"></select>
+            <input type="number" id="depositAmount" placeholder="المبلغ" inputmode="numeric">
+            <select id="depositCurrency"></select>
+            <button id="btnSaveDeposit">حفظ</button>
+          </div>
+          <table id="depositTable">
+            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
+            <tbody></tbody>
+          </table>
           <div class="row">
             <select id="depositFilterUser"><option value="all">الكل</option></select>
           </div>
         </div>
       </div>
 
-    <div id="withdraw" class="tab-content">
-  <div class="card">
-    <div class="row">
-      <select id="withdrawAccount" class="searchable"></select>
-      <input type="number" id="withdrawAmount" placeholder="المبلغ" inputmode="numeric">
-      <select id="withdrawCurrency"></select>
-    </div>
-    <div class="row">
-      <input type="text" id="withdrawRecipient" placeholder="اسم المستلم" style="width:100%">
-    </div>
-    <button id="btnSaveWithdraw">حفظ</button>
-  </div>
-  <table id="withdrawTable">
-    <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
-    <tbody></tbody>
-  </table>
-</div>
+      <div id="withdraw" class="tab-content">
+        <div class="card">
+          <div class="row">
+            <select id="withdrawAccount" class="searchable"></select>
+            <input type="number" id="withdrawAmount" placeholder="المبلغ" inputmode="numeric">
+            <select id="withdrawCurrency"></select>
+            <button id="btnSaveWithdraw">حفظ</button>
+          </div>
+          <table id="withdrawTable">
+            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
+            <tbody></tbody>
+          </table>
           <div class="row">
             <select id="withdrawFilterUser"><option value="all">الكل</option></select>
           </div>
@@ -626,41 +614,36 @@ table.table-selected {
         </div>
       </div>
 
-   <div id="staffDeposit" class="tab-content">
-  <div class="card">
-    <div class="row">
-      <select id="staffDepositAccount" class="searchable"></select>
-      <input type="number" id="staffDepositAmount" placeholder="المبلغ" inputmode="numeric">
-      <select id="staffDepositCurrency"></select>
-    </div>
-    <div class="row">
-      <input type="text" id="staffDepositDepositor" placeholder="اسم المودع" style="width:100%">
-    </div>
-    <button id="btnSaveStaffDeposit">حفظ</button>
-  </div>
-  <table id="staffDepositTable">
-    <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
-    <tbody></tbody>
-  </table>
-</div>
+      <div id="staffDeposit" class="tab-content">
+        <div class="card">
+          <div class="row">
+            <select id="staffDepositAccount" class="searchable"></select>
+            <input type="number" id="staffDepositAmount" placeholder="المبلغ" inputmode="numeric">
+            <select id="staffDepositCurrency"></select>
+            <button id="btnSaveStaffDeposit">حفظ</button>
+          </div>
+          <table id="staffDepositTable">
+            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
 
- <div id="staffWithdraw" class="tab-content">
-  <div class="card">
-    <div class="row">
-      <select id="staffWithdrawAccount" class="searchable"></select>
-      <input type="number" id="staffWithdrawAmount" placeholder="المبلغ" inputmode="numeric">
-      <select id="staffWithdrawCurrency"></select>
+      <div id="staffWithdraw" class="tab-content">
+        <div class="card">
+          <div class="row">
+            <select id="staffWithdrawAccount" class="searchable"></select>
+            <input type="number" id="staffWithdrawAmount" placeholder="المبلغ" inputmode="numeric">
+            <select id="staffWithdrawCurrency"></select>
+            <button id="btnSaveStaffWithdraw">حفظ</button>
+          </div>
+          <table id="staffWithdrawTable">
+            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
     </div>
-    <div class="row">
-      <input type="text" id="staffWithdrawRecipient" placeholder="اسم المستلم" style="width:100%">
-    </div>
-    <button id="btnSaveStaffWithdraw">حفظ</button>
-  </div>
-  <table id="staffWithdrawTable">
-    <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
-    <tbody></tbody>
-  </table>
-</div>
 
     <div id="staffMatch" class="tab-content">
       <div class="card">
@@ -986,19 +969,6 @@ document.getElementById('btnLogin').addEventListener('click', async () => {
   document.getElementById('passwordInput').value = '';
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 function logout() {
   // 1. رجع زر الدخول لوضعه الطبيعي لو كان معلق
   
@@ -1295,46 +1265,27 @@ document.getElementById('btnSaveSell').addEventListener('click', () => saveTrans
 document.getElementById('btnSaveStaffBuy').addEventListener('click', () => saveTransaction('buy', 'staffBuyAmount', 'staffBuyCurrency', 'staffBuyRate', 'staffBuyResult'));
 document.getElementById('btnSaveStaffSell').addEventListener('click', () => saveTransaction('sell', 'staffSellAmount', 'staffSellCurrency', 'staffSellRate', 'staffSellResult'));
 
-async function saveCashTransaction(type, accountId, amountId, currencyId, personId) {
+async function saveCashTransaction(type, accountId, amountId, currencyId) {
   const account = document.getElementById(accountId).value;
   const amount = parseFloat(document.getElementById(amountId).value);
   const currency = document.getElementById(currencyId).value;
-  const personName = document.getElementById(personId).value.trim();
-
-  if (!account || !amount) { showToast('اختر الحساب وادخل المبلغ'); return; }
-  if (!personName) { showToast('ادخل الاسم'); return; }
+  if (!account ||!amount) { showToast('اختر الحساب وادخل المبلغ'); return; }
 
   await push(ref(db, 'transactions'), {
-    type, 
-    accountId: account, 
-    amount, 
-    currency,
-    depositor: type === 'deposit' ? personName : null,
-    recipient: type === 'withdraw' ? personName : null,
-    userId: currentUser.uid, 
-    userName: currentUser.name, 
-    time: Date.now()
+    type, accountId: account, amount, currency,
+    userId: currentUser.uid, userName: currentUser.name, time: Date.now()
   });
-
   showToast(`تم حفظ عملية ${type}`);
   document.getElementById(amountId).value = '';
-  document.getElementById(personId).value = '';
   loadTransactions();
   loadStaffTransactions();
+  console.log("📌 CASH TRANSACTION SAVED:", type, account, amount);
 }
 
-document.getElementById('btnSaveDeposit').addEventListener('click', () => 
-  saveCashTransaction('deposit', 'depositAccount', 'depositAmount', 'depositCurrency', 'depositDepositor')
-);
-document.getElementById('btnSaveWithdraw').addEventListener('click', () => 
-  saveCashTransaction('withdraw', 'withdrawAccount', 'withdrawAmount', 'withdrawCurrency', 'withdrawRecipient')
-);
-document.getElementById('btnSaveStaffDeposit').addEventListener('click', () => 
-  saveCashTransaction('deposit', 'staffDepositAccount', 'staffDepositAmount', 'staffDepositCurrency', 'staffDepositDepositor')
-);
-document.getElementById('btnSaveStaffWithdraw').addEventListener('click', () => 
-  saveCashTransaction('withdraw', 'staffWithdrawAccount', 'staffWithdrawAmount', 'staffWithdrawCurrency', 'staffWithdrawRecipient')
-);
+document.getElementById('btnSaveDeposit').addEventListener('click', () => saveCashTransaction('deposit', 'depositAccount', 'depositAmount', 'depositCurrency'));
+document.getElementById('btnSaveWithdraw').addEventListener('click', () => saveCashTransaction('withdraw', 'withdrawAccount', 'withdrawAmount', 'withdrawCurrency'));
+document.getElementById('btnSaveStaffDeposit').addEventListener('click', () => saveCashTransaction('deposit', 'staffDepositAccount', 'staffDepositAmount', 'staffDepositCurrency'));
+document.getElementById('btnSaveStaffWithdraw').addEventListener('click', () => saveCashTransaction('withdraw', 'staffWithdrawAccount', 'staffWithdrawAmount', 'staffWithdrawCurrency'));
 
 async function loadTransactions() {
   const snap = await get(ref(db, 'transactions'));
@@ -1364,67 +1315,55 @@ function renderTable(tableId, data) {
   const tbody = document.querySelector(`#${tableId} tbody`);
   if (!tbody) return;
   tbody.innerHTML = '';
-  
   data.forEach(d => {
     const time = new Date(d.time).toLocaleString('ar');
-    const tr = document.createElement('tr');
     
-    // جداول الادمن شراء/بيع
-    if (tableId === 'buyTable' || tableId === 'sellTable') {
-      tr.innerHTML = `
+    // جداول الادمن - 5 اعمدة: المبلغ | السعر | النتيجة | الموظف | الوقت
+    if (tableId === 'buyTable' || tableId === 'sellTable' || 
+        tableId === 'depositTable' || tableId === 'withdrawTable') {
+      tbody.innerHTML += `<tr>
         <td>${d.amount || '-'}</td>
         <td>${d.rate || '-'}</td>
         <td>${d.result || '-'}</td>
         <td>${d.userName || '-'}</td>
         <td>${time}</td>
-      `;
+      </tr>`;
     }
-    // جداول الادمن قبض/صرف
-    else if (tableId === 'depositTable' || tableId === 'withdrawTable') {
-      const acc = allAccounts.find(a => a.id === d.accountId);
-      tr.innerHTML = `
-        <td>${acc ? acc.name : '-'}</td>
-        <td>${d.amount || '-'}</td>
-        <td>${d.currency || '-'}</td>
-        <td>${d.userName || '-'}</td>
-        <td>${time}</td>
-      `;
-    }
-    // جداول الموظف شراء/بيع
+    
+    // جداول الموظف شراء/بيع - 4 اعمدة: المبلغ | السعر | النتيجة | الوقت
     else if (tableId === 'staffBuyTable' || tableId === 'staffSellTable') {
-      tr.innerHTML = `
+      tbody.innerHTML += `<tr>
         <td>${d.amount || '-'}</td>
         <td>${d.rate || '-'}</td>
         <td>${d.result || '-'}</td>
         <td>${time}</td>
-      `;
+      </tr>`;
     }
-    // جداول الموظف قبض/صرف
+    
+    // جداول الموظف قبض/صرف - 4 اعمدة: الحساب | المبلغ | العملة | الوقت
     else if (tableId === 'staffDepositTable' || tableId === 'staffWithdrawTable') {
       const acc = allAccounts.find(a => a.id === d.accountId);
-      tr.innerHTML = `
-        <td>${acc ? acc.name : '-'}</td>
+      tbody.innerHTML += `<tr>
+        <td>${acc?acc.name:'-'}</td>
         <td>${d.amount || '-'}</td>
         <td>${d.currency || '-'}</td>
         <td>${time}</td>
-      `;
+      </tr>`;
     }
     
-    // اهم جزء: خزن البيانات كاملة للطباعة
-    tr.onclick = () => {
-  document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('selected'));
-  tr.classList.add('selected');
-  selectedRow = tr;
-  selectedTable = null;
-};
-    
-    tbody.appendChild(tr);
+    // باقي الجداول
+    else {
+      const acc = allAccounts.find(a => a.id === d.accountId);
+      tbody.innerHTML += `<tr>
+        <td>${acc?acc.name:'-'}</td>
+        <td>${d.amount || '-'}</td>
+        <td>${d.currency || '-'}</td>
+        <td>${d.userName || '-'}</td>
+        <td>${time}</td>
+      </tr>`;
+    }
   });
 }
-
-
-
-
 
 ['buyFilterUser', 'sellFilterUser', 'depositFilterUser', 'withdrawFilterUser'].forEach(id => {
   const el = document.getElementById(id);
@@ -1810,7 +1749,6 @@ document.addEventListener('click', (e) => {
   const tr = e.target.closest('tbody tr');
   const table = e.target.closest('table');
 
-  // تحديد الجدول كامل عند الضغط على اول خلية هيدر
   if (th && table) {
     document.querySelectorAll('table').forEach(t => t.classList.remove('table-selected'));
     table.classList.add('table-selected');
@@ -1820,305 +1758,90 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // تحديد صف واحد
   if (tr) {
     document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('selected'));
     tr.classList.add('selected');
     selectedRow = tr;
     selectedTable = null;
-    // showToast('تم تحديد الصف');
+    window.selectedRowData = {
+      table: tr.closest('table').id,
+      headers: [...tr.closest('table').querySelectorAll('thead th')].map(th => th.textContent),
+      cells: [...tr.cells].map(td => td.textContent)
+    };
+    showToast('تم تحديد الصف');
   }
 });
 
 // 3. زر الطباعة PDF
+document.getElementById('btnPrint').addEventListener('click', () => {
+  if (selectedTable) {
+    printPDF('table', selectedTable.id);
+  } else if (selectedRow) {
+    printPDF('row', null);
+  } else {
+    showToast('حدد صف او جدول اولاً');
+  }
+});
 
+function printPDF(type, tableId) {
+  let html = '';
+  let title = 'سند';
 
+  if (type === 'row' && window.selectedRowData) {
+    title = 'سند عملية';
+    html = `
+      <table>
+        <tr>${window.selectedRowData.headers.map(h => `<th>${h}</th>`).join('')}</tr>
+        <tr>${window.selectedRowData.cells.map(c => `<td>${c}</td>`).join('')}</tr>
+      </table>
+    `;
+  } else if (type === 'table') {
+    title = 'تقرير ' + tableId;
+    html = document.getElementById(tableId).outerHTML;
+  }
 
-
-
-
-
-
-
-
-// دالة تحسب رصيد عملة واحدة للحساب
-
+  const win = window.open('', '', 'height=800,width=600');
+  win.document.write(`
+    <!DOCTYPE html>
+    <html dir="rtl" lang="ar">
+    <head>
+      <meta charset="UTF-8">
+      <title>${title}</title>
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Arial; padding: 30px; color: #333; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #8B4513; padding-bottom: 10px; }
+        .header h1 { color: #8B4513; margin: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #333; padding: 8px; text-align: center; }
+        th { background: #8B4513; color: #fff; }
+        .footer { margin-top: 40px; text-align: left; font-size: 12px; color: #666; }
+        @media print { 
+          .no-print { display: none; }
+          button { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>نظام الراشدي للصرافة</h1>
+        <p>${new Date().toLocaleString('ar-SA')}</p>
+      </div>
+      ${html}
+      <div class="footer">
+        <p>الموظف: ${currentUser?.name || '-'}</p>
+      </div>
+      <div class="no-print" style="text-align:center;margin-top:30px;">
+        <button onclick="window.print()" style="padding:10px 30px;font-size:16px;background:#8B4513;color:#fff;border:none;border-radius:6px;">
+          طباعة / حفظ PDF
+        </button>
+      </div>
+    </body>
+    </html>
+  `);
+  win.document.close();
+}
 
 console.log("📌 SCRIPT LOADED SUCCESSFULLY");
-
-
-
-
-// ========== كود تصوير الصور ==========
-let selectedTableId = null;
-
-// يحدد الجدول لما تضغط عليه
-document.addEventListener('click', function(e) {
-  const table = e.target.closest('table');
-  if (table) {
-    document.querySelectorAll('table').forEach(t => t.classList.remove('table-selected'));
-    table.classList.add('table-selected');
-    selectedTableId = table.id;
-  }
-  
-  // زر الصورة
-  if (e.target.closest('#btnPrintImg')) {
-    if (window.selectedRowData) {
-      printRowAsImage();
-    } else if (selectedTableId) {
-      printTableAsImage();
-    } else {
-      showToast('اختر صف او جدول أولاً');
-    }
-  }
-});
-
-// يصور صف واحد
-async function printRowAsImage() {
-  if (!window.selectedRowData) {
-    showToast('اختر صف من الجدول اولاً');
-    return;
-  }
-
-  const d = window.selectedRowData;
-  const person = d.type === 'deposit' ? d.depositor : d.recipient;
-  const verb1 = d.type === 'deposit' ? 'اودع الى حسابكم لدينا' : 'استلم من حسابكم لدينا';
-  const accName = allAccounts.find(a => a.id === d.accountId)?.name || '';
-
-  document.getElementById('receiptDate').textContent = 'التاريخ: ' + new Date().toLocaleString('ar-SA');
-  document.getElementById('receiptContent').innerHTML = `
-    الحساب: <b>${accName}</b><br>
-    ${verb1} <b>${person}</b> مبلغاً وقدره <b>${d.amount} ${d.currency}</b><br><br>
-    ${d.type === 'deposit' ? 'اصبح رصيدكم في حسابكم لدينا' : 'يتبقى في حسابكم لدينا'} 
-    <b>${d.amount} ${d.currency}</b>
-  `;
-  document.getElementById('receiptUser').textContent = 'الموظف: ' + (d.userName || '-');
-  document.getElementById('receiptTime').textContent = 'الوقت: ' + new Date(d.time).toLocaleString('ar-SA');
-
-  await generateImage('receiptArea', 'سند_' + Date.now());
-}
-
-// يصور الجدول كامل
-async function printTableAsImage() {
-  if (!selectedTableId) {
-    showToast('اختر جدول اولاً بالضغط على الركن');
-    return;
-  }
-
-  const table = document.getElementById(selectedTableId);
-  const title = document.querySelector(`#${selectedTableId}`)?.closest('.tab-content')?.querySelector('h3')?.textContent || 'تقرير';
-
-  document.getElementById('tablePrintDate').textContent = 'التاريخ: ' + new Date().toLocaleString('ar-SA');
-  document.getElementById('tablePrintTitle').textContent = title;
-  document.getElementById('tablePrintContent').innerHTML = table.outerHTML;
-
-  await generateImage('tablePrintArea', 'جدول_' + selectedTableId + '_' + Date.now());
-}
-
-// يحول العنصر لصورة وينزلها
-async function generateImage(elementId, filename) {
-  const area = document.getElementById(elementId);
-  if (!area) { 
-    showToast('العنصر غير موجود: ' + elementId); 
-    return; 
-  }
-  
-  if (typeof html2canvas === 'undefined') { 
-    showToast('html2canvas ما تحمّل. حط سطر السكربت في head'); 
-    return; 
-  }
-  
-  area.style.left = '0';
-  showToast('جاري التصوير...');
-  
-  try {
-    const canvas = await html2canvas(area, {
-      backgroundColor: '#fff',
-      scale: 2,
-      useCORS: false
-    });
-    
-    area.style.left = '-9999px';
-    
-    const imgData = canvas.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = imgData;
-    a.download = filename + '.png';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    showToast('تم تنزيل الصورة');
-  } catch (err) {
-    area.style.left = '-9999px';
-    showToast('فشل: ' + err.message);
-  }
-}
-// ========== نهاية كود التصوير ==========
-
-
-// ====== Responsive + Dynamic UI ======
-
-// 1. ضبط الـ viewport للجوال + منع الزووم الغلط
-(function fixViewport(){
-  let viewport = document.querySelector('meta[name="viewport"]');
-  if(!viewport){
-    viewport = document.createElement('meta');
-    viewport.name = "viewport";
-    document.head.appendChild(viewport);
-  }
-  viewport.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover";
-  
-  // حل مشكلة شريط العنوان في الجوال
-  const setVH = () => {
-    let vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty('--vh', `${vh}px`);
-  };
-  setVH();
-  window.addEventListener('resize', setVH);
-  window.addEventListener('orientationchange', setVH);
-})();
-
-// 2. خلي كل الشاشات تاخذ ارتفاع الشاشة الحقي
-const style = document.createElement('style');
-style.innerHTML = `
-  :root {
-    --vh: 1vh;
-  }
-  
-  body, .screen {
-    height: 100vh; 
-    height: calc(var(--vh) * 100);
-    height: 100dvh; /* للجوالات الحديثة */
-  }
-  
-  /* 3. الجداول: سكرول افقي للشاشات الصغيرة */
-  .card {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  table {
-    min-width: 480px; /* عشان ما يتكسر الجدول */
-  }
-  
-  @media (max-width: 768px) {
-    /* 4. تبويبات: خليها سكرول افقي بدل ما تنكسر */
-    .tabs {
-      overflow-x: auto;
-      overflow-y: hidden;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    .tabs::-webkit-scrollbar {
-      display: none;
-    }
-    .tab {
-      flex-shrink: 0;
-      min-width: 90px;
-      font-size: 14px;
-      padding: 12px 10px;
-    }
-    
-    /* 5. الصفوف: عمود واحد في الجوال */
-    .row {
-      flex-direction: column;
-      gap: 10px;
-    }
-    .row > * {
-      min-width: 100% !important;
-      width: 100%;
-    }
-    
-    /* 6. تصغير الخط والبادنج للجوال */
-    body {
-      font-size: 15px;
-    }
-    .card, .modal {
-      padding: 12px;
-    }
-    button, input, select {
-      font-size: 15px;
-      padding: 10px 14px;
-    }
-    
-    /* 7. الهيدر: يصغر شوي */
-    .header {
-      height: 56px;
-      font-size: 16px;
-      padding: 0 12px;
-    }
-    
-    /* 8. المودال: ياخذ عرض الشاشة */
-    .modal {
-      width: 92%;
-      max-width: 92%;
-      min-width: unset;
-    }
-    
-    /* 9. التوست: ينزل شوي */
-    .toast {
-      bottom: 70px;
-      max-width: 90%;
-      font-size: 14px;
-    }
-    
-    /* 10. الشريط السفلي: يصغر */
-    #bottomBar {
-      height: 48px;
-    }
-    #bottomBar button {
-      min-width: 90px;
-      font-size: 14px;
-      padding: 6px 12px;
-    }
-  }
-  
-  @media (min-width: 769px) and (max-width: 1024px) {
-    /* 11. التابلت: وسط بين الجوال والكمبيوتر */
-    .row > * {
-      min-width: 180px;
-    }
-    table {
-      font-size: 14px;
-    }
-  }
-  
-  /* 12. لمس افضل للجوال */
-  button, .dropdown-item, .tab, tbody tr {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: rgba(37, 211, 102, 0.2);
-  }
-  
-  /* 13. منع التحديد العرضي */
-    * {
-    -webkit-user-select: none;
-    user-select: none;
-  }
-  input, textarea {
-    -webkit-user-select: text;
-    user-select: text;
-  }
-`;
-document.head.appendChild(style);
-
-// 14. خلي القوائم المنسدلة تغلق لما تغير اتجاه الشاشة
-window.addEventListener('orientationchange', () => {
-  document.getElementById('userList')?.classList.remove('active');
-  document.getElementById('dropdownOverlay')?.classList.remove('active');
-  document.getElementById('modalOverlay')?.classList.remove('active');
-});
-
-// 15. تحسين الاداء: تأجيل الايفنتات الثقيلة
-let resizeTimer;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    // اعد حساب اي شيء يحتاج عرض الشاشة
-    console.log("📌 RESIZED:", window.innerWidth, window.innerHeight);
-  }, 250);
-});
-
 </script>
 
 <div id="bottomBar">
@@ -2126,40 +1849,8 @@ window.addEventListener('resize', () => {
     <span class="spinner"></span>
     <span class="txt">تحديث</span>
   </button>
-  
-  <!-- احذف هذا السطر: <button id="btnPrint">طباعة</button> -->
-  
-  <!-- حط هذا مكانه -->
-  <button id="btnPrintImg">
-    <span class="txt">🖼️ صورة</span>
-  </button>
+  <button id="btnPrint">طباعة</button>
 </div>
-
-
-<!-- ديف السند للصف الواحد -->
-<div id="receiptArea" style="position:fixed; left:-9999px; top:0; width:400px; background:#fff; color:#000; padding:30px; direction:rtl; text-align:right; font-family:'Segoe UI', Tahoma, Arial;">
-  <div style="text-align:center; margin-bottom:20px; border-bottom:2px solid #8B4513; padding-bottom:10px;">
-    <h1 style="color:#8B4513; margin:5px 0; font-size:28px; font-weight:900;">نظام الراشدي للصرافة</h1>
-    <p id="receiptDate"></p>
-  </div>
-  <div id="receiptContent" style="font-size:18px; line-height:1.8;"></div>
-  <div style="margin-top:50px; font-size:12px; color:#666; text-align:left;">
-    <p id="receiptUser"></p>
-    <p id="receiptTime"></p>
-  </div>
-</div>
-
-<!-- ديف الجدول كامل -->
-<div id="tablePrintArea" style="position:fixed; left:-9999px; top:0; width:800px; background:#fff; color:#000; padding:20px; direction:rtl; text-align:right; font-family:'Segoe UI', Tahoma, Arial;">
-  <div style="text-align:center; margin-bottom:15px; border-bottom:2px solid #8B4513; padding-bottom:10px;">
-    <h2 style="color:#8B4513; margin:0;">نظام الراشدي للصرافة</h2>
-    <p id="tablePrintDate"></p>
-  </div>
-  <h3 id="tablePrintTitle" style="text-align:center; margin:10px 0;"></h3>
-  <div id="tablePrintContent"></div>
-</div>
-
-
 
 </body>
 </html>
