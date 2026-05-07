@@ -986,6 +986,19 @@ document.getElementById('btnLogin').addEventListener('click', async () => {
   document.getElementById('passwordInput').value = '';
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 function logout() {
   // 1. رجع زر الدخول لوضعه الطبيعي لو كان معلق
   
@@ -1399,18 +1412,11 @@ function renderTable(tableId, data) {
     
     // اهم جزء: خزن البيانات كاملة للطباعة
     tr.onclick = () => {
-      window.selectedRowData = {
-        type: d.type,
-        accountId: d.accountId,
-        currency: d.currency,
-        amount: d.amount,
-        depositor: d.depositor || '',
-        recipient: d.recipient || '',
-        userName: d.userName,
-        time: d.time
-      };
-      printPDF('row');
-    };
+  document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('selected'));
+  tr.classList.add('selected');
+  selectedRow = tr;
+  selectedTable = null;
+};
     
     tbody.appendChild(tr);
   });
@@ -1846,80 +1852,16 @@ document.getElementById('btnPrint').addEventListener('click', () => {
   }
 });
 
-function printPDF(type, tableId) {
-  let html = '';
-  let title = 'سند';
 
-  if (type === 'row' && window.selectedRowData) {
-    const d = window.selectedRowData;
-    const acc = allAccounts.find(a => a.id === d.accountId);
-    const opType = d.type === 'deposit' ? 'ايداع' : 'صرف';
-    const person = d.type === 'deposit' ? d.depositor : d.recipient;
-    const verb1 = d.type === 'deposit' ? 'اودع الى حسابكم لدينا' : 'استلم من حسابكم لدينا';
-    const verb2 = d.type === 'deposit' ? 'اودع' : 'صرف';
 
-    // حساب رصيد العملة فقط للحساب بعد العملية
-    const bal = calcBalanceForAccountCurrency(d.accountId, d.currency);
 
-    title = 'سند ' + opType;
-    html = `
-      <div style="font-size:18px; line-height:1.8; text-align:right; direction:rtl;">
-        ${verb1} <b>${person}</b> مبلغاً وقدره <b>${d.amount} ${d.currency}</b><br>
-        ${verb2} يمني يطلع بالسند الرصيد اليمني فقط وكذلك اذا ${verb2} عمله اخرى يطلع بالسند الرصيد من نفس العملة فقط<br>
-        ${d.type === 'deposit' ? 'اصبح رصيدكم في حسابكم لدينا' : 'يتبقى في حسابكم لدينا'} 
-        <b>${bal.toFixed(2)} ${d.currency}</b>
-      </div>
-    `;
-  } else if (type === 'table') {
-    title = 'تقرير ' + tableId;
-    html = document.getElementById(tableId).outerHTML;
-  }
 
-  const win = window.open('', '', 'height=800,width=600');
-  win.document.write(`
-    <!DOCTYPE html>
-    <html dir="rtl" lang="ar">
-    <head>
-      <meta charset="UTF-8">
-      <title>${title}</title>
-      <style>
-        body { font-family: 'Segoe UI', Tahoma, Arial; padding: 30px; color: #333; }
-        .print-logo { text-align:center; font-size:48px; margin-bottom:10px; }
-        .header { text-align:center; margin-bottom:20px; border-bottom:2px solid #8B4513; padding-bottom:10px; }
-        .header h1 { color:#8B4513; margin:5px 0; font-size:28px; font-weight:900; }
-      </style>
-    </head>
-    <body>
-      <div class="print-logo">💰</div>
-      <div class="header">
-        <h1>نظام الراشدي للصرافة</h1>
-        <p>${new Date().toLocaleString('ar-SA')}</p>
-      </div>
-      ${html}
-      <div class="footer" style="margin-top:40px;text-align:left;font-size:12px;color:#666;">
-        <p>الموظف: ${currentUser?.name || '-'}</p>
-      </div>
-      <div class="no-print" style="text-align:center;margin-top:30px;">
-        <button onclick="window.print()">طباعة / حفظ PDF</button>
-      </div>
-    </body>
-    </html>
-  `);
-  win.document.close();
-}
+
+
+
 
 // دالة تحسب رصيد عملة واحدة للحساب
-async function calcBalanceForAccountCurrency(accountId, currency) {
-  const snap = await get(ref(db, 'transactions'));
-  if (!snap.exists()) return 0;
-  let bal = 0;
-  Object.values(snap.val()).forEach(d => {
-    if (d.accountId !== accountId || d.currency !== currency) return;
-    if (d.type === 'deposit' || d.type === 'buy') bal += d.amount;
-    if (d.type === 'withdraw' || d.type === 'sell') bal -= d.amount;
-  });
-  return bal;
-}
+
 
 console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
@@ -2037,17 +1979,7 @@ async function generateImage(elementId, filename) {
 
 
 // ربط الزر
-document.addEventListener('click', (e) => {
-  if (e.target.closest('#btnPrintImg')) {
-    if (window.selectedRowData) {
-      printRowAsImage();
-    } else if (selectedTableId) {
-      printTableAsImage();
-    } else {
-      showToast('اختر صف او جدول اولاً');
-    }
-  }
-});
+
 
 
 </script>
