@@ -1451,64 +1451,10 @@ document.getElementById('btnDeleteEmp').addEventListener('click', async () => {
 });
 
 // === ADD: دالة حفظ العمليات مع الاعمدة الجديدة ومنع الضغط المزدوج ===
-async function saveTransaction(type, amountId, currencyId, rateId, resultId, btnId) {
-  if (isSaving) return; // منع الضغط المزدوج
-  isSaving = true;
-  const btn = document.getElementById(btnId);
-  setLoading(btn, true);
 
-  try {
-    const amount = parseFloat(document.getElementById(amountId).value);
-    const currency = document.getElementById(currencyId).value;
-    const rate = parseFloat(document.getElementById(rateId).value);
-    const total = parseFloat(document.getElementById(resultId).value);
 
-    if (!amount || !currency || !rate) {
-      showToast('املا جميع الحقول');
-      return;
-    }
 
-    const transaction = {
-      type: type,
-      amount: amount,
-      currency: currency,
-      rate: rate,
-      total: total,
-      userId: currentUser.uid,
-      userName: currentUser.name,
-      timestamp: Date.now()
-    };
 
-    await push(ref(db, 'transactions'), transaction);
-
-    // تحديث الرصيد التراكمي
-    const balRef = ref(db, `balances/${currentUser.uid}/${currency}`);
-    const balSnap = await get(balRef);
-    const oldBal = balSnap.exists() ? balSnap.val().amount : 0;
-    const newBal = type === 'buy' || type === 'deposit' ? oldBal + amount : oldBal - amount;
-    await set(balRef, { amount: newBal, updatedAt: Date.now() });
-
-    showToast('تم الحفظ بنجاح');
-    document.getElementById(amountId).value = ''; // مسح المدخلات
-    document.getElementById(resultId).value = '';
-
-    // تحديث الجداول بدون ريفرش للصفحة
-    if (currentUser.role === 'admin') loadTransactions();
-    else loadStaffTransactions();
-
-    // === ADD: فلاش اللمبة الصفراء ===
-    flashOperationLight();
-
-  } catch (err) {
-    console.error(err);
-    showToast('حدث خطأ اثناء الحفظ');
-  } finally {
-    setTimeout(() => {
-      isSaving = false;
-      setLoading(btn, false);
-    }, 500);
-  }
-}
 
 // === ADD: ربط ازرار الحفظ بالدالة الجديدة ===
 document.getElementById('btnSaveBuy').addEventListener('click', () => {
@@ -1525,25 +1471,6 @@ document.getElementById('btnSaveStaffSell').addEventListener('click', () => {
 });
 
 // === ADD: دالة عرض الجدول مع الاعمدة الجديدة ===
-function renderTable(tbodyId, transactions) {
-  const tbody = document.querySelector(`#${tbodyId} tbody`);
-  if (!tbody) return;
-  tbody.innerHTML = '';
-
-  transactions.forEach(t => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${t.amount || ''}</td>
-      <td>${t.rate || ''}</td>
-      <td>${t.currency || ''}</td>
-      <td>${t.total || ''}</td>
-      <td>${t.type === 'buy' ? 'شراء' : t.type === 'sell' ? 'بيع' : t.type}</td>
-      <td>${t.userName || ''}</td>
-      <td>${new Date(t.timestamp).toLocaleString('ar-SA')}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
 
 
 
@@ -1761,34 +1688,30 @@ function renderTable(tableId, data) {
   tbody.innerHTML = '';
 
   data.forEach(d => {
-    const time = new Date(d.timestamp).toLocaleString('ar-SA');
-    const acc = allAccounts.find(a => a.id === d.accountId);
+  const time = d.timestamp ? new Date(d.timestamp).toLocaleString('ar-SA') : '-';
+  const acc = allAccounts.find(a => a.id === d.accountId);
 
-    // جداول الشراء/البيع - 7 اعمدة
-    if (tableId.includes('buyTable') || tableId.includes('sellTable')) {
-      tbody.innerHTML += `<tr>
-        <td>${d.amount || '-'}</td>
-        <td>${d.rate || '-'}</td>
-        <td>${d.currency || '-'}</td>
-        <td>${d.result || '-'}</td>
-        <td>${d.type === 'buy'? 'شراء' : 'بيع'}</td>
-        <td>${d.userName || '-'}</td>
-        <td>${time}</td>
-      </tr>`;
-    }
-
-    // جداول القبض/الصرف - 6 اعمدة
-    else {
-      tbody.innerHTML += `<tr>
-        <td>${d.depositor || d.receiver || '-'}</td>
-        <td>${acc? acc.name : '-'}</td>
-        <td>${d.amount || '-'}</td>
-        <td>${d.currency || '-'}</td>
-        <td>${d.userName || '-'}</td>
-        <td>${time}</td>
-      </tr>`;
-    }
-  });
+  if (tableId.includes('buyTable') || tableId.includes('sellTable')) {
+    tbody.innerHTML += `<tr>
+      <td>${d.amount || '-'}</td>
+      <td>${d.rate || '-'}</td>
+      <td>${d.currency || '-'}</td>
+      <td>${d.result || '-'}</td>
+      <td>${d.type === 'buy' ? 'شراء' : 'بيع'}</td>
+      <td>${d.userName || '-'}</td>
+      <td>${time}</td>
+    </tr>`;
+  } else {
+    tbody.innerHTML += `<tr>
+      <td>${d.depositor || d.receiver || '-'}</td>
+      <td>${acc ? acc.name : '-'}</td>
+      <td>${d.amount || '-'}</td>
+      <td>${d.currency || '-'}</td>
+      <td>${d.userName || '-'}</td>
+      <td>${time}</td>
+    </tr>`;
+  }
+});
 }
 
 // === ADD: الترتيب بالضغط على الراس ===
