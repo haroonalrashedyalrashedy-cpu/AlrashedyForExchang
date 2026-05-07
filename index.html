@@ -1852,9 +1852,16 @@ function printPDF(type, tableId) {
 console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 
+
+
+
+
+
+
+
 // ====== Responsive + Horizontal Scroll للجداول ======
-(function makeResponsive() {
-  // 1. لف كل جدول بـ div للسكرول الافقي لو ما كان ملفوف
+(function fixTablesResponsive() {
+  // 1. لف كل جدول بـ div للسكرول لو ما كان ملفوف
   document.querySelectorAll('table').forEach(tbl => {
     if (!tbl.parentElement.classList.contains('table-wrap')) {
       const wrap = document.createElement('div');
@@ -1864,27 +1871,55 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     }
   });
 
-  // 2. CSS ديناميكي للسكرول والـ breakpoints
+  // 2. CSS مصح - بدون display:block للـ tbody
   const css = `
-    /* حاوية السكرول الافقي */
     .table-wrap {
       width: 100%;
       overflow-x: auto;
-      overflow-y: visible;
+      overflow-y: auto;
+      max-height: 320px; /* 3 صفوف تقريبا */
       -webkit-overflow-scrolling: touch;
       border-radius: 8px;
+      border: 1px solid var(--border-color);
     }
     
-    /* خلي الجدول ما ينكسر */
     .table-wrap table {
-      min-width: 600px; /* أقل عرض قبل ما يطلع السكرول */
-      width: max-content;
-      table-layout: auto;
+      width: 100%;
+      min-width: 600px; /* يخلي السكرول الافقي يشتغل */
+      border-collapse: collapse;
+      table-layout: fixed; /* يرجع العرض ثابت */
     }
     
-    /* مؤشر السكرول للجوال */
+    /* خلي thead ثابت فوق */
+    .table-wrap thead {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--bg-dark);
+    }
+    
+    /* خلي tbody طبيعي عشان البيانات تطلع */
+    .table-wrap tbody {
+      display: table-row-group; /* مهم جدا */
+    }
+    
+    .table-wrap tr {
+      display: table-row;
+    }
+    
+    .table-wrap th, 
+    .table-wrap td {
+      padding: 8px;
+      font-size: 14px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border: 1px solid var(--border-color);
+    }
+    
     .table-wrap::after {
-      content: '← اسحب لليمين لمشاهدة الباقي →';
+      content: '← اسحب يمين/يسار لمشاهدة الباقي →';
       display: none;
       text-align: center;
       font-size: 12px;
@@ -1892,101 +1927,28 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       padding: 6px 0;
     }
     
-    /* شاشات صغيرة: اظهر رسالة السحب */
     @media (max-width: 768px) {
-      .table-wrap::after {
-        display: block;
+      .table-wrap::after { display: block; }
+      .table-wrap th, .table-wrap td { 
+        padding: 6px; 
+        font-size: 13px; 
       }
-      
-      /* صفوف اصغر للجوال */
-      .table-wrap td, 
-      .table-wrap th {
-        padding: 6px 8px;
-        font-size: 13px;
-        white-space: nowrap;
-      }
-      
-      /* خلي العناصر في .row تاخذ عرض كامل */
-      .row {
-        flex-direction: column;
-        gap: 8px;
-      }
-      .row > * {
-        min-width: 100% !important;
-        width: 100%;
-      }
-      
-      /* التابات سكرول افقي */
-      .tabs {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-      .tab {
-        flex-shrink: 0;
-        min-width: 90px;
-      }
-      
-      /* الهيدر والازرار اصغر */
-      .header {
-        height: 56px;
-        font-size: 16px;
-        padding: 0 12px;
-      }
-      button, input, select {
-        font-size: 15px;
-        padding: 10px 14px;
-      }
-    }
-    
-    /* تابلت: وسط */
-    @media (min-width: 769px) and (max-width: 1024px) {
-      .table-wrap table {
-        min-width: 500px;
-      }
-      .row > * {
-        min-width: 160px;
-      }
-    }
-    
-    /* منع الزوم عند الضغط على input في الايفون */
-    @media (max-width: 768px) {
-      input, select, textarea {
-        font-size: 16px;
-      }
-    }
-    
-    /* خلي المودال يتناسب مع الشاشة */
-    @media (max-width: 480px) {
-      .modal {
-        width: 92%;
-        max-width: 92%;
-        padding: 16px;
-      }
+      .row { flex-direction: column; }
+      .row > * { min-width: 100% !important; width: 100%; }
+      .tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .tab { flex-shrink: 0; min-width: 90px; }
     }
   `;
+  
+  // احذف الستايل القديم لو موجود
+  document.getElementById('responsive-fix')?.remove();
   
   const style = document.createElement('style');
   style.id = 'responsive-fix';
   style.textContent = css;
   document.head.appendChild(style);
 
-  // 3. ضبط ارتفاع الشاشة للجوال
-  const setVH = () => {
-    let vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty('--vh', `${vh}px`);
-  };
-  setVH();
-  window.addEventListener('resize', setVH);
-  window.addEventListener('orientationchange', setVH);
-  
-  // 4. اقفل القوائم المفتوحة عند تغيير الاتجاه
-  window.addEventListener('orientationchange', () => {
-    document.getElementById('userList')?.classList.remove('active');
-    document.getElementById('dropdownOverlay')?.classList.remove('active');
-    document.getElementById('modalOverlay')?.classList.remove('active');
-  });
-  
-  console.log("📌 RESPONSIVE LOADED");
+  console.log("📌 TABLES FIXED");
 })();
 
 </script>
