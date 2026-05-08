@@ -1164,14 +1164,14 @@ function initAdminPanel() {
   loadAccounts();
   loadCurrencies();
   loadRatesRealtime(); // ضيفها هنا
- // loadTransactions();
+loadTransactions();
   loadRateLogs();
 }
 
 function initStaffPanel() {
   loadAccounts();
   loadCurrencies();
- // loadStaffTransactions();
+loadStaffTransactions();
   loadRatesRealtime(); // وضيفها هنا
   onValue(ref(db, `users/${currentUser.uid}/permissions`), (snap) => {
     const perms = snap.exists()? snap.val() : {};
@@ -1355,8 +1355,8 @@ async function saveTransaction(type, amountId, currencyId, rateId, resultId) {
   console.log("📌 TRANSACTION SAVED:", type, amount, currency);
   document.getElementById(amountId).value = '';
   document.getElementById(resultId).value = '';
-  //loadTransactions();
- // loadStaffTransactions();
+loadTransactions();
+loadStaffTransactions();
 }
 
 document.getElementById('btnSaveBuy').addEventListener('click', () => saveTransaction('buy', 'buyAmount', 'buyCurrency', 'buyRate', 'buyResult'));
@@ -1376,8 +1376,8 @@ async function saveCashTransaction(type, accountId, amountId, currencyId) {
   });
   showToast(`تم حفظ عملية ${type}`);
   document.getElementById(amountId).value = '';
-  //loadTransactions();
- // loadStaffTransactions();
+loadTransactions();
+loadStaffTransactions();
   console.log("📌 CASH TRANSACTION SAVED:", type, account, amount);
 }
 
@@ -1386,7 +1386,7 @@ document.getElementById('btnSaveWithdraw').addEventListener('click', () => saveC
 document.getElementById('btnSaveStaffDeposit').addEventListener('click', () => saveCashTransaction('deposit', 'staffDepositAccount', 'staffDepositAmount', 'staffDepositCurrency'));
 document.getElementById('btnSaveStaffWithdraw').addEventListener('click', () => saveCashTransaction('withdraw', 'staffWithdrawAccount', 'staffWithdrawAmount', 'staffWithdrawCurrency'));
 
-/*
+
 
 async function loadTransactions() {
   const snap = await get(ref(db, 'transactions'));
@@ -1410,7 +1410,7 @@ async function loadStaffTransactions() {
   renderTable('staffDepositTable', data.filter(d => d.type === 'deposit'));
   renderTable('staffWithdrawTable', data.filter(d => d.type === 'withdraw'));
   console.log("📌 STAFF TRANSACTIONS LOADED:", data.length);
-}   */
+}  
 
 function renderTable(tableId, data) {
   const tbody = document.querySelector(`#${tableId} tbody`);
@@ -1832,8 +1832,8 @@ document.getElementById('btnRefreshAll').addEventListener('click', async () => {
     await loadSettings();
     await loadRatesRealtime();
     await loadAccounts();
-   // await loadTransactions();
-    //await loadStaffTransactions();
+await loadTransactions();
+await loadStaffTransactions();
     await loadRateLogs();
     showToast('تم التحديث بنجاح ✅');
   } catch (e) {
@@ -2153,91 +2153,48 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 /* فلترة اليوم فقط - ما يلمس التصميم */
 /* فلترة اليوم فقط - احترافي مع Firebase Query */
 (function(){
-  const tables = [
-    'buyTable','sellTable','depositTable','withdrawTable',
-    'staffBuyTable','staffSellTable','staffDepositTable','staffWithdrawTable'
-  ];
-
-  // عطل الدوال القديمة
-  window.loadTransactions = function(){};
-  window.loadStaffTransactions = function(){};
-  window.loadAllTransactions = function(){};
-
-  // كاش بسيط عشان ما نعيد الطلب
-  const cache = new Map();
-  const cacheKey = (id, from, to) => `${id}_${from}_${to}`;
-
-  // شغل اول ما تدخل
-  if(document.readyState === 'complete'){
-    loadToday();
-  } else {
-    window.addEventListener('load', loadToday);
-  }
-
-  function getTodayRange(){
-    const today = new Date();
-    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  const todayRange = () => {
+    const t = new Date();
+    const start = new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime();
     const end = start + 24*60*60*1000 - 1;
     return {start, end};
-  }
-
-  async function loadToday(){
-    const {start, end} = getTodayRange();
-    tables.forEach(id => loadTable(id, start, end));
-  }
-
-  async function loadTable(id, fromTime, toTime){
-    const key = cacheKey(id, fromTime, toTime);
-    if(cache.has(key)){
-      renderTable(id, cache.get(key));
-      return;
-    }
-
-    try {
-      // Firebase Query: يجيب بيانات اليوم فقط من السيرفر، مو كل البيانات
-      const q = query(
-        ref(db, 'transactions'),
-        orderByChild('time'),
-        startAt(fromTime),
-        endAt(toTime)
-      );
-
-      const snap = await get(q);
-      if(!snap.exists()){
-        renderTable(id, []);
-        return;
-      }
-
-      let data = Object.values(snap.val());
-
-      // فلترة نوع الجدول والمستخدم
-      if(id.startsWith('staff')) data = data.filter(d => d.userId === currentUser.uid);
-      if(id.includes('Buy')) data = data.filter(d => d.type === 'buy');
-      if(id.includes('Sell')) data = data.filter(d => d.type === 'sell');
-      if(id.includes('Deposit')) data = data.filter(d => d.type === 'deposit');
-      if(id.includes('Withdraw')) data = data.filter(d => d.type === 'withdraw');
-
-      cache.set(key, data);
-      renderTable(id, data);
-
-    } catch(e){
-      console.error('Load table error:', e);
-      renderTable(id, []);
-    }
-  }
-
-  // دالة الفلترة اليدوية - تستخدم نفس الـ Query
-  window.filterTableManual = async function(id, fromDate, toDate){
-    const fromT = new Date(fromDate + 'T00:00:00').getTime();
-    const toT = new Date(toDate + 'T23:59:59').getTime();
-    
-    // امسح الكاش عشان يجيب البيانات الجديدة
-    cache.clear();
-    await loadTable(id, fromT, toT);
   };
 
-  // امسح الكاش كل 5 دقايق عشان البيانات الجديدة تظهر
-  setInterval(() => cache.clear(), 5*60*1000);
+  const filterToday = (arr) => {
+    const {start, end} = todayRange();
+    return arr.filter(d => {
+      const t = Number(d.time);
+      return t >= start && t <= end;
+    });
+  };
+
+  // override للدوال القديمة عشان تفلتر اليوم
+  const oldLoadTransactions = window.loadTransactions;
+  window.loadTransactions = async function(){
+    await oldLoadTransactions();
+    const snap = await get(ref(db, 'transactions'));
+    if(!snap.exists()) return;
+    let data = Object.values(snap.val());
+    if(currentUser.role !== 'admin') data = data.filter(d => d.userId === currentUser.uid);
+    
+    renderTable('buyTable', filterToday(data.filter(d => d.type === 'buy')));
+    renderTable('sellTable', filterToday(data.filter(d => d.type === 'sell')));
+    renderTable('depositTable', filterToday(data.filter(d => d.type === 'deposit')));
+    renderTable('withdrawTable', filterToday(data.filter(d => d.type === 'withdraw')));
+  };
+
+  const oldLoadStaffTransactions = window.loadStaffTransactions;
+  window.loadStaffTransactions = async function(){
+    await oldLoadStaffTransactions();
+    const snap = await get(ref(db, 'transactions'));
+    if(!snap.exists()) return;
+    let data = Object.values(snap.val()).filter(d => d.userId === currentUser.uid);
+    
+    renderTable('staffBuyTable', filterToday(data.filter(d => d.type === 'buy')));
+    renderTable('staffSellTable', filterToday(data.filter(d => d.type === 'sell')));
+    renderTable('staffDepositTable', filterToday(data.filter(d => d.type === 'deposit')));
+    renderTable('staffWithdrawTable', filterToday(data.filter(d => d.type === 'withdraw')));
+  };
 })();
 
 </script>
