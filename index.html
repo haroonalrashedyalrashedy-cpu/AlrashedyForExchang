@@ -1494,18 +1494,7 @@ async function loadTransactions() {
   console.log("📌 TRANSACTIONS LOADED:", data.length);
 }
 
-async function loadStaffTransactions() {
-  const snap = await get(ref(db, 'transactions'));
-  let data = snap.exists() ? Object.values(snap.val()) : [];
-  
-  // فلترة بيانات الموظف الحالي فقط
-  data = data.filter(d => d.userId === currentUser.uid);
-  
-  renderTable('staffBuyTable', data.filter(d => d.type === 'buy'));
-  renderTable('staffSellTable', data.filter(d => d.type === 'sell'));
-  renderTable('staffDepositTable', data.filter(d => d.type === 'deposit'));
-  renderTable('staffWithdrawTable', data.filter(d => d.type === 'withdraw'));
-}
+
 
 
 
