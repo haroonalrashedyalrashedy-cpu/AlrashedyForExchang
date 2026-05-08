@@ -2546,6 +2546,70 @@ function initReconcileTable() {
   };
 
   document.getElementById('recDate').onchange = (e) => loadReconcileList(e.target.value);
+  
+  
+  // تكبير الخلية عند الضغط
+let zoomedCell = null;
+wrap.addEventListener('click', (e) => {
+  const cell = e.target.closest('input, select, td');
+  if (!cell || !cell.closest('#recTable')) return;
+
+  // لو ضغط على نفس الخلية المكبرة = رجعها طبيعي
+  if (zoomedCell === cell) {
+    cell.classList.remove('zoomed');
+    zoomedCell = null;
+    return;
+  }
+
+  // شيل التكبير من الخلية القديمة
+  if (zoomedCell) zoomedCell.classList.remove('zoomed');
+
+  // كبر الخلية الجديدة
+  cell.classList.add('zoomed');
+  zoomedCell = cell;
+});
+
+// لما تضغط برا الجدول شيل التكبير
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#recTable') && zoomedCell) {
+    zoomedCell.classList.remove('zoomed');
+    zoomedCell = null;
+  }
+});
+  
+  
+  if (!document.getElementById('recStyle')) {
+  const style = document.createElement('style');
+  style.id = 'recStyle';
+  style.innerHTML = `
+    .rec-header input,.rec-header select {
+      height: 36px;
+      font-size: 0.9rem;
+      padding: 4px 6px;
+    }
+
+    /* التكبير يشتغل على input, select, td */
+    input.zoomed, select.zoomed, td.zoomed {
+      position: relative;
+      z-index: 10;
+      font-size: 2rem !important;
+      transform: scale(1.2);
+      background: #1a1a1a !important;
+      color: #fff !important;
+      box-shadow: 0 0 20px rgba(0,255,0,0.5);
+      transition: all 0.2s ease;
+      border-radius: 6px;
+    }
+
+    /* عشان الـ td ما يطلع صغير */
+    td.zoomed {
+      padding: 15px !important;
+      text-align: center;
+    }
+  `;
+  document.head.appendChild(style);
+}
+  
   loadReconcileList(today);
 }
 
