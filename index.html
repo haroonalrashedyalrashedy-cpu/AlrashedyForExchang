@@ -1910,87 +1910,133 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 
 
-/* ==================== كود الفلترة الجاهز - لا تلمس الكود القديم ==================== */
+
+
+
+
+/* ===== فلترة الجداول - تصميم صف واحد ثابت ===== */
 (function(){
-  // ينتظر لين يتحمل كل شي
+  const tables = [
+    'buyTable','sellTable','depositTable','withdrawTable',
+    'staffBuyTable','staffSellTable','staffDepositTable','staffWithdrawTable'
+  ];
+
+  // CSS ثابت مرة وحدة
+  if(!document.getElementById('filterStyle')){
+    const style = document.createElement('style');
+    style.id = 'filterStyle';
+    style.textContent = `
+     .filterBox{
+        display:flex;
+        align-items:center;
+        gap:6px;
+        padding:6px 8px;
+        margin-bottom:6px;
+        background:#1e1e1e;
+        border:1px solid #333;
+        border-radius:8px;
+        font-size:13px;
+        position:sticky; /* يخليها ثابتة */
+        top:0;
+        z-index:2;
+      }
+     .filterBox input[type="date"]{
+        padding:4px 6px;
+        height:28px;
+        border-radius:6px;
+        border:1px solid #444;
+        background:#222;
+        color:#fff;
+        font-size:12px;
+      }
+     .filterBox button{
+        padding:4px 10px;
+        height:28px;
+        border:none;
+        border-radius:6px;
+        background:#00d26a;
+        color:#000;
+        font-weight:bold;
+        font-size:12px;
+        cursor:pointer;
+      }
+     .filterBox span{
+        font-size:12px;
+        color:#ccc;
+      }
+      /* خلي الجدول نفسه هو اللي يسحب افقي، مو البوكس */
+     .tableWrapper{
+        overflow-x:auto;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   window.addEventListener('load', () => {
-    setTimeout(setupDateFilters, 500); // تأخير بسيط عشان الجداول تترسم
+    setTimeout(buildFilters, 800);
   });
 
-  function setupDateFilters() {
-    const tableIds = [
-      'buyTable','sellTable','depositTable','withdrawTable',
-      'staffBuyTable','staffSellTable','staffDepositTable','staffWithdrawTable'
-    ];
+  function buildFilters(){
+    tables.forEach(id => {
+      const tbl = document.getElementById(id);
+      if(!tbl || document.getElementById('fb_' + id)) return;
 
-    tableIds.forEach(tableId => {
-      const tableEl = document.getElementById(tableId);
-      if(!tableEl || document.getElementById('filterBox_' + tableId)) return;
+      // لف الجدول بـ div لو ما هو ملفوف
+      if(tbl.parentElement.className!== 'tableWrapper'){
+        const wrap = document.createElement('div');
+        wrap.className = 'tableWrapper';
+        tbl.parentNode.insertBefore(wrap, tbl);
+        wrap.appendChild(tbl);
+      }
 
-      // 1. سوي بوكس الفلترة فوق الجدول
+      // انشئ بوكس الفلترة وحطه قبل الـ wrapper
       const today = new Date().toISOString().split('T')[0];
-      const filterHTML = `
-        <div id="filterBox_${tableId}" style="display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap;">
-          <label>من</label>
-          <input type="date" id="${tableId}DateFrom" value="${today}" style="padding:6px;border-radius:6px;border:1px solid #555;background:#2a2a2a;color:#fff;">
-          <label>الى</label>
-          <input type="date" id="${tableId}DateTo" value="${today}" style="padding:6px;border-radius:6px;border:1px solid #555;background:#2a2a2a;color:#fff;">
-          <button id="btnFilter_${tableId}" style="padding:6px 14px;border:none;border-radius:6px;background:#00d26a;color:#000;font-weight:bold;">فلترة</button>
-          <button id="btnClear_${tableId}" style="padding:6px 14px;border:none;border-radius:6px;background:#00d26a;color:#000;font-weight:bold;">مسح</button>
+      const wrap = tbl.parentElement;
+      wrap.insertAdjacentHTML('beforebegin', `
+        <div id="fb_${id}" class="filterBox">
+          <span>من</span>
+          <input type="date" id="from_${id}" value="${today}">
+          <span>الى</span>
+          <input type="date" id="to_${id}" value="${today}">
+          <button id="fbtn_${id}">فلترة</button>
+          <button id="cbtn_${id}">مسح</button>
         </div>
-      `;
-      tableEl.insertAdjacentHTML('beforebegin', filterHTML);
+      `);
 
-      // 2. اربط الازرار
-      document.getElementById('btnFilter_' + tableId).onclick = () => filterTable(tableId);
-      document.getElementById('btnClear_' + tableId).onclick = () => clearTable(tableId);
+      document.getElementById('fbtn_' + id).onclick = () => doFilter(id);
+      document.getElementById('cbtn_' + id).onclick = () => {
+        document.getElementById('from_' + id).value = today;
+        document.getElementById('to_' + id).value = today;
+        doFilter(id);
+      };
 
-      // 3. اعرض اليوم الحالي اول ما يتحمل
-      filterTable(tableId);
+      doFilter(id);
     });
   }
 
-  function filterTable(tableId) {
-    const fromInput = document.getElementById(tableId + 'DateFrom');
-    const toInput = document.getElementById(tableId + 'DateTo');
-    if(!fromInput ||!toInput) return;
+  async function doFilter(tableId){
+    const fromTime = new Date(document.getElementById('from_' + tableId).value + 'T00:00:00').getTime();
+    const toTime = new Date(document.getElementById('to_' + tableId).value + 'T23:59:59').getTime();
 
-    const fromTime = new Date(fromInput.value + 'T00:00:00').getTime();
-    const toTime = new Date(toInput.value + 'T23:59:59').getTime();
+    const snap = await get(ref(db, 'transactions'));
+    if(!snap.exists()) return;
 
-    // يجيب البيانات من الكاش اللي انت مسويه بالكود القديم
-    const allData = window.tableDataCache && window.tableDataCache[tableId]? window.tableDataCache[tableId] : [];
+    let data = Object.values(snap.val());
+    if(tableId.startsWith('staff')) data = data.filter(d => d.userId === currentUser.uid);
+    if(tableId.includes('Buy')) data = data.filter(d => d.type === 'buy');
+    if(tableId.includes('Sell')) data = data.filter(d => d.type === 'sell');
+    if(tableId.includes('Deposit')) data = data.filter(d => d.type === 'deposit');
+    if(tableId.includes('Withdraw')) data = data.filter(d => d.type === 'withdraw');
 
-    const filtered = allData.filter(d => {
+    const filtered = data.filter(d => {
       const t = Number(d.time);
       return t >= fromTime && t <= toTime;
     });
 
-    // ينادي دالة الرسم اللي عندك بالكود القديم
-    if(typeof window.renderTable === 'function'){
-      window.renderTable(tableId, filtered);
+    if(typeof renderTable === 'function'){
+      renderTable(tableId, filtered);
     }
   }
-
-  function clearTable(tableId) {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById(tableId + 'DateFrom').value = today;
-    document.getElementById(tableId + 'DateTo').value = today;
-    filterTable(tableId);
-  }
-
-  // يخلي الجداول تعرض اليوم بيومه حتى لو نسيت
-  const oldLoad = window.loadStaffTransactions;
-  if(typeof oldLoad === 'function'){
-    window.loadStaffTransactions = async function(){
-      await oldLoad();
-      // بعد ما يحمل البيانات، فلترها على اليوم الحالي
-      setTimeout(() => {
-        ['staffBuyTable','staffSellTable','staffDepositTable','staffWithdrawTable'].forEach(filterTable);
-      }, 200);
-    }
-  }
-
 })();
 
 
