@@ -2405,27 +2405,103 @@ function buildMatchTable() {
     </div>
   `;
 
+  // [تعديل 1] عبي أرصدة النظام لكل الصفوف أول ما يفتح الجدول
+  const loadAllSysBalances = async () => {
+    const rows = document.querySelectorAll('#matchDyn tbody tr');
+    for (let tr of rows) {
+      const cur = tr.querySelector('.mCur').value;
+      if (!cur) continue;
+      const sys = await calcSystemBalance(currentUser.uid, cur);
+      tr.querySelector('.mSys').value = sys.toFixed(2);
+    }
+  };
+
+  // لما تغير العملة، حدث رصيد النظام لنفس الصف
+  document.querySelectorAll('.mCur').forEach(sel => {
+    sel.addEventListener('change', async (e) => {
+      const tr = e.target.closest('tr');
+      const cur = e.target.value;
+      if (!cur) return;
+      const sys = await calcSystemBalance(currentUser.uid, cur);
+      tr.querySelector('.mSys').value = sys.toFixed(2);
+      calcDiff(tr); // حدث الفرق مباشرة
+    });
+  });
+
+  // لما تغير الرصيد الفعلي، احسب الفرق
+  document.querySelectorAll('.mAct').forEach(inp => {
+    inp.addEventListener('input', (e) => calcDiff(e.target.closest('tr')));
+  });
+
+  function calcDiff(tr) {
+    const act = parseFloat(tr.querySelector('.mAct').value) || 0;
+    const sys = parseFloat(tr.querySelector('.mSys').value) || 0;
+    const diff = act - sys;
+    const diffInput = tr.querySelector('.mDiff');
+    diffInput.value = diff.toFixed(2);
+    diffInput.style.color = diff === 0? 'var(--accent-green)' : diff < 0? 'var(--danger)' : '#facc15';
+  }
+
   document.getElementById('btnMatchDyn').onclick = async () => {
     for (let tr of document.querySelectorAll('#matchDyn tbody tr')) {
       const cur = tr.querySelector('.mCur').value;
       const act = parseFloat(tr.querySelector('.mAct').value) || 0;
-      if (!cur) continue;
-      const sys = await calcSystemBalance(currentUser.uid, cur);
+      if (!cur || act === 0) continue;
+      
+      const sys = parseFloat(tr.querySelector('.mSys').value) || 0;
       const diff = act - sys;
-      tr.querySelector('.mSys').value = sys.toFixed(2);
-      tr.querySelector('.mDiff').value = diff.toFixed(2);
-      tr.querySelector('.mDiff').style.color = diff === 0? 'var(--accent-green)' : diff < 0? 'var(--danger)' : '#facc15';
-
-      if (act > 0) await push(ref(db, 'matches'), {
+      
+      await push(ref(db, 'matches'), {
         userId: currentUser.uid, currency: cur, systemBalance: sys,
         actualBalance: act, diff, time: Date.now()
       });
     }
     showToast('تمت المطابقة وحفظ النتائج');
   };
+
+  // [تعديل 2] كبر الخلية عند الضغط
+  let zoomedCell = null;
+  document.addEventListener('click', (e) => {
+    const cell = e.target.closest('input, select');
+    if (cell && cell.closest('#matchDyn')) {
+      if (zoomedCell === cell) {
+        cell.classList.remove('zoomed');
+        zoomedCell = null;
+        return;
+      }
+      if (zoomedCell) zoomedCell.classList.remove('zoomed');
+      cell.classList.add('zoomed');
+      zoomedCell = cell;
+      return;
+    }
+    if (zoomedCell && !e.target.closest('#matchDyn')) {
+      zoomedCell.classList.remove('zoomed');
+      zoomedCell = null;
+    }
+  });
+
+  // CSS للتكبير - ضيفه مرة وحدة
+  if (!document.getElementById('zoomStyle')) {
+    const style = document.createElement('style');
+    style.id = 'zoomStyle';
+    style.innerHTML = `
+      input.zoomed, select.zoomed {
+        position: relative;
+        z-index: 10;
+        font-size: 1.8rem !important;
+        transform: scale(1.15);
+        background: #1a1a1a !important;
+        box-shadow: 0 0 15px rgba(0,255,0,0.4);
+        transition: all 0.2s ease;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // شغل تعبئة الأرصدة بعد ما يبني الجدول
+  loadAllSysBalances();
 }
 document.addEventListener('DOMContentLoaded', buildMatchTable);
-
 
 
 // كود 7: الرصيد التراكمي + القيد المزدوج للشراء والبيع
