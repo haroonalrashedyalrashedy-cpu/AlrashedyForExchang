@@ -163,41 +163,6 @@ tbody tr.selected {
   background: rgba(37, 211, 102, 0.25) !important;
 }
 
-.filter-compact {
-  display: flex;
-  gap: 6px;
-  align-items: flex-end;
-  margin-bottom: 8px;
-  flex-wrap: nowrap; /* يمنع النزول سطر جديد */
-}
-
-.filter-item {
-  display: flex;
-  flex-direction: column; /* يخلي label فوق input */
-}
-
-.filter-item label {
-  font-size: 11px; /* حجم صغير */
-  opacity: 0.7;
-  margin-bottom: 2px;
-}
-
-.filter-compact input[type="date"] {
-  font-size: 11px;
-  padding: 3px 6px;
-  height: 25px;
-  width: 80px; /* صغر العرض */
-}
-
-.filter-compact button {
-  font-size: 11px;
-  padding: 3px 6px;
-  height: 25px;
-  white-space: nowrap;
-  width: 40px;
-}
-
-
 /* عرض الاعمدة - جداول الموظف 4 اعمدة */
 #staffBuyTable th:nth-child(1), #staffBuyTable td:nth-child(1),
 #staffSellTable th:nth-child(1), #staffSellTable td:nth-child(1) { width: 25%; }
@@ -377,34 +342,10 @@ table.table-selected {
             <select id="buyCurrency"></select>
             <input type="text" id="buyRate" placeholder="السعر" readonly>
             <input type="text" id="buyResult" placeholder="النتيجة" readonly>
-          <button id="btnSaveBuy" onclick="saveBuy()">حفظ</button>
+            <button id="btnSaveBuy">حفظ</button>
           </div>
-          
-        <div class="filter-compact">
-  <div class="filter-item">
-    <label>من</label>
-    <input type="date" id="buyTableDateFrom">
-  </div>
-  <div class="filter-item">
-    <label>إلى</label>
-    <input type="date" id="buyTableDateTo">
-  </div>
-  <button onclick="applyDateFilter('buyTable')">فلترة</button>
-  <button onclick="clearDateFilter('buyTable')">مسح</button>
-</div>
-          
           <table id="buyTable">
-           <thead>
-    <tr>
-      <th>المبلغ</th>
-      <th>السعر</th>
-      <th>العملة</th>
-      <th>النتيجة</th>
-      <th>العملية</th>
-      <th>الموظف</th>
-      <th>الوقت</th>
-    </tr>
-  </thead>
+            <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الموظف</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
           </table>
           <div class="row">
@@ -420,33 +361,10 @@ table.table-selected {
             <select id="sellCurrency"></select>
             <input type="text" id="sellRate" placeholder="السعر" readonly>
             <input type="text" id="sellResult" placeholder="النتيجة" readonly>
-          <button id="btnSaveSell" onclick="saveSell()">حفظ</button>
+            <button id="btnSaveSell">حفظ</button>
           </div>
-          
-        <div class="filter-compact">
-  <div class="filter-item">
-    <label>من</label>
-    <input type="date" id="sellTableDateFrom">
-  </div>
-  <div class="filter-item">
-    <label>إلى</label>
-    <input type="date" id="sellTableDateTo">
-  </div>
-  <button onclick="applyDateFilter('sellTable')">فلترة</button>
-  <button onclick="clearDateFilter('sellTable')">مسح</button>
-</div>
           <table id="sellTable">
-          <thead>
-    <tr>
-      <th>المبلغ</th>
-      <th>السعر</th>
-      <th>العملة</th>
-      <th>النتيجة</th>
-      <th>العملية</th>
-      <th>الموظف</th>
-      <th>الوقت</th>
-    </tr>
-  </thead>
+            <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الموظف</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
           </table>
           <div class="row">
@@ -461,35 +379,12 @@ table.table-selected {
             <select id="depositAccount" class="searchable"></select>
             <input type="number" id="depositAmount" placeholder="المبلغ" inputmode="numeric">
             <select id="depositCurrency"></select>
-         <button id="btnSaveDeposit" onclick="saveDeposit()">حفظ</button>
+            <button id="btnSaveDeposit">حفظ</button>
           </div>
-         
-       <div class="filter-compact">
-  <div class="filter-item">
-    <label>من</label>
-    <input type="date" id="depositTableDateFrom">
-  </div>
-  <div class="filter-item">
-    <label>إلى</label>
-    <input type="date" id="depositTableDateTo">
-  </div>
-  <button onclick="applyDateFilter('depositTable')">فلترة</button>
-  <button onclick="clearDateFilter('depositTable')">مسح</button>
-</div>
-         
-         <table id="adminDepositTable">
-  <thead>
-    <tr>
-      <th onclick="sortTable('adminDepositTable', 0)" style="cursor:pointer;">الحساب</th>
-      <th onclick="sortTable('adminDepositTable', 1)" style="cursor:pointer;">المبلغ</th>
-      <th onclick="sortTable('adminDepositTable', 2)" style="cursor:pointer;">العملة</th>
-      <th onclick="sortTable('adminDepositTable', 3)" style="cursor:pointer;">المودع</th>
-      <th onclick="sortTable('adminDepositTable', 4)" style="cursor:pointer;">الموظف</th>
-      <th onclick="sortTable('adminDepositTable', 5)" style="cursor:pointer;">الوقت</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+          <table id="depositTable">
+            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
+            <tbody></tbody>
+          </table>
           <div class="row">
             <select id="depositFilterUser"><option value="all">الكل</option></select>
           </div>
@@ -502,35 +397,12 @@ table.table-selected {
             <select id="withdrawAccount" class="searchable"></select>
             <input type="number" id="withdrawAmount" placeholder="المبلغ" inputmode="numeric">
             <select id="withdrawCurrency"></select>
-          <button id="btnSaveWithdraw" onclick="saveWithdraw()">حفظ</button>
+            <button id="btnSaveWithdraw">حفظ</button>
           </div>
-          
-          
-        <div class="filter-compact">
-  <div class="filter-item">
-    <label>من</label>
-    <input type="date" id="withdrawTableDateFrom">
-  </div>
-  <div class="filter-item">
-    <label>إلى</label>
-    <input type="date" id="withdrawTableDateTo">
-  </div>
-  <button onclick="applyDateFilter('withdrawTable')">فلترة</button>
-  <button onclick="clearDateFilter('withdrawTable')">مسح</button>
-</div>
-         <table id="adminWithdrawTable">
-  <thead>
-    <tr>
-      <th onclick="sortTable('adminWithdrawTable', 0)" style="cursor:pointer;">الحساب</th>
-      <th onclick="sortTable('adminWithdrawTable', 1)" style="cursor:pointer;">المبلغ</th>
-      <th onclick="sortTable('adminWithdrawTable', 2)" style="cursor:pointer;">العملة</th>
-      <th onclick="sortTable('adminWithdrawTable', 3)" style="cursor:pointer;">المستلم</th>
-      <th onclick="sortTable('adminWithdrawTable', 4)" style="cursor:pointer;">الموظف</th>
-      <th onclick="sortTable('adminWithdrawTable', 5)" style="cursor:pointer;">الوقت</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+          <table id="withdrawTable">
+            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
+            <tbody></tbody>
+          </table>
           <div class="row">
             <select id="withdrawFilterUser"><option value="all">الكل</option></select>
           </div>
@@ -719,31 +591,8 @@ table.table-selected {
             <input type="text" id="staffBuyResult" placeholder="النتيجة" readonly>
             <button id="btnSaveStaffBuy">حفظ</button>
           </div>
-          
-          <div class="filter-compact">
-  <div class="filter-item">
-    <label>من</label>
-    <input type="date" id="staffBuyTableDateFrom">
-  </div>
-  <div class="filter-item">
-    <label>إلى</label>
-    <input type="date" id="staffBuyTableDateTo">
-  </div>
-  <button onclick="applyDateFilter('staffBuyTable')">فلترة</button>
-  <button onclick="clearDateFilter('staffBuyTable')">مسح</button>
-</div>
-          
           <table id="staffBuyTable">
-           <thead>
-  <tr>
-    <th>المبلغ</th>
-    <th>السعر</th>
-    <th>العملة</th>
-    <th>النتيجة</th>
-    <th>العملية</th>
-    <th>الوقت</th>
-  </tr>
-</thead>
+            <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -758,31 +607,8 @@ table.table-selected {
             <input type="text" id="staffSellResult" placeholder="النتيجة" readonly>
             <button id="btnSaveStaffSell">حفظ</button>
           </div>
-         
-       <div class="filter-compact">
-  <div class="filter-item">
-    <label>من</label>
-    <input type="date" id="staffSellTableDateFrom">
-  </div>
-  <div class="filter-item">
-    <label>إلى</label>
-    <input type="date" id="staffSellTableDateTo">
-  </div>
-  <button onclick="applyDateFilter('staffSellTable')">فلترة</button>
-  <button onclick="clearDateFilter('staffSellTable')">مسح</button>
-</div>
-         
           <table id="staffSellTable">
-        <thead>
-  <tr>
-    <th>المبلغ</th>
-    <th>السعر</th>
-    <th>العملة</th>
-    <th>النتيجة</th>
-    <th>العملية</th>
-    <th>الوقت</th>
-  </tr>
-</thead>
+            <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -796,33 +622,10 @@ table.table-selected {
             <select id="staffDepositCurrency"></select>
             <button id="btnSaveStaffDeposit">حفظ</button>
           </div>
-         
-         
-        <div class="filter-compact">
-  <div class="filter-item">
-    <label>من</label>
-    <input type="date" id="staffDepositTableDateFrom">
-  </div>
-  <div class="filter-item">
-    <label>إلى</label>
-    <input type="date" id="staffDepositTableDateTo">
-  </div>
-  <button onclick="applyDateFilter('staffDepositTable')">فلترة</button>
-  <button onclick="clearDateFilter('staffDepositTable')">مسح</button>
-</div>
-         
-         
-         <table id="staffDepositTable">
-  <thead>
-    <tr>
-      <th onclick="sortTable('staffDepositTable', 0)" style="cursor:pointer;">الحساب</th>
-      <th onclick="sortTable('staffDepositTable', 1)" style="cursor:pointer;">المبلغ</th>
-      <th onclick="sortTable('staffDepositTable', 2)" style="cursor:pointer;">العملة</th>
-      <th onclick="sortTable('staffDepositTable', 3)" style="cursor:pointer;">الوقت</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+          <table id="staffDepositTable">
+            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
+            <tbody></tbody>
+          </table>
         </div>
       </div>
 
@@ -834,33 +637,10 @@ table.table-selected {
             <select id="staffWithdrawCurrency"></select>
             <button id="btnSaveStaffWithdraw">حفظ</button>
           </div>
-          
-         <div class="filter-compact">
-  <div class="filter-item">
-    <label>من</label>
-    <input type="date" id="staffWithdrawTableDateFrom">
-  </div>
-  <div class="filter-item">
-    <label>إلى</label>
-    <input type="date" id="staffWithdrawTableDateTo">
-  </div>
-  <button onclick="applyDateFilter('staffWithdrawTable')">فلترة</button>
-  <button onclick="clearDateFilter('staffWithdrawTable')">مسح</button>
-</div>
-          
-          
-         <table id="staffWithdrawTable">
-  <thead>
-    <tr>
-      <th onclick="sortTable('staffWithdrawTable', 0)" style="cursor:pointer;">الحساب</th>
-      <th onclick="sortTable('staffWithdrawTable', 1)" style="cursor:pointer;">المبلغ</th>
-      <th onclick="sortTable('staffWithdrawTable', 2)" style="cursor:pointer;">العملة</th>
-      <th onclick="sortTable('staffWithdrawTable', 3)" style="cursor:pointer;">المستلم</th>
-      <th onclick="sortTable('staffWithdrawTable', 4)" style="cursor:pointer;">الوقت</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+          <table id="staffWithdrawTable">
+            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
+            <tbody></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -1000,300 +780,6 @@ function showScreen(id) {
   
   console.log("📌 SCREEN:", id);
 }
-
-
-
-let isSaving = false;
-
-async function refreshAll() {
-  try {
-    // جيب كل البيانات من Firebase بالتوازي
-    const [buySnap, sellSnap, depositSnap, withdrawSnap, ratesSnap, transSnap] = await Promise.all([
-      get(ref(db, 'buy')),
-      get(ref(db, 'sell')),
-      get(ref(db, 'deposit')),
-      get(ref(db, 'withdraw')),
-      get(ref(db, 'rates')),
-      get(ref(db, 'transactions'))
-    ]);
-
-    // حوّلها لمصفوفات
-    const data = {
-      buy: buySnap.val()? Object.values(buySnap.val()) : [],
-      sell: sellSnap.val()? Object.values(sellSnap.val()) : [],
-      deposit: depositSnap.val()? Object.values(depositSnap.val()) : [],
-      withdraw: withdrawSnap.val()? Object.values(withdrawSnap.val()) : [],
-      rates: ratesSnap.val() || { buy: {}, sell: {} },
-      transactions: transSnap.val()? Object.values(transSnap.val()) : []
-    };
-
-    // رتب من الاحدث للاقدم
-    data.buy.sort((a, b) => (b.time || 0) - (a.time || 0));
-    data.sell.sort((a, b) => (b.time || 0) - (a.time || 0));
-    data.deposit.sort((a, b) => (b.time || 0) - (a.time || 0));
-    data.withdraw.sort((a, b) => (b.time || 0) - (a.time || 0));
-    data.transactions.sort((a, b) => (b.time || 0) - (a.time || 0));
-
-    // 1. حدث جداول الادمن
-    updateTable('buyTable', data.buy.slice(0, 100));
-    updateTable('sellTable', data.sell.slice(0, 100));
-    updateTable('adminDepositTable', data.deposit.slice(0, 100));
-    updateTable('adminWithdrawTable', data.withdraw.slice(0, 100));
-
-    // 2. حدث جداول الموظف لو فيه مستخدم مسجل
-    if (currentUser && currentUser.uid) {
-      const userTrans = data.transactions.filter(t => t.userId === currentUser.uid);
-      updateTable('staffBuyTable', userTrans.filter(t => t.type === 'buy').slice(0, 100));
-      updateTable('staffSellTable', userTrans.filter(t => t.type === 'sell').slice(0, 100));
-      updateTable('staffDepositTable', userTrans.filter(t => t.type === 'deposit').slice(0, 100));
-      updateTable('staffWithdrawTable', userTrans.filter(t => t.type === 'withdraw').slice(0, 100));
-    }
-
-    // 3. حدث اسعار الصرف في الحقول
-    if (data.rates.buy) {
-      const buyCur = document.getElementById('buyCurrency')?.value;
-      const staffBuyCur = document.getElementById('staffBuyCurrency')?.value;
-      if (buyCur && data.rates.buy[buyCur]!== undefined) {
-        document.getElementById('buyRate').value = data.rates.buy[buyCur];
-      }
-      if (staffBuyCur && data.rates.buy[staffBuyCur]!== undefined) {
-        document.getElementById('staffBuyRate').value = data.rates.buy[staffBuyCur];
-      }
-    }
-    if (data.rates.sell) {
-      const sellCur = document.getElementById('sellCurrency')?.value;
-      const staffSellCur = document.getElementById('staffSellCurrency')?.value;
-      if (sellCur && data.rates.sell[sellCur]!== undefined) {
-        document.getElementById('sellRate').value = data.rates.sell[sellCur];
-      }
-      if (staffSellCur && data.rates.sell[staffSellCur]!== undefined) {
-        document.getElementById('staffSellRate').value = data.rates.sell[staffSellCur];
-      }
-    }
-
-    console.log("📌 Refreshed all data");
-  } catch (err) {
-    console.error('Refresh failed:', err);
-    showToast('فشل تحديث البيانات: ' + err.message);
-  }
-}
-
-function updateTable(tableId, rows) {
-  const tbody = document.querySelector(`#${tableId} tbody`);
-  if (!tbody) return;
-
-  tbody.innerHTML = '';
-
-  if (!rows.length) {
-    const cols = tableId.includes('staff')? 6 : 7;
-    tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center;opacity:0.6">لا توجد بيانات</td></tr>`;
-    return;
-  }
-
-  const isAdminTable = ['buyTable', 'sellTable', 'adminDepositTable', 'adminWithdrawTable'].includes(tableId);
-
-  rows.forEach(r => {
-    const time = r.time? new Date(r.time).toLocaleString('ar-YE') : '-';
-    const opType = r.type === 'buy'? 'شراء' : r.type === 'sell'? 'بيع' : r.type === 'deposit'? 'ايداع' : 'سحب';
-
-    let row = '<tr>';
-
-    if (isAdminTable) {
-      // جداول الادمن: 7 اعمدة
-      row += `
-        <td>${r.amount?? '-'}</td>
-        <td>${r.rate?? '-'}</td>
-        <td>${r.currency?? '-'}</td>
-        <td>${r.result?? '-'}</td>
-        <td>${opType}</td>
-        <td>${r.staffName?? r.userName?? '-'}</td>
-        <td>${time}</td>
-      `;
-    } else {
-      // جداول الموظف: 6 اعمدة بدون عمود الموظف
-      row += `
-        <td>${r.amount?? '-'}</td>
-        <td>${r.rate?? '-'}</td>
-        <td>${r.currency?? '-'}</td>
-        <td>${r.result?? '-'}</td>
-        <td>${opType}</td>
-        <td>${time}</td>
-      `;
-    }
-
-    row += '</tr>';
-    tbody.innerHTML += row;
-  });
-}
-
-
-
-
-
-
-
-
-
-
-// 1. حفظ شراء
-async function saveBuy() {
-  if (isSaving) return;
-  const amount = document.getElementById('buyAmount').value.trim();
-  const currency = document.getElementById('buyCurrency').value;
-  const btn = document.getElementById('btnSaveBuy');
-  if (!amount || amount <= 0) return showToast('ادخل مبلغ صحيح');
-
-  try {
-    isSaving = true;
-    btn.disabled = true;
-    btn.textContent = 'جاري الحفظ...';
-
-    await push(ref(db, 'buy'), {
-      amount: parseFloat(amount),
-      currency: currency,
-      rate: parseFloat(document.getElementById('buyRate').value) || 0,
-      result: parseFloat(document.getElementById('buyResult').value) || 0,
-      time: Date.now(),
-      staffId: currentUser?.uid || null,
-      staffName: currentUser?.name || null,
-      type: 'buy'
-    });
-
-    await refreshAll();
-    document.getElementById('buyAmount').value = '';
-    document.getElementById('buyResult').value = '';
-    showToast('تم حفظ الشراء');
-  } catch (err) {
-    showToast('فشل الحفظ: ' + err.message);
-  } finally {
-    isSaving = false;
-    btn.disabled = false;
-    btn.textContent = 'حفظ';
-  }
-}
-
-// 2. حفظ بيع
-async function saveSell() {
-  if (isSaving) return;
-  const amount = document.getElementById('sellAmount').value.trim();
-  const currency = document.getElementById('sellCurrency').value;
-  const btn = document.getElementById('btnSaveSell');
-  if (!amount || amount <= 0) return showToast('ادخل مبلغ صحيح');
-
-  try {
-    isSaving = true;
-    btn.disabled = true;
-    btn.textContent = 'جاري الحفظ...';
-
-    await push(ref(db, 'sell'), {
-      amount: parseFloat(amount),
-      currency: currency,
-      rate: parseFloat(document.getElementById('sellRate').value) || 0,
-      result: parseFloat(document.getElementById('sellResult').value) || 0,
-      time: Date.now(),
-      staffId: currentUser?.uid || null,
-      staffName: currentUser?.name || null,
-      type: 'sell'
-    });
-
-    await refreshAll();
-    document.getElementById('sellAmount').value = '';
-    document.getElementById('sellResult').value = '';
-    showToast('تم حفظ البيع');
-  } catch (err) {
-    showToast('فشل الحفظ: ' + err.message);
-  } finally {
-    isSaving = false;
-    btn.disabled = false;
-    btn.textContent = 'حفظ';
-  }
-}
-
-// 3. حفظ ايداع
-async function saveDeposit() {
-  if (isSaving) return;
-  const account = document.getElementById('depositAccount').value;
-  const amount = document.getElementById('depositAmount').value.trim();
-  const btn = document.getElementById('btnSaveDeposit');
-  if (!account || !amount || amount <= 0) return showToast('اختر الحساب وادخل مبلغ صحيح');
-
-  try {
-    isSaving = true;
-    btn.disabled = true;
-    btn.textContent = 'جاري الحفظ...';
-
-    await push(ref(db, 'deposit'), {
-      accountId: account,
-      amount: parseFloat(amount),
-      currency: document.getElementById('depositCurrency').value,
-      time: Date.now(),
-      staffId: currentUser?.uid || null,
-      staffName: currentUser?.name || null,
-      type: 'deposit'
-    });
-
-    await refreshAll();
-    document.getElementById('depositAmount').value = '';
-    showToast('تم حفظ الايداع');
-  } catch (err) {
-    showToast('فشل الحفظ: ' + err.message);
-  } finally {
-    isSaving = false;
-    btn.disabled = false;
-    btn.textContent = 'حفظ';
-  }
-}
-
-// 4. حفظ سحب
-async function saveWithdraw() {
-  if (isSaving) return;
-  const account = document.getElementById('withdrawAccount').value;
-  const amount = document.getElementById('withdrawAmount').value.trim();
-  const btn = document.getElementById('btnSaveWithdraw');
-  if (!account || !amount || amount <= 0) return showToast('اختر الحساب وادخل مبلغ صحيح');
-
-  try {
-    isSaving = true;
-    btn.disabled = true;
-    btn.textContent = 'جاري الحفظ...';
-
-    await push(ref(db, 'withdraw'), {
-      accountId: account,
-      amount: parseFloat(amount),
-      currency: document.getElementById('withdrawCurrency').value,
-      time: Date.now(),
-      staffId: currentUser?.uid || null,
-      staffName: currentUser?.name || null,
-      type: 'withdraw'
-    });
-
-    await refreshAll();
-    document.getElementById('withdrawAmount').value = '';
-    showToast('تم حفظ السحب');
-  } catch (err) {
-    showToast('فشل الحفظ: ' + err.message);
-  } finally {
-    isSaving = false;
-    btn.disabled = false;
-    btn.textContent = 'حفظ';
-  }
-}
-
-// لازم هذا عشان onclick يشتغل مع modules
-window.saveBuy = saveBuy;
-window.saveSell = saveSell;
-window.saveDeposit = saveDeposit;
-window.saveWithdraw = saveWithdraw;
-
-
-
-
-// عشان modules تخلي الدوال تشتغل مع 
-
-
-
-
-
 
 function resetTabsToDefault() {
   // شيل active من كل التابات والمحتوى فقط، لا تفعل اي شيء بعده
@@ -1763,57 +1249,29 @@ function calcResult(type) {
   document.getElementById(type + 'Result').value = (amount * rate).toFixed(2);
 }
 
-
 async function saveTransaction(type, amountId, currencyId, rateId, resultId) {
-  if (isSaving) return;
-  
   const amount = parseFloat(document.getElementById(amountId).value);
   const currency = document.getElementById(currencyId).value;
   const rate = parseFloat(document.getElementById(rateId).value);
   const result = parseFloat(document.getElementById(resultId).value);
+  if (!amount ||!rate) { showToast('املا المبلغ والسعر'); return; }
 
-  if (!amount || amount <= 0) { showToast('ادخل مبلغ صحيح'); return; }
-  if (!rate || rate <= 0) { showToast('السعر غير موجود'); return; }
-  if (!currentUser) { showToast('خطأ: المستخدم غير مسجل'); return; }
-
-  isSaving = true;
-  const btn = document.getElementById(amountId.replace('Amount', 'btnSave')) || 
-              document.getElementById(amountId.replace('staff', 'btnSaveStaff').replace('Amount', 'Sell'));
-  if (btn) btn.disabled = true;
-
-  const transactionData = {
-    type, 
-    amount, 
-    currency, 
-    rate, 
-    result: result || (amount * rate),
-    userId: currentUser.uid, 
-    userName: currentUser.name,
-    time: Date.now()
-  };
-
-  try {
-    await push(ref(db, 'transactions'), transactionData);
-    showToast(`تم حفظ عملية ${type === 'buy' ? 'الشراء' : 'البيع'} بنجاح`);
-    
-    document.getElementById(amountId).value = '';
-    document.getElementById(resultId).value = '';
-    
-    loadTransactions();
-    loadStaffTransactions();
-  } catch (err) {
-    showToast('فشل الحفظ: ' + err.message);
-  } finally {
-    isSaving = false;
-    if (btn) setTimeout(() => btn.disabled = false, 800);
-  }
+  await push(ref(db, 'transactions'), {
+    type, amount, currency, rate, result,
+    userId: currentUser.uid, userName: currentUser.name, time: Date.now()
+  });
+  showToast(`تم حفظ عملية ${type}`);
+  console.log("📌 TRANSACTION SAVED:", type, amount, currency);
+  document.getElementById(amountId).value = '';
+  document.getElementById(resultId).value = '';
+  loadTransactions();
+  loadStaffTransactions();
 }
 
-
-
-
-
-
+document.getElementById('btnSaveBuy').addEventListener('click', () => saveTransaction('buy', 'buyAmount', 'buyCurrency', 'buyRate', 'buyResult'));
+document.getElementById('btnSaveSell').addEventListener('click', () => saveTransaction('sell', 'sellAmount', 'sellCurrency', 'sellRate', 'sellResult'));
+document.getElementById('btnSaveStaffBuy').addEventListener('click', () => saveTransaction('buy', 'staffBuyAmount', 'staffBuyCurrency', 'staffBuyRate', 'staffBuyResult'));
+document.getElementById('btnSaveStaffSell').addEventListener('click', () => saveTransaction('sell', 'staffSellAmount', 'staffSellCurrency', 'staffSellRate', 'staffSellResult'));
 
 async function saveCashTransaction(type, accountId, amountId, currencyId) {
   const account = document.getElementById(accountId).value;
@@ -1832,131 +1290,88 @@ async function saveCashTransaction(type, accountId, amountId, currencyId) {
   console.log("📌 CASH TRANSACTION SAVED:", type, account, amount);
 }
 
+document.getElementById('btnSaveDeposit').addEventListener('click', () => saveCashTransaction('deposit', 'depositAccount', 'depositAmount', 'depositCurrency'));
+document.getElementById('btnSaveWithdraw').addEventListener('click', () => saveCashTransaction('withdraw', 'withdrawAccount', 'withdrawAmount', 'withdrawCurrency'));
+document.getElementById('btnSaveStaffDeposit').addEventListener('click', () => saveCashTransaction('deposit', 'staffDepositAccount', 'staffDepositAmount', 'staffDepositCurrency'));
+document.getElementById('btnSaveStaffWithdraw').addEventListener('click', () => saveCashTransaction('withdraw', 'staffWithdrawAccount', 'staffWithdrawAmount', 'staffWithdrawCurrency'));
 
+async function loadTransactions() {
+  const snap = await get(ref(db, 'transactions'));
+  let data = snap.exists()? Object.values(snap.val()) : [];
+  data = filterDataByUser(data, currentUser.uid, currentUser.role === 'admin');
 
-
-
-
-
-
-
-  data.sort((a, b) => (b.time || 0) - (a.time || 0));
-
-  data.forEach(d => {
-    const time = d.time ? new Date(d.time).toLocaleString('ar-SA') : '-';
-    const opType = d.type === 'buy' ? 'شراء' : 'بيع';
-
-    let row = `
-      <tr>
-        <td>${d.amount ?? '-'}</td>
-        <td>${d.rate ?? '-'}</td>
-        <td>${d.currency ?? '-'}</td>
-        <td>${d.result ?? '-'}</td>
-        <td>${opType}</td>
-    `;
-
-    if (isAdminTable) {
-      row += `<td>${d.userName ?? '-'}</td>`; // عمود الموظف للأدمن فقط
-    }
-
-    row += `<td>${time}</td></tr>`;
-    tbody.innerHTML += row;
-  });
+  renderTable('buyTable', data.filter(d => d.type === 'buy'));
+  renderTable('sellTable', data.filter(d => d.type === 'sell'));
+  renderTable('depositTable', data.filter(d => d.type === 'deposit'));
+  renderTable('withdrawTable', data.filter(d => d.type === 'withdraw'));
+  console.log("📌 TRANSACTIONS LOADED:", data.length);
 }
 
+async function loadStaffTransactions() {
+  const snap = await get(ref(db, 'transactions'));
+  let data = snap.exists()? Object.values(snap.val()) : [];
+  data = filterDataByUser(data, currentUser.uid, false);
 
+  renderTable('staffBuyTable', data.filter(d => d.type === 'buy'));
+  renderTable('staffSellTable', data.filter(d => d.type === 'sell'));
+  renderTable('staffDepositTable', data.filter(d => d.type === 'deposit'));
+  renderTable('staffWithdrawTable', data.filter(d => d.type === 'withdraw'));
+  console.log("📌 STAFF TRANSACTIONS LOADED:", data.length);
+}
 
-
-let sortState = {}; // يحفظ حالة الترتيب لكل جدول
-
-window.sortTable = function(tableId, colIndex) {
-  const table = document.getElementById(tableId);
-  const tbody = table.querySelector('tbody');
-  const rows = Array.from(tbody.rows);
-
-  if (!rows.length) return;
-
-  // حدد الاتجاه: لو نفس العمود اضغط مرة ثانية = اعكس الاتجاه
-  const key = `${tableId}-${colIndex}`;
-  const currentDir = sortState[key] || 'asc';
-  const newDir = currentDir === 'asc'? 'desc' : 'asc';
-  sortState[key] = newDir;
-
-  // رتب الصفوف
-  rows.sort((a, b) => {
-    let valA = a.cells[colIndex].innerText.trim();
-    let valB = b.cells[colIndex].innerText.trim();
-
-    // لو رقمي حوله لرقم
-    const numA = parseFloat(valA.replace(/,/g, ''));
-    const numB = parseFloat(valB.replace(/,/g, ''));
-    const isNum =!isNaN(numA) &&!isNaN(numB);
-
-    if (isNum) {
-      return newDir === 'asc'? numA - numB : numB - numA;
-    } else {
-      // ترتيب عربي: أ الى ي
-      return newDir === 'asc'
-       ? valA.localeCompare(valB, 'ar')
-        : valB.localeCompare(valA, 'ar');
-    }
-  });
-
-  // اعد اضافة الصفوف المرتبة للجدول
+function renderTable(tableId, data) {
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  if (!tbody) return;
   tbody.innerHTML = '';
-  rows.forEach(row => tbody.appendChild(row));
-
-  // غير شكل الهيدر عشان يبين الاتجاه
-  const headers = table.querySelectorAll('th');
-  headers.forEach((th, i) => {
-    th.innerText = th.innerText.replace(' ▲', '').replace(' ▼', '');
-    if (i === colIndex) {
-      th.innerText += newDir === 'asc'? ' ▲' : ' ▼';
+  data.forEach(d => {
+    const time = new Date(d.time).toLocaleString('ar');
+    
+    // جداول الادمن - 5 اعمدة: المبلغ | السعر | النتيجة | الموظف | الوقت
+    if (tableId === 'buyTable' || tableId === 'sellTable' || 
+        tableId === 'depositTable' || tableId === 'withdrawTable') {
+      tbody.innerHTML += `<tr>
+        <td>${d.amount || '-'}</td>
+        <td>${d.rate || '-'}</td>
+        <td>${d.result || '-'}</td>
+        <td>${d.userName || '-'}</td>
+        <td>${time}</td>
+      </tr>`;
+    }
+    
+    // جداول الموظف شراء/بيع - 4 اعمدة: المبلغ | السعر | النتيجة | الوقت
+    else if (tableId === 'staffBuyTable' || tableId === 'staffSellTable') {
+      tbody.innerHTML += `<tr>
+        <td>${d.amount || '-'}</td>
+        <td>${d.rate || '-'}</td>
+        <td>${d.result || '-'}</td>
+        <td>${time}</td>
+      </tr>`;
+    }
+    
+    // جداول الموظف قبض/صرف - 4 اعمدة: الحساب | المبلغ | العملة | الوقت
+    else if (tableId === 'staffDepositTable' || tableId === 'staffWithdrawTable') {
+      const acc = allAccounts.find(a => a.id === d.accountId);
+      tbody.innerHTML += `<tr>
+        <td>${acc?acc.name:'-'}</td>
+        <td>${d.amount || '-'}</td>
+        <td>${d.currency || '-'}</td>
+        <td>${time}</td>
+      </tr>`;
+    }
+    
+    // باقي الجداول
+    else {
+      const acc = allAccounts.find(a => a.id === d.accountId);
+      tbody.innerHTML += `<tr>
+        <td>${acc?acc.name:'-'}</td>
+        <td>${d.amount || '-'}</td>
+        <td>${d.currency || '-'}</td>
+        <td>${d.userName || '-'}</td>
+        <td>${time}</td>
+      </tr>`;
     }
   });
 }
-
-
-
-
-
-
-function applyDateFilter(tableId) {
-  const from = document.getElementById(tableId + 'DateFrom').value;
-  const to = document.getElementById(tableId + 'DateTo').value;
-  
-  const fromTime = from ? new Date(from).setHours(0,0,0,0) : 0;
-  const toTime = to ? new Date(to).setHours(23,59,59,999) : Date.now();
-  
-  get(ref(db, 'transactions')).then(snap => {
-    let data = snap.exists() ? Object.values(snap.val()) : [];
-    
-    if(tableId.includes('Buy')) data = data.filter(d => d.type === 'buy');
-    if(tableId.includes('Sell')) data = data.filter(d => d.type === 'sell');
-    if(tableId.includes('Deposit')) data = data.filter(d => d.type === 'deposit');
-    if(tableId.includes('Withdraw')) data = data.filter(d => d.type === 'withdraw');
-    
-    if(tableId.startsWith('staff')) {
-      data = data.filter(d => d.userId === currentUser.uid);
-    } else if(!currentUser.role || currentUser.role !== 'admin') {
-      data = data.filter(d => d.userId === currentUser.uid);
-    }
-    
-    data = data.filter(d => d.time >= fromTime && d.time <= toTime);
-    updateTable(tableId, data);  // غيرت هنا
-  });
-}
-
-function clearDateFilter(tableId) {
-  document.getElementById(tableId + 'DateFrom').value = '';
-  document.getElementById(tableId + 'DateTo').value = '';
-  if(tableId.startsWith('staff')) {
-    loadStaffTransactions();
-  } else {
-    loadTransactions();
-  }
-}
-
 
 ['buyFilterUser', 'sellFilterUser', 'depositFilterUser', 'withdrawFilterUser'].forEach(id => {
   const el = document.getElementById(id);
