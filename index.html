@@ -2626,135 +2626,96 @@ document.addEventListener('DOMContentLoaded', initReconcileTable);
 
 // كود 7: الرصيد التراكمي لحظي + قيد مزدوج + فحص الرصيد
 // كود 7: الرصيد التراكمي لحظي + منع السالب
-(function() {
-  const YER = 'YER';
+const YER = 'YER';
 
-  async function calcSystemBalance(userId, currency) {
-    let balance = 0;
-    const paths = ['buy', 'sell', 'deposit', 'withdraw'];
+// 1. حساب رصيد النظام للموظف
+async function calcSystemBalance(userId, currency) {
+  let balance = 0;
+  const snap = await get(ref(db, 'transactions'));
+  if (!snap.exists()) return 0;
+  
+  Object.values(snap.val()).forEach(tx => {
+    if (tx.userId !== userId) return;
     
-    for (let path of paths) {
-      const snap = await get(query(ref(db, path), orderByChild('userId'), equalTo(userId)));
-      if (!snap.exists()) continue;
-      
-      Object.values(snap.val()).forEach(tx => {
-        if (path === 'deposit' && tx.currency === currency) {
-          balance += parseFloat(tx.amount) || 0;
-        }
-        if (path === 'withdraw' && tx.currency === currency) {
-          balance -= parseFloat(tx.amount) || 0;
-        }
-        if (path === 'buy' && tx.userId === userId) {
-          if (tx.currency === currency) balance += parseFloat(tx.amount) || 0;
-          if (tx.currency !== YER && currency === YER) balance -= parseFloat(tx.result) || 0;
-        }
-        if (path === 'sell' && tx.userId === userId) {
-          if (tx.currency === currency) balance -= parseFloat(tx.amount) || 0;
-          if (tx.currency !== YER && currency === YER) balance += parseFloat(tx.result) || 0;
-        }
-      });
+    if (tx.type === 'deposit' && tx.currency === currency) {
+      balance += parseFloat(tx.amount) || 0;
     }
-    return balance;
+    if (tx.type === 'withdraw' && tx.currency === currency) {
+      balance -= parseFloat(tx.amount) || 0;
+    }
+    if (tx.type === 'buy') {
+      if (tx.currency === currency) balance += parseFloat(tx.amount) || 0;
+      if (tx.currency !== YER && currency === YER) balance -= parseFloat(tx.result) || 0;
+    }
+    if (tx.type === 'sell') {
+      if (tx.currency === currency) balance -= parseFloat(tx.amount) || 0;
+      if (tx.currency !== YER && currency === YER) balance += parseFloat(tx.result) || 0;
+    }
+  });
+  return balance;
+}
+
+// 2. حساب رصيد الحساب
+async function calcAccountBalance(accountId, currency) {
+  let balance = 0;
+  const snap = await get(ref(db, 'transactions'));
+  if (!snap.exists()) return 0;
+  
+  Object.values(snap.val()).forEach(tx => {
+    if (tx.accountId !== accountId) return;
+    if (tx.type === 'deposit' && tx.currency === currency) balance += parseFloat(tx.amount) || 0;
+    if (tx.type === 'withdraw' && tx.currency === currency) balance -= parseFloat(tx.amount) || 0;
+  });
+  return balance;
+}
+
+// 3. حفظ معاملات الشراء والبيع مع منع السالب
+async function saveTransaction(type, amountId, currencyId, rateId, resultId) {
+  const amount = parseFloat(document.getElementById(amountId).value);
+  const currency = document.getElementById(currencyId).value;
+  const rate = parseFloat(document.getElementById(rateId).value);
+  const result = parseFloat(document.getElementById(resultId).value);
+  
+  if (!amount || !rate || !currency) { 
+    showToast('املأ المبلغ والعملة والسعر'); 
+    return; 
   }
 
-  async function calcAccountBalance(accountId, currency) {
-    let balance = 0;
-    const paths = ['deposit', 'withdraw'];
-    for (let path of paths) {
-      const snap = await get(query(ref(db, path), orderByChild('accountId'), equalTo(accountId)));
-      if (!snap.exists()) continue;
-      Object.values(snap.val()).forEach(tx => {
-        if (tx.currency !== currency) return;
-        if (path === 'deposit') balance += parseFloat(tx.amount) || 0;
-        if (path === 'withdraw') balance -= parseFloat(tx.amount) || 0;
-      });
-    }
-    return balance;
+  // فحص الرصيد قبل الحفظ
+  const balanceToCheck = type === 'buy' ? YER : currency;
+  const currentBalance = await calcSystemBalance(currentUser.uid, balanceToCheck);
+  const amountNeeded = type === 'buy' ? result : amount;
+
+  if (currentBalance < amountNeeded) {
+    showToast(`رصيد ${balanceToCheck} غير كافي. الرصيد الحالي: ${currentBalance.toFixed(2)}`);
+    return;
   }
 
-  // الشراء: يمنع لو الرصيد بيصير سالب
-  window.saveBuy = async function() {
-    const amount = parseFloat(document.getElementById('buyAmount').value);
-    const rate = parseFloat(document.getElementById('buyRate').value);
-    const currency = document.getElementById('buyCurrency').value;
-    const result = amount * rate;
+  await push(ref(db, 'transactions'), {
+    type, amount, currency, rate, result,
+    userId: currentUser.uid, userName: currentUser.name, time: Date.now()
+  });
+  
+  showToast(`تم حفظ عملية ${type}`);
+  document.getElementById(amountId).value = '';
+  document.getElementById(resultId).value = '';
+  updateBalances();
+}
 
-    if (!amount || !rate || !currency) {
-      showToast('املأ كل الحقول');
-      return;
-    }
+// 4. حفظ معاملات الإيداع والسحب مع منع السالب
+async function saveCashTransaction(type, accountId, amountId, currencyId) {
+  const account = document.getElementById(accountId).value;
+  const amount = parseFloat(document.getElementById(amountId).value);
+  const currency = document.getElementById(currencyId).value;
+  
+  if (!account || !amount || !currency) { 
+    showToast('اختر الحساب وادخل المبلغ والعملة'); 
+    return; 
+  }
 
-    const yerBalance = await calcSystemBalance(currentUser.uid, YER);
-    
-    // منع السالب
-    if (yerBalance < result) {
-      showToast(`رصيد YER غير كافي. الرصيد الحالي: ${yerBalance.toFixed(2)}`);
-      return;
-    }
-
-    await push(ref(db, 'buy'), {
-      amount: amount,
-      rate: rate,
-      result: result,
-      currency: currency,
-      userId: currentUser.uid,
-      userName: currentUser.name,
-      time: Date.now()
-    });
-
-    showToast('تم الشراء بنجاح');
-    document.getElementById('buyAmount').value = '';
-    updateBalances();
-  };
-
-  // البيع: يمنع لو رصيد العملة أقل من المطلوب
-  window.saveSell = async function() {
-    const amount = parseFloat(document.getElementById('sellAmount').value);
-    const rate = parseFloat(document.getElementById('sellRate').value);
-    const currency = document.getElementById('sellCurrency').value;
-    const result = amount * rate;
-
-    if (!amount || !rate || !currency) {
-      showToast('املأ كل الحقول');
-      return;
-    }
-
-    const currBalance = await calcSystemBalance(currentUser.uid, currency);
-    
-    // منع السالب
-    if (currBalance < amount) {
-      showToast(`رصيد ${currency} غير كافي. الرصيد الحالي: ${currBalance.toFixed(2)}`);
-      return;
-    }
-
-    await push(ref(db, 'sell'), {
-      amount: amount,
-      rate: rate,
-      result: result,
-      currency: currency,
-      userId: currentUser.uid,
-      userName: currentUser.name,
-      time: Date.now()
-    });
-
-    showToast('تم البيع بنجاح');
-    document.getElementById('sellAmount').value = '';
-    updateBalances();
-  };
-
-  // الصرف: يمنع لو رصيد الحساب أو الموظف أقل
-  window.saveWithdraw = async function() {
-    const amount = parseFloat(document.getElementById('withdrawAmount').value);
-    const currency = document.getElementById('withdrawCurrency').value;
-    const accountId = document.getElementById('withdrawAccount').value;
-
-    if (!amount || !currency || !accountId) {
-      showToast('املأ كل الحقول');
-      return;
-    }
-
+  if (type === 'withdraw') {
     const [accBalance, empBalance] = await Promise.all([
-      calcAccountBalance(accountId, currency),
+      calcAccountBalance(account, currency),
       calcSystemBalance(currentUser.uid, currency)
     ]);
 
@@ -2766,67 +2727,43 @@ document.addEventListener('DOMContentLoaded', initReconcileTable);
       showToast(`رصيدك غير كافي. الرصيد الحالي: ${empBalance.toFixed(2)}`);
       return;
     }
+  }
 
-    await push(ref(db, 'withdraw'), {
-      amount: amount,
-      currency: currency,
-      accountId: accountId,
-      userId: currentUser.uid,
-      userName: currentUser.name,
-      time: Date.now()
-    });
+  await push(ref(db, 'transactions'), {
+    type, accountId: account, amount, currency,
+    userId: currentUser.uid, userName: currentUser.name, time: Date.now()
+  });
+  
+  showToast(`تم حفظ عملية ${type}`);
+  document.getElementById(amountId).value = '';
+  updateBalances();
+}
 
-    showToast('تم الصرف بنجاح');
-    document.getElementById('withdrawAmount').value = '';
-    updateBalances();
-  };
-
-  // الإيداع ما يحتاج فحص لأنه يزيد الرصيد دائماً
-  window.saveDeposit = async function() {
-    const amount = parseFloat(document.getElementById('depositAmount').value);
-    const currency = document.getElementById('depositCurrency').value;
-    const accountId = document.getElementById('depositAccount').value;
-
-    if (!amount || !currency || !accountId) {
-      showToast('املأ كل الحقول');
-      return;
+// 5. تحديث الشاشة لحظياً
+async function updateBalances() {
+  try {
+    if (document.getElementById('staffSystemBalance')) {
+      const yerBal = await calcSystemBalance(currentUser.uid, YER);
+      document.getElementById('staffSystemBalance').value = yerBal.toFixed(2);
     }
+    if (typeof loadTransactions === 'function') loadTransactions();
+    if (typeof loadStaffTransactions === 'function') loadStaffTransactions();
+  } catch(e) {
+    console.error('خطأ في تحديث الأرصدة:', e);
+  }
+}
 
-    await push(ref(db, 'deposit'), {
-      amount: amount,
-      currency: currency,
-      accountId: accountId,
-      userId: currentUser.uid,
-      userName: currentUser.name,
-      time: Date.now()
-    });
-
-    showToast('تم الإيداع بنجاح');
-    document.getElementById('depositAmount').value = '';
-    updateBalances();
-  };
-
-  window.calcSystemBalance = calcSystemBalance;
-  window.calcAccountBalance = calcAccountBalance;
-})();
-
-
-
-
-
-// ربط الأزرار بالدوال لحظياً
+// 6. ربط الأزرار - خله آخر شي
 (function bindOpButtons() {
-  // أزرار شاشة الأدمن
-  document.getElementById('btnSaveBuy')?.addEventListener('click', saveBuy);
-  document.getElementById('btnSaveSell')?.addEventListener('click', saveSell);
-  document.getElementById('btnSaveDeposit')?.addEventListener('click', saveDeposit);
-  document.getElementById('btnSaveWithdraw')?.addEventListener('click', saveWithdraw);
-
-  // أزرار شاشة الموظف
-  document.getElementById('btnSaveStaffBuy')?.addEventListener('click', saveBuy);
-  document.getElementById('btnSaveStaffSell')?.addEventListener('click', saveSell);
-  document.getElementById('btnSaveStaffDeposit')?.addEventListener('click', saveDeposit);
-  document.getElementById('btnSaveStaffWithdraw')?.addEventListener('click', saveWithdraw);
+  document.getElementById('btnSaveBuy')?.addEventListener('click', () => saveTransaction('buy', 'buyAmount', 'buyCurrency', 'buyRate', 'buyResult'));
+  document.getElementById('btnSaveSell')?.addEventListener('click', () => saveTransaction('sell', 'sellAmount', 'sellCurrency', 'sellRate', 'sellResult'));
+  document.getElementById('btnSaveStaffBuy')?.addEventListener('click', () => saveTransaction('buy', 'staffBuyAmount', 'staffBuyCurrency', 'staffBuyRate', 'staffBuyResult'));
+  document.getElementById('btnSaveStaffSell')?.addEventListener('click', () => saveTransaction('sell', 'staffSellAmount', 'staffSellCurrency', 'staffSellRate', 'staffSellResult'));
+  
+  document.getElementById('btnSaveDeposit')?.addEventListener('click', () => saveCashTransaction('deposit', 'depositAccount', 'depositAmount', 'depositCurrency'));
+  document.getElementById('btnSaveWithdraw')?.addEventListener('click', () => saveCashTransaction('withdraw', 'withdrawAccount', 'withdrawAmount', 'withdrawCurrency'));
+  document.getElementById('btnSaveStaffDeposit')?.addEventListener('click', () => saveCashTransaction('deposit', 'staffDepositAccount', 'staffDepositAmount', 'staffDepositCurrency'));
+  document.getElementById('btnSaveStaffWithdraw')?.addEventListener('click', () => saveCashTransaction('withdraw', 'staffWithdrawAccount', 'staffWithdrawAmount', 'staffWithdrawCurrency'));
 })();
 
 // دالة تحديث الأرصدة لحظياً - عدلها حسب شاشتك
