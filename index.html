@@ -2417,7 +2417,6 @@ function buildMatchTable() {
       <table id="matchDyn" class="print-area">
         <thead>
           <tr>
-            <th style="width:30px;">#</th>
             <th>العملة</th>
             <th>الرصيد الفعلي</th>
             <th>رصيد النظام</th>
@@ -2427,8 +2426,12 @@ function buildMatchTable() {
         <tbody>
           ${[1,2,3,4].map(i => `
             <tr>
-              <td class="select-corner" data-i="${i}">${i}</td>
-              <td><input type="text" class="mCur" data-i="${i}" readonly placeholder="اختر العملة"></td>
+              <td>
+                <select class="mCur" data-i="${i}">
+                  <option value="">اختر العملة</option>
+                  ${activeCurrencies.map(c=>`<option value="${c}">${c}</option>`).join('')}
+                </select>
+              </td>
               <td><input type="number" class="mAct" data-i="${i}" inputmode="decimal" placeholder="0"></td>
               <td><input type="text" class="mSys" data-i="${i}" readonly></td>
               <td><input type="text" class="mDiff" data-i="${i}" readonly></td>
@@ -2438,38 +2441,26 @@ function buildMatchTable() {
       </table>
 
       <div class="row" style="gap:8px; margin-top:10px;">
-        <select id="currencySelect" style="flex:2;">
-          <option value="">اختر العملة للصف المحدد</option>
-          ${activeCurrencies.map(c=>`<option>${c}</option>`).join('')}
-        </select>
         <button id="btnMatchDyn" style="flex:1;">مطابقة</button>
       </div>
     </div>
   `;
 
-  let selectedRow = null;
-  let currentMatchId = null;
-
-  // 1. اختيار الصف من الركن
-  document.querySelectorAll('.select-corner').forEach(td => {
-    td.onclick = () => {
-      document.querySelectorAll('.select-corner').forEach(c => c.classList.remove('selected'));
-      td.classList.add('selected');
-      selectedRow = td.dataset.i;
-      document.getElementById('currencySelect').value = document.querySelector(`.mCur[data-i="${selectedRow}"]`).value;
+  // لما تغير العملة في أي صف، خلي القيمة ثابتة
+  document.querySelectorAll('.mCur').forEach(sel => {
+    sel.onchange = async (e) => {
+      const tr = e.target.closest('tr');
+      const cur = e.target.value;
+      if (!cur) {
+        tr.querySelector('.mSys').value = '';
+        tr.querySelector('.mDiff').value = '';
+        return;
+      }
+      // القيمة بتظل ظاهرة في الـ select نفسه
     };
   });
 
-  // 2. تعيين العملة للصف المحدد
-  document.getElementById('currencySelect').onchange = (e) => {
-    if (!selectedRow) {
-      showToast('اختر صف أولاً من الركن #');
-      return;
-    }
-    document.querySelector(`.mCur[data-i="${selectedRow}"]`).value = e.target.value;
-  };
-
-  // 3. زر المطابقة - يحسب ويحفظ ويعرض
+  // زر المطابقة - يحسب ويحفظ ويعرض
   document.getElementById('btnMatchDyn').onclick = async () => {
     const date = document.getElementById('matchDate').value;
     const rowsData = [];
@@ -2494,19 +2485,16 @@ function buildMatchTable() {
       return;
     }
 
-    // احفظ كل المطابقة كـ batch واحد
     const matchId = Date.now();
     await set(ref(db, `matches/${currentUser.uid}/${date}/${matchId}`), {
       time: Date.now(),
       items: rowsData
     });
 
-    currentMatchId = matchId;
-    await loadMatchList(date); // حدث القائمة
+    await loadMatchList(date);
     showToast('تمت المطابقة والحفظ');
   };
 
-  // 4. تحميل قائمة المطابقات للتاريخ المحدد
   async function loadMatchList(date) {
     const snap = await get(ref(db, `matches/${currentUser.uid}/${date}`));
     const select = document.getElementById('matchList');
@@ -2527,7 +2515,6 @@ function buildMatchTable() {
     });
   }
 
-  // 5. عرض مطابقة سابقة عند الاختيار
   document.getElementById('matchList').onchange = async (e) => {
     const date = document.getElementById('matchDate').value;
     const id = e.target.value;
@@ -2539,55 +2526,20 @@ function buildMatchTable() {
     const items = snap.val().items;
     const rows = document.querySelectorAll('#matchDyn tbody tr');
 
-    // امسح الجدول
     rows.forEach((tr, i) => {
-      tr.querySelector('.mCur').value = '';
-      tr.querySelector('.mAct').value = '';
-      tr.querySelector('.mSys').value = '';
-      tr.querySelector('.mDiff').value = '';
-    });
-
-    // عبي البيانات
-    items.forEach((it, i) => {
-      if (i >= rows.length) return;
-      const tr = rows[i];
-      tr.querySelector('.mCur').value = it.currency;
-      tr.querySelector('.mAct').value = it.actualBalance;
-      tr.querySelector('.mSys').value = it.systemBalance.toFixed(2);
-      tr.querySelector('.mDiff').value = it.diff.toFixed(2);
-      tr.querySelector('.mDiff').style.color = it.diff === 0? 'var(--accent-green)' : it.diff < 0? 'var(--danger)' : '#facc15';
+      tr.querySelector('.mCur').value = items[i]?.currency || '';
+      tr.querySelector('.mAct').value = items[i]?.actualBalance || '';
+      tr.querySelector('.mSys').value = items[i]?.systemBalance? items[i].systemBalance.toFixed(2) : '';
+      tr.querySelector('.mDiff').value = items[i]?.diff? items[i].diff.toFixed(2) : '';
+      if (items[i]) {
+        tr.querySelector('.mDiff').style.color = items[i].diff === 0? 'var(--accent-green)' : items[i].diff < 0? 'var(--danger)' : '#facc15';
+      }
     });
   };
 
-  // 6. تغيير التاريخ يحدث القائمة
   document.getElementById('matchDate').onchange = (e) => loadMatchList(e.target.value);
-
-  // 7. طباعة الجدول عند الضغط على زر طباعة
-  document.getElementById('btnPrint')?.addEventListener('click', () => {
-    const printArea = document.querySelector('.print-area').outerHTML;
-    const win = window.open('', '', 'height=700,width=900');
-    win.document.write(`
-      <html dir="rtl">
-      <head>
-        <title>مطابقة ${document.getElementById('matchDate').value}</title>
-        <style>
-          body{font-family:Tahoma; padding:20px;}
-          table{width:100%; border-collapse:collapse;}
-          th,td{border:1px solid #000; padding:8px; text-align:center;}
-          th{background:#eee;}
-        </style>
-      </head>
-      <body>${printArea}</body>
-      </html>
-    `);
-    win.document.close();
-    win.print();
-  });
-
-  // 8. تحميل المطابقات للتاريخ الحالي عند الفتح
   loadMatchList(today);
 }
-
 
 
 
