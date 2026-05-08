@@ -2443,6 +2443,11 @@ document.addEventListener('DOMContentLoaded', injectPersonFields);
     return balance;
   }
 
+
+
+window.calcSystemBalance = _calcSysBal;
+
+
   async function _calcAccBal(accountId, currency) {
     let balance = 0;
     const snap = await get(ref(db, 'transactions'));
