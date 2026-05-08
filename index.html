@@ -1912,6 +1912,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 /* ===== فلترة الجداول - ثابتة وصغيرة صف واحد ===== */
 /* ===== فلترة الجداول - اليوم افتراضي + ثابتة ===== */
+/* ===== فلترة الجداول - اليوم افتراضي + ثابتة ===== */
 (function(){
   const tables = [
     'buyTable','sellTable','depositTable','withdrawTable',
@@ -1923,66 +1924,62 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     const style = document.createElement('style');
     style.id = 'filterStyle';
     style.textContent = `
-    .filterBox{
-        display:flex;
-        align-items:center;
-        gap:3px;
-        padding:3px 5px;
-        margin:5px 0;
-        background:#1e1e1e;
-        border:1px solid #333;
-        border-radius:6px;
-        width:100%;
-        box-sizing:border-box;
-        overflow:hidden;
+   .filterBox{
+        display:flex;align-items:center;gap:3px;padding:3px 5px;margin:5px 0;
+        background:#1e1e1e;border:1px solid #333;border-radius:6px;width:100%;
+        box-sizing:border-box;overflow:hidden;
       }
-    .filterBox input[type="date"]{
-        width:95px;
-        height:24px;
-        padding:1px 3px;
-        border-radius:4px;
-        border:1px solid #444;
-        background:#222;
-        color:#fff;
-        font-size:10px;
+   .filterBox input[type="date"]{
+        width:80px;height:24px;padding:1px 3px;border-radius:4px;border:1px solid #444;
+        background:#222;color:#fff;font-size:10px;
       }
-    .filterBox button{
-        padding:1px 6px;
-        height:24px;
-        border:none;
-        border-radius:4px;
-        background:#00d26a;
-        color:#000;
-        font-weight:bold;
-        font-size:10px;
-        white-space:nowrap;
+   .filterBox button{
+        padding:1px 6px;height:24px;border:none;border-radius:4px;background:#00d26a;
+        color:#000;font-weight:bold;font-size:10px;white-space:nowrap;
       }
-    .filterBox span{
-        font-size:10px;
-        color:#ccc;
-        white-space:nowrap;
-      }
-    .tableScroll{
-        overflow-x:auto;
-        width:100%;
-      }
+   .filterBox span{font-size:10px;color:#ccc;white-space:nowrap;}
+   .tableScroll{overflow-x:auto;width:100%;}
     `;
     document.head.appendChild(style);
   }
 
   // شغل البناء بعد ما الصفحة تتحمل
   window.addEventListener('load', () => {
-    setTimeout(buildFilters, 600);
+    setTimeout(overrideLoadAndBuild, 600);
   });
 
+  // 1. نوقف دوال التحميل القديمة ونستبدلها عشان ما ترسم كل البيانات
+  function overrideLoadAndBuild(){
+    const oldLoadStaff = window.loadStaffTransactions;
+    const oldLoad = window.loadTransactions;
+
+    if(typeof oldLoadStaff === 'function'){
+      window.loadStaffTransactions = async function(){
+        // جيب البيانات بس لا ترسمها
+        await oldLoadStaff.call(this, true); // لو عندك باراميتر skipRender حطه
+        buildFilters(); // ابنِ الفلترة وفلتر على اليوم
+      };
+    }
+
+    if(typeof oldLoad === 'function'){
+      window.loadTransactions = async function(){
+        await oldLoad.call(this, true);
+        buildFilters();
+      };
+    }
+
+    // لو الصفحة فتحت والبيانات موجودة اصلا
+    buildFilters();
+  }
+
   function buildFilters(){
-    const today = new Date().toISOString().split('T')[0]; // تاريخ اليوم
+    const today = new Date().toISOString().split('T')[0];
 
     tables.forEach(id => {
       const tbl = document.getElementById(id);
       if(!tbl || document.getElementById('fb_' + id)) return;
 
-      // لف الجدول بـ div للسكرول الافقي
+      // لف الجدول للسكرول الافقي
       if(!tbl.parentElement.classList.contains('tableScroll')){
         const wrap = document.createElement('div');
         wrap.className = 'tableScroll';
@@ -1990,7 +1987,6 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
         wrap.appendChild(tbl);
       }
 
-      // حط بوكس الفلترة فوق الجدول مباشرة، برا div السكرول
       const wrap = tbl.parentElement;
       wrap.insertAdjacentHTML('beforebegin', `
         <div id="fb_${id}" class="filterBox">
@@ -2003,7 +1999,6 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
         </div>
       `);
 
-      // ربط الازرار
       document.getElementById('fbtn_' + id).onclick = () => doFilter(id);
       document.getElementById('cbtn_' + id).onclick = () => {
         document.getElementById('from_' + id).value = today;
@@ -2011,17 +2006,24 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
         doFilter(id);
       };
 
-      // فلتر اليوم تلقائياً اول ما يفتح
+      // فلتر اليوم تلقائياً
       doFilter(id);
     });
   }
 
   async function doFilter(tableId){
-    const fromTime = new Date(document.getElementById('from_' + tableId).value + 'T00:00:00').getTime();
-    const toTime = new Date(document.getElementById('to_' + tableId).value + 'T23:59:59').getTime();
+    const fromVal = document.getElementById('from_' + tableId).value;
+    const toVal = document.getElementById('to_' + tableId).value;
+    if(!fromVal ||!toVal) return;
+
+    const fromTime = new Date(fromVal + 'T00:00:00').getTime();
+    const toTime = new Date(toVal + 'T23:59:59').getTime();
 
     const snap = await get(ref(db, 'transactions'));
-    if(!snap.exists()) return;
+    if(!snap.exists()) {
+      renderTable(tableId, []);
+      return;
+    }
 
     let data = Object.values(snap.val());
 
@@ -2038,10 +2040,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
       return t >= fromTime && t <= toTime;
     });
 
-    // استدعي دالة الرسم حقك القديمة
-    if(typeof renderTable === 'function'){
-      renderTable(tableId, filtered);
-    }
+    renderTable(tableId, filtered);
   }
 })();
 
