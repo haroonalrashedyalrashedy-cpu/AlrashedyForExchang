@@ -1905,29 +1905,28 @@ function printPDF(type, tableId) {
   let title = 'سند';
 
   if (type === 'table') {
-    title = 'تقرير ' + tableId;
     const table = document.getElementById(tableId);
+    if (!table) {
+      alert('الجدول غير موجود');
+      return;
+    }
 
-    // نبني HTML يدوياً عشان نضمن القيم
-    let rows = '';
+    title = 'تقرير ' + (tableId || 'الجدول');
+
+    // جيب الهيدر لو موجود
+    let theadHTML = '';
+    const thead = table.querySelector('thead');
+    if (thead) {
+      theadHTML = `<thead>${getRowHTML(thead.rows[0])}</thead>`;
+    }
+
+    // ابني الصفوف ديناميكياً
+    let rowsHTML = '';
     table.querySelectorAll('tbody tr').forEach(tr => {
-      const cur = tr.querySelector('.recCur').value;
-      const act = tr.querySelector('.recAct').value;
-      const sys = tr.querySelector('.recSys').value;
-      const diff = tr.querySelector('.recDiff').value;
-
-      rows += `<tr>
-        <td>${cur || ''}</td>
-        <td>${act || ''}</td>
-        <td>${sys || ''}</td>
-        <td>${diff || ''}</td>
-      </tr>`;
+      rowsHTML += getRowHTML(tr);
     });
 
-    html = `<table>
-      <thead><tr><th>العملة</th><th>الرصيد الفعلي</th><th>رصيد النظام</th><th>نتيجة المطابقة</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+    html = `<table>${theadHTML}<tbody>${rowsHTML}</tbody></table>`;
   }
 
   const win = window.open('', '', 'height=800,width=600');
@@ -1965,6 +1964,31 @@ function printPDF(type, tableId) {
   `);
   win.document.close();
   win.onload = () => win.focus();
+}
+
+// دالة مساعدة: تقرأ صف واحد وتجيب القيم الصح من input و select
+function getRowHTML(tr) {
+  let cells = '';
+  tr.querySelectorAll('th, td').forEach(cell => {
+    const input = cell.querySelector('input, select');
+    let val = '';
+
+    if (input) {
+      if (input.tagName === 'SELECT') {
+        // يطبع النص المختار في القائمة المنسدلة
+        val = input.options[input.selectedIndex]? input.options[input.selectedIndex].text : '';
+      } else {
+        // يطبع قيمة الحقل
+        val = input.value;
+      }
+    } else {
+      // يطبع النص العادي
+      val = cell.innerText.trim();
+    }
+
+    cells += `<td>${val}</td>`;
+  });
+  return `<tr>${cells}</tr>`;
 }
 console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
