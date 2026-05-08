@@ -2197,6 +2197,71 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
   };
 })();
 
+
+// ترتيب الجداول عند الضغط على الهيدر
+(function(){
+  const sortState = {}; // يحفظ الحالة لكل جدول
+
+  // شغلها مرة وحدة بعد ما الصفحة تتحمل
+  document.addEventListener('DOMContentLoaded', () => {
+    const tables = document.querySelectorAll('table');
+    tables.forEach(table => {
+      const ths = table.querySelectorAll('thead th');
+      ths.forEach((th, idx) => {
+        th.style.cursor = 'pointer';
+        th.style.userSelect = 'none';
+        th.addEventListener('click', () => sortTable(table, idx, th));
+      });
+    });
+  });
+
+  function sortTable(table, colIndex, th) {
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    if(!rows.length) return;
+
+    const tableId = table.id;
+    const key = `${tableId}_${colIndex}`;
+
+    // حدد الاتجاه: 1 = تصاعدي، -1 = تنازلي
+    const direction = sortState[key] === 1? -1 : 1;
+    sortState[key] = direction;
+
+    // شيل الاسهم من باقي الاعمدة
+    table.querySelectorAll('thead th').forEach(h => {
+      h.innerHTML = h.innerHTML.replace(/ [▲▼]/g, '');
+    });
+
+    // حط السهم على العمود الحالي
+    th.innerHTML += direction === 1? ' ▲' : ' ▼';
+
+    // رتب الصفوف
+    rows.sort((a, b) => {
+      const aText = a.cells[colIndex]?.textContent.trim() || '';
+      const bText = b.cells[colIndex]?.textContent.trim() || '';
+
+      // لو ارقام أو تاريخ رتبها رقميا
+      const aNum = parseFloat(aText.replace(/,/g, ''));
+      const bNum = parseFloat(bText.replace(/,/g, ''));
+      const aTime = Date.parse(aText);
+      const bTime = Date.parse(bText);
+
+      if(!isNaN(aNum) &&!isNaN(bNum) && aText!== '' && bText!== '') {
+        return (aNum - bNum) * direction;
+      }
+      if(!isNaN(aTime) &&!isNaN(bTime)) {
+        return (aTime - bTime) * direction;
+      }
+      // رتب نص عربي/انجليزي
+      return aText.localeCompare(bText, 'ar') * direction;
+    });
+
+    // اعد رسم الجدول
+    tbody.innerHTML = '';
+    rows.forEach(row => tbody.appendChild(row));
+  }
+})();
+
 </script>
 
 <div id="bottomBar">
