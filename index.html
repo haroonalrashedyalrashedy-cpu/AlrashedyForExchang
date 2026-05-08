@@ -2149,69 +2149,131 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 /* ===== كود نهائي: يعرض بيانات اليوم فقط عند الدخول ===== */
 /* ===== فلترة اليوم فقط - يشتغل 100% ===== */
 /* ===== فلترة اليوم فقط - نسخة مضمونة ===== */
+/* ===== فلترة اليوم فقط + بوكس ثابت داخل الكارد ===== */
 (function waitForRender(){
-  // انتظر لحد ما renderTable و Firebase يجهزوا
-  if(typeof window.renderTable!== 'function' || typeof get === 'undefined' || typeof ref === 'undefined'){
+  if(typeof window.renderTable!== 'function' || typeof get === 'undefined'){
     setTimeout(waitForRender, 200);
     return;
   }
 
-  const tables = [
-    'buyTable','sellTable','depositTable','withdrawTable',
-    'staffBuyTable','staffSellTable','staffDepositTable','staffWithdrawTable'
-  ];
+  const tables = ['buyTable','sellTable','depositTable','withdrawTable',
+                  'staffBuyTable','staffSellTable','staffDepositTable','staffWithdrawTable'];
 
+  // CSS للبوكس
+  if(!document.getElementById('filterStyle')){
+    const style = document.createElement('style');
+    style.id = 'filterStyle';
+    style.textContent = `
+   .filterBox{
+      position: sticky; 
+      top: 0; 
+      z-index: 5;
+      display:flex;
+      align-items:center;
+      gap:4px;
+      padding:6px;
+      margin-bottom:6px;
+      background:#1e1e1e;
+      border:1px solid #333;
+      border-radius:6px;
+    }
+   .filterBox input[type="date"]{
+      width:90px;height:26px;padding:2px 4px;border-radius:4px;border:1px solid #444;
+      background:#222;color:#fff;font-size:12px;
+    }
+   .filterBox button{
+      padding:2px 8px;height:26px;border:none;border-radius:4px;background:#00d26a;
+      color:#000;font-weight:bold;font-size:12px;
+    }
+   .filterBox span{font-size:12px;color:#ccc;}
+    `;
+    document.head.appendChild(style);
+  }
+
+  const originalRender = window.renderTable;
+  let firstRun = true;
   const today = new Date().toISOString().split('T')[0];
   const fromTime = new Date(today + 'T00:00:00').getTime();
   const toTime = new Date(today + 'T23:59:59').getTime();
 
-  const originalRender = window.renderTable;
-  let firstRun = true;
-
-  // لف على renderTable
   window.renderTable = async function(id, data){
-    try{
-      // فلتر اليوم فقط اول مرة فقط
-      if(firstRun && tables.includes(id)){
-        const snap = await get(ref(db, 'transactions'));
-        if(snap.exists()){
-          let allData = Object.values(snap.val());
-
-          if(id.startsWith('staff')) allData = allData.filter(d => d.userId === currentUser.uid);
-          if(id.includes('Buy')) allData = allData.filter(d => d.type === 'buy');
-          if(id.includes('Sell')) allData = allData.filter(d => d.type === 'sell');
-          if(id.includes('Deposit')) allData = allData.filter(d => d.type === 'deposit');
-          if(id.includes('Withdraw')) allData = allData.filter(d => d.type === 'withdraw');
-
-          data = allData.filter(d => {
-            const t = Number(d.time);
-            return t >= fromTime && t <= toTime;
-          });
-        } else {
-          data = [];
-        }
+    // حط بوكس الفلترة داخل الكارد اول مرة فقط
+    if(firstRun && tables.includes(id) && document.getElementById(id)){
+      const tbl = document.getElementById(id);
+      const card = tbl.closest('.card');
+      if(card &&!card.querySelector('#fb_' + id)){
+        card.insertAdjacentHTML('afterbegin', `
+          <div id="fb_${id}" class="filterBox">
+            <span>من</span>
+            <input type="date" id="from_${id}" value="${today}">
+            <span>الى</span>
+            <input type="date" id="to_${id}" value="${today}">
+            <button id="fbtn_${id}">فلترة</button>
+            <button id="cbtn_${id}">مسح</button>
+          </div>
+        `);
+        document.getElementById('fbtn_' + id).onclick = () => filterTable(id);
+        document.getElementById('cbtn_' + id).onclick = () => {
+          document.getElementById('from_' + id).value = today;
+          document.getElementById('to_' + id).value = today;
+          filterTable(id);
+        };
       }
-    }catch(e){
-      console.error('Filter error:', e);
-      data = data || [];
-    }
 
+      // جيب بيانات اليوم فقط اول مرة
+      const snap = await get(ref(db, 'transactions'));
+      if(snap.exists()){
+        let allData = Object.values(snap.val());
+        if(id.startsWith('staff')) allData = allData.filter(d => d.userId === currentUser.uid);
+        if(id.includes('Buy')) allData = allData.filter(d => d.type === 'buy');
+        if(id.includes('Sell')) allData = allData.filter(d => d.type === 'sell');
+        if(id.includes('Deposit')) allData = allData.filter(d => d.type === 'deposit');
+        if(id.includes('Withdraw')) allData = allData.filter(d => d.type === 'withdraw');
+        
+        data = allData.filter(d => {
+          const t = Number(d.time);
+          return t >= fromTime && t <= toTime;
+        });
+      } else {
+        data = [];
+      }
+    }
     return originalRender(id, data);
   };
 
-  // شغل اول رسم بعد التحميل
+  async function filterTable(id){
+    const fromVal = document.getElementById('from_' + id).value;
+    const toVal = document.getElementById('to_' + id).value;
+    const fromT = new Date(fromVal + 'T00:00:00').getTime();
+    const toT = new Date(toVal + 'T23:59:59').getTime();
+
+    const snap = await get(ref(db, 'transactions'));
+    let allData = snap.exists()? Object.values(snap.val()) : [];
+    
+    if(id.startsWith('staff')) allData = allData.filter(d => d.userId === currentUser.uid);
+    if(id.includes('Buy')) allData = allData.filter(d => d.type === 'buy');
+    if(id.includes('Sell')) allData = allData.filter(d => d.type === 'sell');
+    if(id.includes('Deposit')) allData = allData.filter(d => d.type === 'deposit');
+    if(id.includes('Withdraw')) allData = allData.filter(d => d.type === 'withdraw');
+
+    const filtered = allData.filter(d => {
+      const t = Number(d.time);
+      return t >= fromT && t <= toT;
+    });
+
+    originalRender(id, filtered);
+  }
+
   window.addEventListener('load', () => {
     setTimeout(() => {
       firstRun = false;
       tables.forEach(id => {
         if(document.getElementById(id)){
-          // استدعي الاصلية ببيانات فاضية عشان الكود حقنا يفلترها
           originalRender(id, null);
         }
       });
-    }, 400);
+    }, 500);
   });
-
 })();
 
 
