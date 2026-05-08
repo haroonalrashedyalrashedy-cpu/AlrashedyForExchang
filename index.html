@@ -2618,105 +2618,232 @@ document.addEventListener('DOMContentLoaded', initReconcileTable);
 
 
 // كود 7: الرصيد التراكمي + القيد المزدوج للشراء والبيع
-(function() {
-  const YER = 'YER'; // العملة الرئيسية
 
-  // 1. دالة تحسب رصيد موظف لعملة معينة من كل العمليات
+
+
+
+
+
+// كود 7: الرصيد التراكمي لحظي + قيد مزدوج + فحص الرصيد
+(function() {
+  const YER = 'YER';
+
+  // حساب رصيد الموظف لحظياً من Firebase
   async function calcSystemBalance(userId, currency) {
     let balance = 0;
-
-    const getAll = async (path) => {
-      const snap = await get(query(ref(db, path), orderByChild('userId'), equalTo(userId)));
-      return snap.exists()? Object.values(snap.val()) : [];
-    };
-
-    const buys = await getAll('buy');
-    const sells = await getAll('sell');
-    const deposits = await getAll('deposit');
-    const withdraws = await getAll('withdraw');
-
-    // قبض/ايداع = زيادة الرصيد
-    deposits.forEach(d => { if (d.currency === currency) balance += parseFloat(d.amount) || 0; });
+    const paths = ['buy', 'sell', 'deposit', 'withdraw'];
     
-    // صرف = نقص الرصيد
-    withdraws.forEach(w => { if (w.currency === currency) balance -= parseFloat(w.amount) || 0; });
-
-    // شراء عملة اجنبية = ينقص YER ويزيد العملة
-    buys.forEach(b => {
-      if (b.currency === currency) balance += parseFloat(b.amount) || 0;
-      if (b.currency!== YER && currency === YER) balance -= parseFloat(b.result) || 0;
-    });
-
-    // بيع عملة اجنبية = ينقص العملة ويزيد YER
-    sells.forEach(s => {
-      if (s.currency === currency) balance -= parseFloat(s.amount) || 0;
-      if (s.currency!== YER && currency === YER) balance += parseFloat(s.result) || 0;
-    });
-
+    for (let path of paths) {
+      const snap = await get(query(ref(db, path), orderByChild('userId'), equalTo(userId)));
+      if (!snap.exists()) continue;
+      
+      Object.values(snap.val()).forEach(tx => {
+        if (path === 'deposit' && tx.currency === currency) {
+          balance += parseFloat(tx.amount) || 0;
+        }
+        if (path === 'withdraw' && tx.currency === currency) {
+          balance -= parseFloat(tx.amount) || 0;
+        }
+        if (path === 'buy' && tx.userId === userId) {
+          if (tx.currency === currency) balance += parseFloat(tx.amount) || 0;
+          if (tx.currency !== YER && currency === YER) balance -= parseFloat(tx.result) || 0;
+        }
+        if (path === 'sell' && tx.userId === userId) {
+          if (tx.currency === currency) balance -= parseFloat(tx.amount) || 0;
+          if (tx.currency !== YER && currency === YER) balance += parseFloat(tx.result) || 0;
+        }
+      });
+    }
     return balance;
   }
 
-  // 2. لف على حفظ الشراء عشان يعمل قيد مزدوج تلقائي
-  const origSaveBuy = window.saveBuy;
+  // حساب رصيد الحساب لحظياً - إيداع وصرف فقط
+  async function calcAccountBalance(accountId, currency) {
+    let balance = 0;
+    const paths = ['deposit', 'withdraw'];
+    
+    for (let path of paths) {
+      const snap = await get(query(ref(db, path), orderByChild('accountId'), equalTo(accountId)));
+      if (!snap.exists()) continue;
+      
+      Object.values(snap.val()).forEach(tx => {
+        if (tx.currency !== currency) return;
+        if (path === 'deposit') balance += parseFloat(tx.amount) || 0;
+        if (path === 'withdraw') balance -= parseFloat(tx.amount) || 0;
+      });
+    }
+    return balance;
+  }
+
+  // الصرف: يفحص ويحفظ لحظياً
+  window.saveWithdraw = async function() {
+    const amount = parseFloat(document.getElementById('withdrawAmount').value);
+    const currency = document.getElementById('withdrawCurrency').value;
+    const accountId = document.getElementById('withdrawAccount').value;
+
+    if (!amount || !currency || !accountId) {
+      showToast('املأ كل الحقول');
+      return;
+    }
+
+    const [accBalance, empBalance] = await Promise.all([
+      calcAccountBalance(accountId, currency),
+      calcSystemBalance(currentUser.uid, currency)
+    ]);
+
+    if (accBalance < amount) {
+      showToast('رصيد الحساب غير كافي');
+      return;
+    }
+    if (empBalance < amount) {
+      showToast('رصيدك غير كافي');
+      return;
+    }
+
+    // حفظ لحظي في Firebase
+    await push(ref(db, 'withdraw'), {
+      amount: amount,
+      currency: currency,
+      accountId: accountId,
+      userId: currentUser.uid,
+      userName: currentUser.name,
+      time: Date.now()
+    });
+
+    showToast('تم الصرف بنجاح');
+    document.getElementById('withdrawAmount').value = '';
+    updateBalances(); // حدث العرض لحظياً
+  };
+
+  // الإيداع: يحفظ لحظياً
+  window.saveDeposit = async function() {
+    const amount = parseFloat(document.getElementById('depositAmount').value);
+    const currency = document.getElementById('depositCurrency').value;
+    const accountId = document.getElementById('depositAccount').value;
+
+    if (!amount || !currency || !accountId) {
+      showToast('املأ كل الحقول');
+      return;
+    }
+
+    await push(ref(db, 'deposit'), {
+      amount: amount,
+      currency: currency,
+      accountId: accountId,
+      userId: currentUser.uid,
+      userName: currentUser.name,
+      time: Date.now()
+    });
+
+    showToast('تم الإيداع بنجاح');
+    document.getElementById('depositAmount').value = '';
+    updateBalances();
+  };
+
+  // الشراء: يأثر على الموظف فقط ويحفظ لحظياً
   window.saveBuy = async function() {
     const amount = parseFloat(document.getElementById('buyAmount').value);
     const rate = parseFloat(document.getElementById('buyRate').value);
     const currency = document.getElementById('buyCurrency').value;
     const result = amount * rate;
 
-    if (!amount || !rate || !currency) return;
-
-    // احفظ عملية الشراء العادية
-    await origSaveBuy.apply(this, arguments);
-
-    // احفظ القيد المزدوج: خصم YER + إضافة العملة
-    if (currency!== YER) {
-      await push(ref(db, 'buy'), {
-        amount: result,
-        rate: 1,
-        result: result,
-        currency: YER,
-        type: 'buy',
-        userId: currentUser.uid,
-        userName: currentUser.name,
-        time: Date.now(),
-        note: `قيد مزدوج لشراء ${amount} ${currency}`
-      });
+    if (!amount || !rate || !currency) {
+      showToast('املأ كل الحقول');
+      return;
     }
+
+    const yerBalance = await calcSystemBalance(currentUser.uid, YER);
+    if (yerBalance < result) {
+      showToast('رصيد YER غير كافي للشراء');
+      return;
+    }
+
+    await push(ref(db, 'buy'), {
+      amount: amount,
+      rate: rate,
+      result: result,
+      currency: currency,
+      userId: currentUser.uid,
+      userName: currentUser.name,
+      time: Date.now()
+    });
+
+    showToast('تم الشراء بنجاح');
+    document.getElementById('buyAmount').value = '';
+    updateBalances();
   };
 
-  // 3. لف على حفظ البيع عشان يعمل قيد مزدوج تلقائي
-  const origSaveSell = window.saveSell;
+  // البيع: يأثر على الموظف فقط ويحفظ لحظياً
   window.saveSell = async function() {
     const amount = parseFloat(document.getElementById('sellAmount').value);
     const rate = parseFloat(document.getElementById('sellRate').value);
     const currency = document.getElementById('sellCurrency').value;
     const result = amount * rate;
 
-    if (!amount || !rate || !currency) return;
-
-    // احفظ عملية البيع العادية
-    await origSaveSell.apply(this, arguments);
-
-    // احفظ القيد المزدوج: خصم العملة + إضافة YER
-    if (currency!== YER) {
-      await push(ref(db, 'sell'), {
-        amount: result,
-        rate: 1,
-        result: result,
-        currency: YER,
-        type: 'sell',
-        userId: currentUser.uid,
-        userName: currentUser.name,
-        time: Date.now(),
-        note: `قيد مزدوج لبيع ${amount} ${currency}`
-      });
+    if (!amount || !rate || !currency) {
+      showToast('املأ كل الحقول');
+      return;
     }
+
+    const currBalance = await calcSystemBalance(currentUser.uid, currency);
+    if (currBalance < amount) {
+      showToast(`رصيد ${currency} غير كافي للبيع`);
+      return;
+    }
+
+    await push(ref(db, 'sell'), {
+      amount: amount,
+      rate: rate,
+      result: result,
+      currency: currency,
+      userId: currentUser.uid,
+      userName: currentUser.name,
+      time: Date.now()
+    });
+
+    showToast('تم البيع بنجاح');
+    document.getElementById('sellAmount').value = '';
+    updateBalances();
   };
 
-  // 4. استبدل calcSystemBalance القديمة بالجديدة التراكمية
   window.calcSystemBalance = calcSystemBalance;
+  window.calcAccountBalance = calcAccountBalance;
 })();
+
+// ربط الأزرار بالدوال لحظياً
+(function bindOpButtons() {
+  // أزرار شاشة الأدمن
+  document.getElementById('btnSaveBuy')?.addEventListener('click', saveBuy);
+  document.getElementById('btnSaveSell')?.addEventListener('click', saveSell);
+  document.getElementById('btnSaveDeposit')?.addEventListener('click', saveDeposit);
+  document.getElementById('btnSaveWithdraw')?.addEventListener('click', saveWithdraw);
+
+  // أزرار شاشة الموظف
+  document.getElementById('btnSaveStaffBuy')?.addEventListener('click', saveBuy);
+  document.getElementById('btnSaveStaffSell')?.addEventListener('click', saveSell);
+  document.getElementById('btnSaveStaffDeposit')?.addEventListener('click', saveDeposit);
+  document.getElementById('btnSaveStaffWithdraw')?.addEventListener('click', saveWithdraw);
+})();
+
+// دالة تحديث الأرصدة لحظياً - عدلها حسب شاشتك
+async function updateBalances() {
+  try {
+    // مثال: تحديث رصيد YER للموظف الحالي في شاشة الموظف
+    if (document.getElementById('staffSystemBalance')) {
+      const yerBal = await calcSystemBalance(currentUser.uid, 'YER');
+      document.getElementById('staffSystemBalance').value = yerBal.toFixed(2);
+    }
+    
+    // مثال: تحديث جدول الشراء
+    if (typeof loadBuyTable === 'function') loadBuyTable();
+    if (typeof loadSellTable === 'function') loadSellTable();
+    if (typeof loadDepositTable === 'function') loadDepositTable();
+    if (typeof loadWithdrawTable === 'function') loadWithdrawTable();
+    
+  } catch(e) {
+    console.error('خطأ في تحديث الأرصدة:', e);
+  }
+}
 
 
 
