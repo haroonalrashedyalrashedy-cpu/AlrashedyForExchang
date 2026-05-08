@@ -2415,7 +2415,7 @@ function initReconcileTable() {
   if (wrap.dataset.reconcileBuilt === '1') return;
   wrap.dataset.reconcileBuilt = '1';
 
-  const today = new Date().toISOString().split('T')[0]; // 2026-05-08
+  const today = new Date().toISOString().split('T')[0];
 
   wrap.innerHTML = `
     <div class="card">
@@ -2456,7 +2456,7 @@ function initReconcileTable() {
     tr.querySelector('.recDiff').style.color = diff === 0? 'var(--accent-green)' : diff < 0? 'var(--danger)' : '#facc15';
   }
 
-  // تحميل القائمة
+  // تحميل القائمة - تقرأ من reconcile فقط
   async function loadReconcileList(date) {
     const snap = await get(ref(db, `reconcile/${currentUser.uid}/${date}`));
     const select = document.getElementById('recList');
@@ -2477,7 +2477,7 @@ function initReconcileTable() {
     });
   }
 
-  // زر المطابقة
+  // زر المطابقة - أهم تعديل هنا: يستخدم window.calcSystemBalance
   document.getElementById('btnRecMatch').onclick = async () => {
     const date = document.getElementById('recDate').value;
     const rowsData = [];
@@ -2492,7 +2492,8 @@ function initReconcileTable() {
         continue;
       }
 
-      const sys = await calcSystemBalance(currentUser.uid, cur);
+      // اقرأ الرصيد الحقي من الدالة الجديدة في window
+      const sys = await window.calcSystemBalance(currentUser.uid, cur);
       calcDiff(tr, act, sys);
       rowsData.push({currency: cur, actualBalance: act, systemBalance: sys, diff: act - sys});
     }
@@ -2508,7 +2509,6 @@ function initReconcileTable() {
       items: rowsData
     });
 
-    // أهم سطرين: حدث القائمة واختار المطابقة الجديدة
     await loadReconcileList(date);
     document.getElementById('recList').value = matchId;
     document.getElementById('recList').dispatchEvent(new Event('change'));
@@ -2516,7 +2516,7 @@ function initReconcileTable() {
     showToast('تم الحفظ');
   };
 
-  // عند اختيار مطابقة
+  // عند اختيار مطابقة سابقة
   document.getElementById('recList').onchange = async (e) => {
     const date = document.getElementById('recDate').value;
     const id = e.target.value;
@@ -2546,75 +2546,48 @@ function initReconcileTable() {
   };
 
   document.getElementById('recDate').onchange = (e) => loadReconcileList(e.target.value);
-  
-  
-  // تكبير الخلية عند الضغط
-let zoomedCell = null;
-wrap.addEventListener('click', (e) => {
-  const cell = e.target.closest('input, select, td');
-  if (!cell || !cell.closest('#recTable')) return;
 
-  // لو ضغط على نفس الخلية المكبرة = رجعها طبيعي
-  if (zoomedCell === cell) {
-    cell.classList.remove('zoomed');
-    zoomedCell = null;
-    return;
-  }
+  // كود التكبير والستايل خليه زي ما هو
+  let zoomedCell = null;
+  wrap.addEventListener('click', (e) => {
+    const cell = e.target.closest('input, select, td');
+    if (!cell ||!cell.closest('#recTable')) return;
+    if (zoomedCell === cell) {
+      cell.classList.remove('zoomed');
+      zoomedCell = null;
+      return;
+    }
+    if (zoomedCell) zoomedCell.classList.remove('zoomed');
+    cell.classList.add('zoomed');
+    zoomedCell = cell;
+  });
 
-  // شيل التكبير من الخلية القديمة
-  if (zoomedCell) zoomedCell.classList.remove('zoomed');
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#recTable') && zoomedCell) {
+      zoomedCell.classList.remove('zoomed');
+      zoomedCell = null;
+    }
+  });
 
-  // كبر الخلية الجديدة
-  cell.classList.add('zoomed');
-  zoomedCell = cell;
-});
-
-// لما تضغط برا الجدول شيل التكبير
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('#recTable') && zoomedCell) {
-    zoomedCell.classList.remove('zoomed');
-    zoomedCell = null;
-  }
-});
-  
-  
   if (!document.getElementById('recStyle')) {
-  const style = document.createElement('style');
-  style.id = 'recStyle';
-  style.innerHTML = `
-    .rec-header input,.rec-header select {
-      height: 36px;
-      font-size: 0.9rem;
-      padding: 4px 6px;
-    }
+    const style = document.createElement('style');
+    style.id = 'recStyle';
+    style.innerHTML = `
+     .rec-header input,.rec-header select {height: 36px; font-size: 0.9rem; padding: 4px 6px;}
+      input.zoomed, select.zoomed, td.zoomed {
+        position: relative; z-index: 10; font-size: 2rem!important; transform: scale(1.2);
+        background: #1a1a1a!important; color: #fff!important;
+        box-shadow: 0 0 20px rgba(0,255,0,0.5); transition: all 0.2s ease; border-radius: 6px;
+      }
+      td.zoomed {padding: 15px!important; text-align: center;}
+    `;
+    document.head.appendChild(style);
+  }
 
-    /* التكبير يشتغل على input, select, td */
-    input.zoomed, select.zoomed, td.zoomed {
-      position: relative;
-      z-index: 10;
-      font-size: 2rem !important;
-      transform: scale(1.2);
-      background: #1a1a1a !important;
-      color: #fff !important;
-      box-shadow: 0 0 20px rgba(0,255,0,0.5);
-      transition: all 0.2s ease;
-      border-radius: 6px;
-    }
-
-    /* عشان الـ td ما يطلع صغير */
-    td.zoomed {
-      padding: 15px !important;
-      text-align: center;
-    }
-  `;
-  document.head.appendChild(style);
-}
-  
   loadReconcileList(today);
 }
 
 document.addEventListener('DOMContentLoaded', initReconcileTable);
-
 
 
 // كود 7: الرصيد التراكمي + القيد المزدوج للشراء والبيع
