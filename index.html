@@ -1904,29 +1904,25 @@ function printPDF(type, tableId) {
   let html = '';
   let title = 'سند';
 
-  if (type === 'row' && window.selectedRowData) {
-    title = 'سند عملية';
-    html = `
-      <table>
-        <tr>${window.selectedRowData.headers.map(h => `<th>${h}</th>`).join('')}</tr>
-        <tr>${window.selectedRowData.cells.map(c => `<td>${c}</td>`).join('')}</tr>
-      </table>
-    `;
-  } else if (type === 'table') {
+  if (type === 'table') {
     title = 'تقرير ' + tableId;
     const table = document.getElementById(tableId);
     const tableClone = table.cloneNode(true);
-    
+
     // نسخ قيم select و input للنص
     tableClone.querySelectorAll('select').forEach(el => {
       const td = el.closest('td');
-      if (td) td.textContent = el.options[el.selectedIndex]?.text || '';
+      if (td) {
+        // خذ النص المختار فقط، لو فاضي خليه فاضي
+        const selectedText = el.options[el.selectedIndex]?.value? el.options[el.selectedIndex].text : '';
+        td.textContent = selectedText;
+      }
     });
     tableClone.querySelectorAll('input').forEach(el => {
       const td = el.closest('td');
       if (td) td.textContent = el.value || '';
     });
-    
+
     html = tableClone.outerHTML;
   }
 
@@ -1938,49 +1934,31 @@ function printPDF(type, tableId) {
       <meta charset="UTF-8">
       <title>${title}</title>
       <style>
-        body { font-family: 'Segoe UI', Tahoma, Arial; padding: 30px; color: #333; background: #fff; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #8B4513; padding-bottom: 10px; }
-        .logo-emoji { 
-          font-size: 48px; 
-          line-height: 1; 
-          margin-bottom: 8px;
-        }
-        .header h1 { 
-          color: #8B4513; 
-          margin: 0; 
-          font-weight: 700;
-          font-size: 28px;
-        }
+        body { font-family: Tahoma, Arial; padding: 30px; color: #333; background: #fff; }
+       .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #8B4513; padding-bottom: 10px; }
+       .logo-emoji { font-size: 48px; line-height: 1; margin-bottom: 8px; }
+       .header h1 { color: #8B4513; margin: 0; font-weight: 700; font-size: 28px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #333; padding: 8px; text-align: center; }
         th { background: #8B4513; color: #fff; }
-        .signature { margin-top: 80px; text-align: right; font-size: 14px; }
-        .footer { margin-top: 20px; text-align: left; font-size: 12px; color: #666; }
-        @media print { 
-          .no-print { display: none; }
-          button { display: none; }
-        }
+       .signature { margin-top: 80px; text-align: right; font-size: 14px; }
+        @media print {.no-print { display: none; } button { display: none; } }
       </style>
     </head>
     <body>
       <div class="header">
         <div class="logo-emoji">💰</div>
-         
+       
+              
         <h1> الراشدي للصرافة</h1>
   
+       
         <p>${new Date().toLocaleString('ar-SA')}</p>
       </div>
       ${html}
-      <div class="signature">
-        التوقيع: .................................
-      </div>
-      <div class="footer">
-        <p>الموظف: ${currentUser?.name || '-'}</p>
-      </div>
+      <div class="signature">التوقيع:.................................</div>
       <div class="no-print" style="text-align:center;margin-top:30px;">
-        <button onclick="window.print()" style="padding:10px 30px;font-size:16px;background:#8B4513;color:#fff;border:none;border-radius:6px;">
-          طباعة / حفظ PDF
-        </button>
+        <button onclick="window.print()">طباعة / حفظ PDF</button>
       </div>
     </body>
     </html>
@@ -1988,7 +1966,6 @@ function printPDF(type, tableId) {
   win.document.close();
   win.onload = () => win.focus();
 }
-
 console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 
@@ -2438,7 +2415,7 @@ function initReconcileTable() {
   if (wrap.dataset.reconcileBuilt === '1') return;
   wrap.dataset.reconcileBuilt = '1';
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split('T')[0]; // 2026-05-08
 
   wrap.innerHTML = `
     <div class="card">
@@ -2491,7 +2468,7 @@ function initReconcileTable() {
 
   // زر المطابقة: يحسب + يحفظ لحظياً + يحدث القائمة
   document.getElementById('btnRecMatch').onclick = async () => {
-    const date = document.getElementById('recDate').value;
+    const date = document.getElementById('recDate').value; // 2026-05-08
     const rowsData = [];
 
     for (let tr of document.querySelectorAll('#recTable tbody tr')) {
@@ -2508,12 +2485,7 @@ function initReconcileTable() {
       const sys = await calcSystemBalance(currentUser.uid, cur);
       calcDiff(tr, act, sys);
 
-      rowsData.push({
-        currency: cur,
-        actualBalance: act,
-        systemBalance: sys,
-        diff: act - sys
-      });
+      rowsData.push({currency: cur, actualBalance: act, systemBalance: sys, diff: act - sys});
     }
 
     if (rowsData.length === 0) {
@@ -2521,25 +2493,21 @@ function initReconcileTable() {
       return;
     }
 
-    // حفظ لحظي في Firebase
     const matchId = Date.now();
     await set(ref(db, `reconcile/${currentUser.uid}/${date}/${matchId}`), {
       time: Date.now(),
       items: rowsData
     });
 
-    // تحديث القائمة المنسدلة فوراً
+    // حدث القائمة لنفس التاريخ اللي حفظت فيه
     await loadReconcileList(date);
+    document.getElementById('recList').value = matchId;
+    document.getElementById('recList').dispatchEvent(new Event('change'));
 
-    // اختار المطابقة الجديدة وخليها ظاهرة
-    const recList = document.getElementById('recList');
-    recList.value = matchId;
-    recList.dispatchEvent(new Event('change')); // عشان يعبي الجدول بالبيانات
-
-    showToast('تم الحفظ رقم: ' + new Date(matchId).toLocaleTimeString('ar', {hour:'2-digit', minute:'2-digit'}));
+    showToast('تم الحفظ: ' + new Date(matchId).toLocaleTimeString('ar', {hour:'2-digit', minute:'2-digit'}));
   };
 
-  // تحميل قائمة المطابقات للتاريخ المحدد
+  // تحميل المطابقات - مهم: استخدم نفس صيغة التاريخ 2026-05-08
   async function loadReconcileList(date) {
     const snap = await get(ref(db, `reconcile/${currentUser.uid}/${date}`));
     const select = document.getElementById('recList');
@@ -2551,7 +2519,7 @@ function initReconcileTable() {
     }
 
     const data = snap.val();
-    const keys = Object.keys(data).sort((a, b) => b - a); // الأحدث أول
+    const keys = Object.keys(data).sort((a,b) => b - a);
     document.getElementById('recCount').textContent = keys.length;
 
     keys.forEach(key => {
@@ -2560,7 +2528,7 @@ function initReconcileTable() {
     });
   }
 
-  // عند اختيار مطابقة من القائمة: عبي الجدول بالبيانات المحفوظة
+  // عند اختيار مطابقة: عبي الجدول بالبيانات
   document.getElementById('recList').onchange = async (e) => {
     const date = document.getElementById('recDate').value;
     const id = e.target.value;
@@ -2572,18 +2540,15 @@ function initReconcileTable() {
     const items = snap.val().items;
     const rows = document.querySelectorAll('#recTable tbody tr');
 
-    // امسح الجدول اول
-    rows.forEach(tr => {
-      tr.querySelector('.recCur').value = '';
-      tr.querySelector('.recAct').value = '';
-      tr.querySelector('.recSys').value = '';
-      tr.querySelector('.recDiff').value = '';
-    });
-
-    // عبي البيانات كما هي
-    items.forEach((item, i) => {
-      if (i >= rows.length) return;
-      const tr = rows[i];
+    rows.forEach((tr, i) => {
+      const item = items[i];
+      if (!item) {
+        tr.querySelector('.recCur').value = '';
+        tr.querySelector('.recAct').value = '';
+        tr.querySelector('.recSys').value = '';
+        tr.querySelector('.recDiff').value = '';
+        return;
+      }
       tr.querySelector('.recCur').value = item.currency || '';
       tr.querySelector('.recAct').value = item.actualBalance || '';
       tr.querySelector('.recSys').value = item.systemBalance?.toFixed(2) || '';
@@ -2592,48 +2557,16 @@ function initReconcileTable() {
     });
   };
 
-  // تغيير التاريخ = تحميل المطابقات لنفس التاريخ
   document.getElementById('recDate').onchange = (e) => loadReconcileList(e.target.value);
 
-  // تكبير الخلية عند الضغط
-  let zoomedCell = null;
-  document.addEventListener('click', (e) => {
-    const cell = e.target.closest('input, select');
-    if (cell && cell.closest('#recTable')) {
-      if (zoomedCell === cell) {
-        cell.classList.remove('zoomed');
-        zoomedCell = null;
-        return;
-      }
-      if (zoomedCell) zoomedCell.classList.remove('zoomed');
-      cell.classList.add('zoomed');
-      zoomedCell = cell;
-      return;
-    }
-    if (zoomedCell &&!e.target.closest('#recTable')) {
-      zoomedCell.classList.remove('zoomed');
-      zoomedCell = null;
-    }
-  });
-
+  // CSS
   if (!document.getElementById('recStyle')) {
     const style = document.createElement('style');
     style.id = 'recStyle';
     style.innerHTML = `
-     .rec-header input,.rec-header select {
-        height: 36px;
-        font-size: 0.9rem;
-        padding: 4px 6px;
-      }
-      input.zoomed, select.zoomed {
-        position: relative;
-        z-index: 10;
-        font-size: 1.8rem!important;
-        transform: scale(1.15);
-        background: #1a1a1a!important;
-        box-shadow: 0 0 15px rgba(0,255,0,0.4);
-        transition: all 0.2s ease;
-      }
+   .rec-header input,.rec-header select {height: 36px; font-size: 0.9rem; padding: 4px 6px;}
+    input.zoomed, select.zoomed {position: relative; z-index: 10; font-size: 1.8rem!important; transform: scale(1.15);
+      background: #1a1a1a!important; box-shadow: 0 0 15px rgba(0,255,0,0.4); transition: all 0.2s ease;}
     `;
     document.head.appendChild(style);
   }
@@ -2642,7 +2575,6 @@ function initReconcileTable() {
 }
 
 document.addEventListener('DOMContentLoaded', initReconcileTable);
-
 
 
 
