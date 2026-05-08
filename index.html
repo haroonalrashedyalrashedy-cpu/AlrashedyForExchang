@@ -1566,43 +1566,6 @@ function renderTable(tableId, data) {
 
 
 
-function applyDateFilter(tableId) {
-  const from = document.getElementById(tableId + 'DateFrom').value;
-  const to = document.getElementById(tableId + 'DateTo').value;
-  
-  const fromTime = from ? new Date(from).setHours(0,0,0,0) : 0;
-  const toTime = to ? new Date(to).setHours(23,59,59,999) : Date.now();
-  
-  get(ref(db, 'transactions')).then(snap => {
-    let data = snap.exists() ? Object.values(snap.val()) : [];
-    
-    // فلترة حسب نوع الجدول
-    if(tableId.includes('Buy')) data = data.filter(d => d.type === 'buy');
-    if(tableId.includes('Sell')) data = data.filter(d => d.type === 'sell');
-    if(tableId.includes('Deposit')) data = data.filter(d => d.type === 'deposit');
-    if(tableId.includes('Withdraw')) data = data.filter(d => d.type === 'withdraw');
-    
-    // فلترة حسب المستخدم لو جدول موظف
-    if(tableId.startsWith('staff')) {
-      data = data.filter(d => d.userId === currentUser.uid);
-    } else if(!currentUser.role || currentUser.role !== 'admin') {
-      data = data.filter(d => d.userId === currentUser.uid);
-    }
-    
-    data = data.filter(d => d.time >= fromTime && d.time <= toTime);
-    renderTable(tableId, data);
-  });
-}
-
-function clearDateFilter(tableId) {
-  document.getElementById(tableId + 'DateFrom').value = '';
-  document.getElementById(tableId + 'DateTo').value = '';
-  if(tableId.startsWith('staff')) {
-    loadStaffTransactions();
-  } else {
-    loadTransactions();
-  }
-}
 
 
 
@@ -2139,6 +2102,103 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
   s.textContent = css;
   document.head.appendChild(s);
 })();
+
+
+
+
+
+
+// كود فلترة الجداول بالتاريخ - كامل جاهز
+(function() {
+  // خزن البيانات هنا عشان ما نرجع نجيبها من Firebase كل مرة
+  const tableDataCache = {};
+
+  // 1. دالة تحميل بيانات الموظف وتخزينها
+  window.loadStaffTransactions = async function() {
+    if (!currentUser?.uid) return;
+
+    const snap = await get(ref(db, 'transactions'));
+    let data = snap.exists()? Object.values(snap.val()) : [];
+
+    // فلترة بيانات الموظف الحالي فقط
+    data = data.filter(d => d.userId === currentUser.uid);
+
+    // خزن البيانات وخلي كل جدول يرسم نفسه
+    tableDataCache.staffBuyTable = data.filter(d => d.type === 'buy');
+    tableDataCache.staffSellTable = data.filter(d => d.type === 'sell');
+    tableDataCache.staffDepositTable = data.filter(d => d.type === 'deposit');
+    tableDataCache.staffWithdrawTable = data.filter(d => d.type === 'withdraw');
+
+    renderTable('staffBuyTable', tableDataCache.staffBuyTable);
+    renderTable('staffSellTable', tableDataCache.staffSellTable);
+    renderTable('staffDepositTable', tableDataCache.staffDepositTable);
+    renderTable('staffWithdrawTable', tableDataCache.staffWithdrawTable);
+  };
+
+  // 2. دالة الفلترة بالتاريخ - تشتغل محلياً بدون Firebase
+  window.applyDateFilter = function(tableId) {
+    const fromInput = document.getElementById(tableId + 'DateFrom');
+    const toInput = document.getElementById(tableId + 'DateTo');
+
+    if (!fromInput ||!toInput) {
+      console.error('Input التاريخ مش موجود:', tableId);
+      return;
+    }
+
+    const from = fromInput.value;
+    const to = toInput.value;
+
+    // استخدم التوقيت المحلي عشان ما تخرب الفلترة
+    const fromTime = from? new Date(from + 'T00:00:00').getTime() : 0;
+    const toTime = to? new Date(to + 'T23:59:59').getTime() : Date.now();
+
+    const sourceData = tableDataCache[tableId] || [];
+
+    const filteredData = sourceData.filter(d => {
+      const t = Number(d.time);
+      return t >= fromTime && t <= toTime;
+    });
+
+    renderTable(tableId, filteredData);
+  };
+
+  // 3. دالة مسح الفلترة
+  window.clearDateFilter = function(tableId) {
+    const fromInput = document.getElementById(tableId + 'DateFrom');
+    const toInput = document.getElementById(tableId + 'DateTo');
+
+    if (fromInput) fromInput.value = '';
+    if (toInput) toInput.value = '';
+
+    const sourceData = tableDataCache[tableId] || [];
+    renderTable(tableId, sourceData);
+  };
+
+  // 4. اربط الازرار تلقائياً عشان ما تحتاج onclick في HTML
+  document.addEventListener('DOMContentLoaded', () => {
+    const tables = ['staffBuyTable', 'staffSellTable', 'staffDepositTable', 'staffWithdrawTable'];
+
+    tables.forEach(tableId => {
+      const filterBtn = document.querySelector(`button[onclick="applyDateFilter('${tableId}')"]`);
+      const clearBtn = document.querySelector(`button[onclick="clearDateFilter('${tableId}')"]`);
+
+      if (filterBtn) {
+        filterBtn.onclick = () => applyDateFilter(tableId);
+        filterBtn.removeAttribute('onclick');
+      }
+      if (clearBtn) {
+        clearBtn.onclick = () => clearDateFilter(tableId);
+        clearBtn.removeAttribute('onclick');
+      }
+    });
+
+    // حمل البيانات أول مرة
+    loadStaffTransactions();
+  });
+})();
+
+
+
 
 </script>
 
