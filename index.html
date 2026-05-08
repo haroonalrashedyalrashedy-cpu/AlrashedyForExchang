@@ -2482,17 +2482,14 @@ function initReconcileTable() {
     </div>
   `;
 
-  // شلت الـ input event عشان ما يحسب إلا بزر المطابقة
-  // function calcDiff خليتها داخلية وتستدعى فقط وقت المطابقة
-
   function calcDiff(tr, act, sys) {
     const diff = act - sys;
-    const diffInput = tr.querySelector('.recDiff');
-    diffInput.value = diff.toFixed(2);
-    diffInput.style.color = diff === 0? 'var(--accent-green)' : diff < 0? 'var(--danger)' : '#facc15';
     tr.querySelector('.recSys').value = sys.toFixed(2);
+    tr.querySelector('.recDiff').value = diff.toFixed(2);
+    tr.querySelector('.recDiff').style.color = diff === 0? 'var(--accent-green)' : diff < 0? 'var(--danger)' : '#facc15';
   }
 
+  // زر المطابقة: يحسب + يحفظ لحظياً + يحدث القائمة
   document.getElementById('btnRecMatch').onclick = async () => {
     const date = document.getElementById('recDate').value;
     const rowsData = [];
@@ -2503,13 +2500,11 @@ function initReconcileTable() {
       const act = parseFloat(actStr) || 0;
 
       if (!cur || actStr === '' || act === 0) {
-        // امسح النتيجة لو الصف فاضي
         tr.querySelector('.recSys').value = '';
         tr.querySelector('.recDiff').value = '';
         continue;
       }
 
-      // هنا يحسب رصيد النظام والنتيجة فقط عند الضغط
       const sys = await calcSystemBalance(currentUser.uid, cur);
       calcDiff(tr, act, sys);
 
@@ -2526,19 +2521,25 @@ function initReconcileTable() {
       return;
     }
 
-    // حفظ المطابقة برقم جديد
+    // حفظ لحظي في Firebase
     const matchId = Date.now();
     await set(ref(db, `reconcile/${currentUser.uid}/${date}/${matchId}`), {
       time: Date.now(),
       items: rowsData
     });
 
+    // تحديث القائمة المنسدلة فوراً
     await loadReconcileList(date);
-    // اختار المطابقة الجديدة تلقائياً
-    document.getElementById('recList').value = matchId;
-    showToast('تمت المطابقة والحفظ');
+
+    // اختار المطابقة الجديدة وخليها ظاهرة
+    const recList = document.getElementById('recList');
+    recList.value = matchId;
+    recList.dispatchEvent(new Event('change')); // عشان يعبي الجدول بالبيانات
+
+    showToast('تم الحفظ رقم: ' + new Date(matchId).toLocaleTimeString('ar', {hour:'2-digit', minute:'2-digit'}));
   };
 
+  // تحميل قائمة المطابقات للتاريخ المحدد
   async function loadReconcileList(date) {
     const snap = await get(ref(db, `reconcile/${currentUser.uid}/${date}`));
     const select = document.getElementById('recList');
@@ -2550,15 +2551,16 @@ function initReconcileTable() {
     }
 
     const data = snap.val();
-    const keys = Object.keys(data).sort((a,b) => b - a);
+    const keys = Object.keys(data).sort((a, b) => b - a); // الأحدث أول
     document.getElementById('recCount').textContent = keys.length;
 
     keys.forEach(key => {
-      const time = new Date(data[key].time).toLocaleTimeString('ar', {hour:'2-digit', minute:'2-digit'});
+      const time = new Date(Number(key)).toLocaleTimeString('ar', {hour:'2-digit', minute:'2-digit'});
       select.innerHTML += `<option value="${key}">${time} - ${data[key].items.length} عملات</option>`;
     });
   }
 
+  // عند اختيار مطابقة من القائمة: عبي الجدول بالبيانات المحفوظة
   document.getElementById('recList').onchange = async (e) => {
     const date = document.getElementById('recDate').value;
     const id = e.target.value;
@@ -2570,7 +2572,7 @@ function initReconcileTable() {
     const items = snap.val().items;
     const rows = document.querySelectorAll('#recTable tbody tr');
 
-    // امسح الجدول أول
+    // امسح الجدول اول
     rows.forEach(tr => {
       tr.querySelector('.recCur').value = '';
       tr.querySelector('.recAct').value = '';
@@ -2578,7 +2580,7 @@ function initReconcileTable() {
       tr.querySelector('.recDiff').value = '';
     });
 
-    // عبّي البيانات المحفوظة
+    // عبي البيانات كما هي
     items.forEach((item, i) => {
       if (i >= rows.length) return;
       const tr = rows[i];
@@ -2590,6 +2592,7 @@ function initReconcileTable() {
     });
   };
 
+  // تغيير التاريخ = تحميل المطابقات لنفس التاريخ
   document.getElementById('recDate').onchange = (e) => loadReconcileList(e.target.value);
 
   // تكبير الخلية عند الضغط
@@ -2617,7 +2620,7 @@ function initReconcileTable() {
     const style = document.createElement('style');
     style.id = 'recStyle';
     style.innerHTML = `
-    .rec-header input,.rec-header select {
+     .rec-header input,.rec-header select {
         height: 36px;
         font-size: 0.9rem;
         padding: 4px 6px;
@@ -2639,7 +2642,6 @@ function initReconcileTable() {
 }
 
 document.addEventListener('DOMContentLoaded', initReconcileTable);
-
 
 
 
