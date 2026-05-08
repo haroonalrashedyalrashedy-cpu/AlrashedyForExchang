@@ -2052,56 +2052,62 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 
 /* ===== كود منفصل: يعرض بيانات اليوم فقط اول ما تفتح الصفحة ===== */
+/* ===== كود نهائي: يعرض بيانات اليوم فقط عند الدخول ===== */
 (function(){
-  // اسماء الجداول عندك
   const tables = [
     'buyTable','sellTable','depositTable','withdrawTable',
     'staffBuyTable','staffSellTable','staffDepositTable','staffWithdrawTable'
   ];
 
   // 1. عطل دوال التحميل القديمة عشان ما ترسم كل البيانات
-  window.loadStaffTransactions = () => {};
-  window.loadTransactions = () => {};
-  window.loadAllTransactions = () => {};
+  window.loadStaffTransactions = function(){};
+  window.loadTransactions = function(){};
+  window.loadAllTransactions = function(){};
 
-  // 2. شغل كودنا بعد ما الصفحة تتحمل
-  window.addEventListener('load', () => {
-    setTimeout(showTodayOnly, 600);
-  });
+  // 2. شغل كودنا بعد التحميل
+  if(document.readyState === 'complete'){
+    setTimeout(loadToday, 500);
+  } else {
+    window.addEventListener('load', () => setTimeout(loadToday, 500));
+  }
 
-  async function showTodayOnly(){
+  async function loadToday(){
     const today = new Date().toISOString().split('T')[0];
     const fromTime = new Date(today + 'T00:00:00').getTime();
     const toTime = new Date(today + 'T23:59:59').getTime();
 
-    // جيب البيانات من Firebase مرة وحدة
-    const snap = await get(ref(db, 'transactions'));
-    if(!snap.exists()) return;
-    const allData = Object.values(snap.val());
+    try {
+      const snap = await get(ref(db, 'transactions'));
+      if(!snap.exists()) return;
 
-    tables.forEach(id => {
-      const tbl = document.getElementById(id);
-      if(!tbl) return;
+      const allData = Object.values(snap.val());
 
-      // فلتر حسب نوع الجدول والمستخدم
-      let data = allData;
-      if(id.startsWith('staff')) data = data.filter(d => d.userId === currentUser.uid);
-      if(id.includes('Buy')) data = data.filter(d => d.type === 'buy');
-      if(id.includes('Sell')) data = data.filter(d => d.type === 'sell');
-      if(id.includes('Deposit')) data = data.filter(d => d.type === 'deposit');
-      if(id.includes('Withdraw')) data = data.filter(d => d.type === 'withdraw');
+      tables.forEach(id => {
+        const tbl = document.getElementById(id);
+        if(!tbl) return;
 
-      // فلتر اليوم فقط
-      const filtered = data.filter(d => {
-        const t = Number(d.time);
-        return t >= fromTime && t <= toTime;
+        // فلتر حسب نوع الجدول
+        let data = allData;
+        if(id.startsWith('staff')) data = data.filter(d => d.userId === currentUser.uid);
+        if(id.includes('Buy')) data = data.filter(d => d.type === 'buy');
+        if(id.includes('Sell')) data = data.filter(d => d.type === 'sell');
+        if(id.includes('Deposit')) data = data.filter(d => d.type === 'deposit');
+        if(id.includes('Withdraw')) data = data.filter(d => d.type === 'withdraw');
+
+        // فلتر اليوم فقط
+        const filtered = data.filter(d => {
+          const t = Number(d.time);
+          return t >= fromTime && t <= toTime;
+        });
+
+        // ارسم الجدول
+        if(typeof renderTable === 'function'){
+          renderTable(id, filtered);
+        }
       });
-
-      // ارسم الجدول بالبيانات المفلترة
-      if(typeof renderTable === 'function'){
-        renderTable(id, filtered);
-      }
-    });
+    } catch(e){
+      console.error('Filter error:', e);
+    }
   }
 })();
 
