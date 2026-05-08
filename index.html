@@ -1911,81 +1911,78 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 
 /* ===== فلترة الجداول - ثابتة وصغيرة صف واحد ===== */
+/* ===== فلترة الجداول - اليوم افتراضي + ثابتة ===== */
 (function(){
   const tables = [
     'buyTable','sellTable','depositTable','withdrawTable',
     'staffBuyTable','staffSellTable','staffDepositTable','staffWithdrawTable'
   ];
 
-  // CSS مرة وحدة
+  // CSS للتصميم الصغير والثابت
   if(!document.getElementById('filterStyle')){
     const style = document.createElement('style');
     style.id = 'filterStyle';
     style.textContent = `
-    
-    
-  /* ===== فلترة الجداول - تصغير إضافي ===== */
-.filterBox{
-  display:flex;
-  align-items:center;
-  gap:3px;
-  padding:3px 5px;
-  margin:5px 0;
-  background:#1e1e1e;
-  border:1px solid #333;
-  border-radius:6px;
-  width:100%;
-  box-sizing:border-box;
-  overflow:hidden;
-}
-
-.filterBox input[type="date"]{
-  width:60px;        /* كان 110px - صغرناه */
-  height:24px;       /* كان 26px */
-  padding:1px 3px;   /* تقليل البادينج */
-  border-radius:4px;
-  border:1px solid #444;
-  background:#222;
-  color:#fff;
-  font-size:10px;    /* كان 11px */
-}
-
-.filterBox button{
-  padding:1px 6px;   /* تقليل البادينج */
-  height:24px;       /* نفس ارتفاع الانبوت */
-  border:none;
-  border-radius:4px;
-  background:#00d26a;
-  color:#000;
-  font-weight:bold;
-  font-size:10px;    /* كان 11px */
-  white-space:nowrap;
-}
-
-.filterBox span{
-  font-size:10px;    /* كان 11px */
-  color:#ccc;
-  white-space:nowrap;
-}
-
-.tableScroll{
-  overflow-x:auto;
-  width:100%;
-}
+    .filterBox{
+        display:flex;
+        align-items:center;
+        gap:3px;
+        padding:3px 5px;
+        margin:5px 0;
+        background:#1e1e1e;
+        border:1px solid #333;
+        border-radius:6px;
+        width:100%;
+        box-sizing:border-box;
+        overflow:hidden;
+      }
+    .filterBox input[type="date"]{
+        width:95px;
+        height:24px;
+        padding:1px 3px;
+        border-radius:4px;
+        border:1px solid #444;
+        background:#222;
+        color:#fff;
+        font-size:10px;
+      }
+    .filterBox button{
+        padding:1px 6px;
+        height:24px;
+        border:none;
+        border-radius:4px;
+        background:#00d26a;
+        color:#000;
+        font-weight:bold;
+        font-size:10px;
+        white-space:nowrap;
+      }
+    .filterBox span{
+        font-size:10px;
+        color:#ccc;
+        white-space:nowrap;
+      }
+    .tableScroll{
+        overflow-x:auto;
+        width:100%;
+      }
     `;
     document.head.appendChild(style);
   }
 
+  // شغل البناء بعد ما الصفحة تتحمل
   window.addEventListener('load', () => {
     setTimeout(buildFilters, 600);
   });
 
   function buildFilters(){
+    const today = new Date().toISOString().split('T')[0]; // تاريخ اليوم
+
     tables.forEach(id => {
       const tbl = document.getElementById(id);
       if(!tbl || document.getElementById('fb_' + id)) return;
 
-      // لف الجدول لوحده عشان السكرول
+      // لف الجدول بـ div للسكرول الافقي
       if(!tbl.parentElement.classList.contains('tableScroll')){
         const wrap = document.createElement('div');
         wrap.className = 'tableScroll';
@@ -1993,8 +1990,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
         wrap.appendChild(tbl);
       }
 
-      // حط البوكس قبل الجدول مباشرة، برا div السكرول
-      const today = new Date().toISOString().split('T')[0];
+      // حط بوكس الفلترة فوق الجدول مباشرة، برا div السكرول
       const wrap = tbl.parentElement;
       wrap.insertAdjacentHTML('beforebegin', `
         <div id="fb_${id}" class="filterBox">
@@ -2007,6 +2003,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
         </div>
       `);
 
+      // ربط الازرار
       document.getElementById('fbtn_' + id).onclick = () => doFilter(id);
       document.getElementById('cbtn_' + id).onclick = () => {
         document.getElementById('from_' + id).value = today;
@@ -2014,6 +2011,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
         doFilter(id);
       };
 
+      // فلتر اليوم تلقائياً اول ما يفتح
       doFilter(id);
     });
   }
@@ -2026,17 +2024,21 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
     if(!snap.exists()) return;
 
     let data = Object.values(snap.val());
+
+    // فلتر حسب نوع الجدول والمستخدم
     if(tableId.startsWith('staff')) data = data.filter(d => d.userId === currentUser.uid);
     if(tableId.includes('Buy')) data = data.filter(d => d.type === 'buy');
     if(tableId.includes('Sell')) data = data.filter(d => d.type === 'sell');
     if(tableId.includes('Deposit')) data = data.filter(d => d.type === 'deposit');
     if(tableId.includes('Withdraw')) data = data.filter(d => d.type === 'withdraw');
 
+    // فلتر التاريخ
     const filtered = data.filter(d => {
       const t = Number(d.time);
       return t >= fromTime && t <= toTime;
     });
 
+    // استدعي دالة الرسم حقك القديمة
     if(typeof renderTable === 'function'){
       renderTable(tableId, filtered);
     }
