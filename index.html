@@ -139,6 +139,44 @@ thead {
   z-index: 2;
 }
 
+
+
+.filter-compact {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  margin-bottom: 8px;
+  flex-wrap: nowrap; /* يمنع النزول سطر جديد */
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column; /* يخلي label فوق input */
+}
+
+.filter-item label {
+  font-size: 11px; /* حجم صغير */
+  opacity: 0.7;
+  margin-bottom: 2px;
+}
+
+.filter-compact input[type="date"] {
+  font-size: 11px;
+  padding: 3px 6px;
+  height: 25px;
+  width: 80px; /* صغر العرض */
+}
+
+.filter-compact button {
+  font-size: 11px;
+  padding: 3px 6px;
+  height: 25px;
+  white-space: nowrap;
+  width: 40px;
+}
+
+
+
 /* خلي tr عادي بس الصفوف جواه block */
 tbody tr {
  /* display: table;*/
@@ -344,6 +382,26 @@ table.table-selected {
             <input type="text" id="buyResult" placeholder="النتيجة" readonly>
             <button id="btnSaveBuy">حفظ</button>
           </div>
+          
+          
+          
+          
+          <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="buyTableDateFrom">
+  </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="buyTableDateTo">
+  </div>
+  <button onclick="applyDateFilter('buyTable')">فلترة</button>
+  <button onclick="clearDateFilter('buyTable')">مسح</button>
+</div>
+          
+          
+          
+          
           <table id="buyTable">
             <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الموظف</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
@@ -363,6 +421,25 @@ table.table-selected {
             <input type="text" id="sellResult" placeholder="النتيجة" readonly>
             <button id="btnSaveSell">حفظ</button>
           </div>
+          
+          
+          
+          
+          <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="sellTableDateFrom">
+  </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="sellTableDateTo">
+  </div>
+  <button onclick="applyDateFilter('sellTable')">فلترة</button>
+  <button onclick="clearDateFilter('sellTable')">مسح</button>
+</div>
+          
+          
+          
           <table id="sellTable">
             <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الموظف</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
@@ -381,6 +458,25 @@ table.table-selected {
             <select id="depositCurrency"></select>
             <button id="btnSaveDeposit">حفظ</button>
           </div>
+          
+          
+          
+          <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="depositTableDateFrom">
+  </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="depositTableDateTo">
+  </div>
+  <button onclick="applyDateFilter('depositTable')">فلترة</button>
+  <button onclick="clearDateFilter('depositTable')">مسح</button>
+</div>
+          
+          
+          
+          
           <table id="depositTable">
             <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
@@ -399,6 +495,25 @@ table.table-selected {
             <select id="withdrawCurrency"></select>
             <button id="btnSaveWithdraw">حفظ</button>
           </div>
+          
+          
+          
+          
+          <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="withdrawTableDateFrom">
+  </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="withdrawTableDateTo">
+  </div>
+  <button onclick="applyDateFilter('withdrawTable')">فلترة</button>
+  <button onclick="clearDateFilter('withdrawTable')">مسح</button>
+</div>
+          
+          
+          
           <table id="withdrawTable">
             <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الموظف</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
@@ -591,6 +706,25 @@ table.table-selected {
             <input type="text" id="staffBuyResult" placeholder="النتيجة" readonly>
             <button id="btnSaveStaffBuy">حفظ</button>
           </div>
+          
+          
+          
+          <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="staffBuyTableDateFrom">
+  </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="staffBuyTableDateTo">
+  </div>
+  <button onclick="applyDateFilter('staffBuyTable')">فلترة</button>
+  <button onclick="clearDateFilter('staffBuyTable')">مسح</button>
+</div>
+          
+          
+          
+          
           <table id="staffBuyTable">
             <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
@@ -607,6 +741,23 @@ table.table-selected {
             <input type="text" id="staffSellResult" placeholder="النتيجة" readonly>
             <button id="btnSaveStaffSell">حفظ</button>
           </div>
+          
+          
+          
+          <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="staffSellTableDateFrom">
+  </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="staffSellTableDateTo">
+  </div>
+  <button onclick="applyDateFilter('staffSellTable')">فلترة</button>
+  <button onclick="clearDateFilter('staffSellTable')">مسح</button>
+</div>
+          
+          
           <table id="staffSellTable">
             <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
@@ -622,6 +773,24 @@ table.table-selected {
             <select id="staffDepositCurrency"></select>
             <button id="btnSaveStaffDeposit">حفظ</button>
           </div>
+          
+          
+          
+          <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="staffDepositTableDateFrom">
+  </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="staffDepositTableDateTo">
+  </div>
+  <button onclick="applyDateFilter('staffDepositTable')">فلترة</button>
+  <button onclick="clearDateFilter('staffDepositTable')">مسح</button>
+</div>
+          
+          
+          
           <table id="staffDepositTable">
             <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
@@ -637,6 +806,24 @@ table.table-selected {
             <select id="staffWithdrawCurrency"></select>
             <button id="btnSaveStaffWithdraw">حفظ</button>
           </div>
+          
+          
+          
+          <div class="filter-compact">
+  <div class="filter-item">
+    <label>من</label>
+    <input type="date" id="staffWithdrawTableDateFrom">
+  </div>
+  <div class="filter-item">
+    <label>إلى</label>
+    <input type="date" id="staffWithdrawTableDateTo">
+  </div>
+  <button onclick="applyDateFilter('staffWithdrawTable')">فلترة</button>
+  <button onclick="clearDateFilter('staffWithdrawTable')">مسح</button>
+</div>
+          
+          
+          
           <table id="staffWithdrawTable">
             <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
@@ -1372,6 +1559,49 @@ function renderTable(tableId, data) {
     }
   });
 }
+
+
+
+
+function applyDateFilter(tableId) {
+  const from = document.getElementById(tableId + 'DateFrom').value;
+  const to = document.getElementById(tableId + 'DateTo').value;
+  
+  const fromTime = from ? new Date(from).setHours(0,0,0,0) : 0;
+  const toTime = to ? new Date(to).setHours(23,59,59,999) : Date.now();
+  
+  get(ref(db, 'transactions')).then(snap => {
+    let data = snap.exists() ? Object.values(snap.val()) : [];
+    
+    // فلترة حسب نوع الجدول
+    if(tableId.includes('Buy')) data = data.filter(d => d.type === 'buy');
+    if(tableId.includes('Sell')) data = data.filter(d => d.type === 'sell');
+    if(tableId.includes('Deposit')) data = data.filter(d => d.type === 'deposit');
+    if(tableId.includes('Withdraw')) data = data.filter(d => d.type === 'withdraw');
+    
+    // فلترة حسب المستخدم لو جدول موظف
+    if(tableId.startsWith('staff')) {
+      data = data.filter(d => d.userId === currentUser.uid);
+    } else if(!currentUser.role || currentUser.role !== 'admin') {
+      data = data.filter(d => d.userId === currentUser.uid);
+    }
+    
+    data = data.filter(d => d.time >= fromTime && d.time <= toTime);
+    renderTable(tableId, data);
+  });
+}
+
+function clearDateFilter(tableId) {
+  document.getElementById(tableId + 'DateFrom').value = '';
+  document.getElementById(tableId + 'DateTo').value = '';
+  if(tableId.startsWith('staff')) {
+    loadStaffTransactions();
+  } else {
+    loadTransactions();
+  }
+}
+
+
 
 ['buyFilterUser', 'sellFilterUser', 'depositFilterUser', 'withdrawFilterUser'].forEach(id => {
   const el = document.getElementById(id);
