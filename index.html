@@ -1155,6 +1155,8 @@ document.getElementById('btnLogin').addEventListener('click', async () => {
       showScreen('staffScreen');
       document.getElementById('staffName').textContent = currentUser.name;
       initStaffPanel();
+      await loadStaffTransactions(); 
+      
     }
   } else {
     showToast('كلمة المرور غير صحيحة');
@@ -1214,6 +1216,9 @@ window.addEventListener('load', async () => {
         showScreen('staffScreen');
         document.getElementById('staffName').textContent = currentUser.name;
         initStaffPanel();
+        
+        
+        await loadStaffTransactions();
         document.getElementById('bottomBar').classList.add('active'); // واضفت هذا السطر
       }
       
