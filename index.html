@@ -1907,23 +1907,27 @@ function printPDF(type, tableId) {
   if (type === 'table') {
     title = 'تقرير ' + tableId;
     const table = document.getElementById(tableId);
-    const tableClone = table.cloneNode(true);
 
-    // نسخ قيم select و input للنص
-    tableClone.querySelectorAll('select').forEach(el => {
-      const td = el.closest('td');
-      if (td) {
-        // خذ النص المختار فقط، لو فاضي خليه فاضي
-        const selectedText = el.options[el.selectedIndex]?.value? el.options[el.selectedIndex].text : '';
-        td.textContent = selectedText;
-      }
-    });
-    tableClone.querySelectorAll('input').forEach(el => {
-      const td = el.closest('td');
-      if (td) td.textContent = el.value || '';
+    // نبني HTML يدوياً عشان نضمن القيم
+    let rows = '';
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      const cur = tr.querySelector('.recCur').value;
+      const act = tr.querySelector('.recAct').value;
+      const sys = tr.querySelector('.recSys').value;
+      const diff = tr.querySelector('.recDiff').value;
+
+      rows += `<tr>
+        <td>${cur || ''}</td>
+        <td>${act || ''}</td>
+        <td>${sys || ''}</td>
+        <td>${diff || ''}</td>
+      </tr>`;
     });
 
-    html = tableClone.outerHTML;
+    html = `<table>
+      <thead><tr><th>العملة</th><th>الرصيد الفعلي</th><th>رصيد النظام</th><th>نتيجة المطابقة</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
   }
 
   const win = window.open('', '', 'height=800,width=600');
@@ -1936,23 +1940,19 @@ function printPDF(type, tableId) {
       <style>
         body { font-family: Tahoma, Arial; padding: 30px; color: #333; background: #fff; }
        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #8B4513; padding-bottom: 10px; }
-       .logo-emoji { font-size: 48px; line-height: 1; margin-bottom: 8px; }
+       .logo-emoji { font-size: 48px; margin-bottom: 8px; }
        .header h1 { color: #8B4513; margin: 0; font-weight: 700; font-size: 28px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #333; padding: 8px; text-align: center; }
         th { background: #8B4513; color: #fff; }
        .signature { margin-top: 80px; text-align: right; font-size: 14px; }
-        @media print {.no-print { display: none; } button { display: none; } }
+        @media print {.no-print { display: none; }}
       </style>
     </head>
     <body>
       <div class="header">
         <div class="logo-emoji">💰</div>
-       
-              
-        <h1> الراشدي للصرافة</h1>
-  
-       
+        <h1>نظام الراشدي للصرافة</h1>
         <p>${new Date().toLocaleString('ar-SA')}</p>
       </div>
       ${html}
@@ -2429,25 +2429,15 @@ function initReconcileTable() {
 
       <table id="recTable">
         <thead>
-          <tr>
-            <th>العملة</th>
-            <th>الرصيد الفعلي</th>
-            <th>رصيد النظام</th>
-            <th>نتيجة المطابقة</th>
-          </tr>
+          <tr><th>العملة</th><th>الرصيد الفعلي</th><th>رصيد النظام</th><th>نتيجة المطابقة</th></tr>
         </thead>
         <tbody>
           ${[1,2,3,4].map(i => `
             <tr>
-              <td>
-                <select class="recCur" data-i="${i}">
-                  <option value="">اختر</option>
-                  ${activeCurrencies.map(c=>`<option value="${c}">${c}</option>`).join('')}
-                </select>
-              </td>
-              <td><input type="number" class="recAct" data-i="${i}" inputmode="decimal" placeholder="0"></td>
-              <td><input type="text" class="recSys" data-i="${i}" readonly placeholder="--"></td>
-              <td><input type="text" class="recDiff" data-i="${i}" readonly placeholder="--"></td>
+              <td><select class="recCur"><option value="">اختر</option>${activeCurrencies.map(c=>`<option value="${c}">${c}</option>`).join('')}</select></td>
+              <td><input type="number" class="recAct" inputmode="decimal" placeholder="0"></td>
+              <td><input type="text" class="recSys" readonly placeholder="--"></td>
+              <td><input type="text" class="recDiff" readonly placeholder="--"></td>
             </tr>
           `).join('')}
         </tbody>
@@ -2466,48 +2456,7 @@ function initReconcileTable() {
     tr.querySelector('.recDiff').style.color = diff === 0? 'var(--accent-green)' : diff < 0? 'var(--danger)' : '#facc15';
   }
 
-  // زر المطابقة: يحسب + يحفظ لحظياً + يحدث القائمة
-  document.getElementById('btnRecMatch').onclick = async () => {
-    const date = document.getElementById('recDate').value; // 2026-05-08
-    const rowsData = [];
-
-    for (let tr of document.querySelectorAll('#recTable tbody tr')) {
-      const cur = tr.querySelector('.recCur').value;
-      const actStr = tr.querySelector('.recAct').value;
-      const act = parseFloat(actStr) || 0;
-
-      if (!cur || actStr === '' || act === 0) {
-        tr.querySelector('.recSys').value = '';
-        tr.querySelector('.recDiff').value = '';
-        continue;
-      }
-
-      const sys = await calcSystemBalance(currentUser.uid, cur);
-      calcDiff(tr, act, sys);
-
-      rowsData.push({currency: cur, actualBalance: act, systemBalance: sys, diff: act - sys});
-    }
-
-    if (rowsData.length === 0) {
-      showToast('ادخل عملة ومبلغ أولاً');
-      return;
-    }
-
-    const matchId = Date.now();
-    await set(ref(db, `reconcile/${currentUser.uid}/${date}/${matchId}`), {
-      time: Date.now(),
-      items: rowsData
-    });
-
-    // حدث القائمة لنفس التاريخ اللي حفظت فيه
-    await loadReconcileList(date);
-    document.getElementById('recList').value = matchId;
-    document.getElementById('recList').dispatchEvent(new Event('change'));
-
-    showToast('تم الحفظ: ' + new Date(matchId).toLocaleTimeString('ar', {hour:'2-digit', minute:'2-digit'}));
-  };
-
-  // تحميل المطابقات - مهم: استخدم نفس صيغة التاريخ 2026-05-08
+  // تحميل القائمة
   async function loadReconcileList(date) {
     const snap = await get(ref(db, `reconcile/${currentUser.uid}/${date}`));
     const select = document.getElementById('recList');
@@ -2528,7 +2477,46 @@ function initReconcileTable() {
     });
   }
 
-  // عند اختيار مطابقة: عبي الجدول بالبيانات
+  // زر المطابقة
+  document.getElementById('btnRecMatch').onclick = async () => {
+    const date = document.getElementById('recDate').value;
+    const rowsData = [];
+
+    for (let tr of document.querySelectorAll('#recTable tbody tr')) {
+      const cur = tr.querySelector('.recCur').value;
+      const act = parseFloat(tr.querySelector('.recAct').value) || 0;
+
+      if (!cur || act === 0) {
+        tr.querySelector('.recSys').value = '';
+        tr.querySelector('.recDiff').value = '';
+        continue;
+      }
+
+      const sys = await calcSystemBalance(currentUser.uid, cur);
+      calcDiff(tr, act, sys);
+      rowsData.push({currency: cur, actualBalance: act, systemBalance: sys, diff: act - sys});
+    }
+
+    if (rowsData.length === 0) {
+      showToast('ادخل عملة ومبلغ أولاً');
+      return;
+    }
+
+    const matchId = Date.now();
+    await set(ref(db, `reconcile/${currentUser.uid}/${date}/${matchId}`), {
+      time: Date.now(),
+      items: rowsData
+    });
+
+    // أهم سطرين: حدث القائمة واختار المطابقة الجديدة
+    await loadReconcileList(date);
+    document.getElementById('recList').value = matchId;
+    document.getElementById('recList').dispatchEvent(new Event('change'));
+
+    showToast('تم الحفظ');
+  };
+
+  // عند اختيار مطابقة
   document.getElementById('recList').onchange = async (e) => {
     const date = document.getElementById('recDate').value;
     const id = e.target.value;
@@ -2549,33 +2537,19 @@ function initReconcileTable() {
         tr.querySelector('.recDiff').value = '';
         return;
       }
-      tr.querySelector('.recCur').value = item.currency || '';
-      tr.querySelector('.recAct').value = item.actualBalance || '';
-      tr.querySelector('.recSys').value = item.systemBalance?.toFixed(2) || '';
-      tr.querySelector('.recDiff').value = item.diff?.toFixed(2) || '';
+      tr.querySelector('.recCur').value = item.currency;
+      tr.querySelector('.recAct').value = item.actualBalance;
+      tr.querySelector('.recSys').value = item.systemBalance.toFixed(2);
+      tr.querySelector('.recDiff').value = item.diff.toFixed(2);
       calcDiff(tr, item.actualBalance, item.systemBalance);
     });
   };
 
   document.getElementById('recDate').onchange = (e) => loadReconcileList(e.target.value);
-
-  // CSS
-  if (!document.getElementById('recStyle')) {
-    const style = document.createElement('style');
-    style.id = 'recStyle';
-    style.innerHTML = `
-   .rec-header input,.rec-header select {height: 36px; font-size: 0.9rem; padding: 4px 6px;}
-    input.zoomed, select.zoomed {position: relative; z-index: 10; font-size: 1.8rem!important; transform: scale(1.15);
-      background: #1a1a1a!important; box-shadow: 0 0 15px rgba(0,255,0,0.4); transition: all 0.2s ease;}
-    `;
-    document.head.appendChild(style);
-  }
-
   loadReconcileList(today);
 }
 
 document.addEventListener('DOMContentLoaded', initReconcileTable);
-
 
 
 
