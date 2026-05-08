@@ -2262,6 +2262,276 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
   }
 })();
 
+
+
+
+// كود 1: تعديل عرض جداول الشراء والبيع
+const _renderTableBuySell = window.renderTable;
+window.renderTable = function(tblId, data) {
+  if (tblId!== 'buyTable' && tblId!== 'sellTable' && tblId!== 'staffBuyTable' && tblId!== 'staffSellTable') {
+    return _renderTableBuySell?.(tblId, data);
+  }
+
+  const tbody = document.querySelector(`#${tblId} tbody`);
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  data.forEach(d => {
+    const time = new Date(d.time).toLocaleString('ar');
+    const type = d.type === 'buy' || tblId.includes('Buy')? 'شراء' : 'بيع';
+    tbody.innerHTML += `<tr>
+      <td>${d.amount || '-'}</td>
+      <td>${d.rate || '-'}</td>
+      <td>${d.currency || '-'}</td>
+      <td>${d.result || '-'}</td>
+      <td>${type}</td>
+      <td>${time}</td>
+    </tr>`;
+  });
+};
+
+
+
+
+// كود 4: منع التكرار وتصفير الحقول
+function wrapSave(fnName, inputsToClear) {
+  const orig = window[fnName];
+  if (!orig || orig.__wrapped) return;
+
+  window[fnName] = async function(...args) {
+    const btn = document.querySelector(`#btn${fnName.replace('save','Save')}`);
+    if (btn && btn.disabled) return;
+    if (btn) {
+      btn.disabled = true;
+      btn.dataset.old = btn.textContent;
+      btn.textContent = 'جارٍ الحفظ...';
+    }
+
+    try {
+      await orig.apply(this, args);
+      inputsToClear.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+    } finally {
+      setTimeout(() => {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = btn.dataset.old || 'حفظ';
+        }
+      }, 1200);
+    }
+  };
+  window[fnName].__wrapped = true;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  wrapSave('saveBuy', ['buyAmount', 'buyResult']);
+  wrapSave('saveSell', ['sellAmount', 'sellResult']);
+  wrapSave('saveDeposit', ['depositAmount']);
+  wrapSave('saveWithdraw', ['withdrawAmount']);
+  wrapSave('saveStaffBuy', ['staffBuyAmount', 'staffBuyResult']);
+  wrapSave('saveStaffSell', ['staffSellAmount', 'staffSellResult']);
+  wrapSave('saveStaffDeposit', ['staffDepositAmount']);
+  wrapSave('saveStaffWithdraw', ['staffWithdrawAmount']);
+});
+
+
+
+
+
+// كود 5: كرت القبض والصرف + عمود المودع/المستلم
+function injectPersonFields() {
+  const configs = [
+    {pre: 'deposit', label: 'اسم المودع', field: 'depositor'},
+    {pre: 'withdraw', label: 'اسم المستلم', field: 'receiver'},
+    {pre: 'staffDeposit', label: 'اسم المودع', field: 'depositor'},
+    {pre: 'staffWithdraw', label: 'اسم المستلم', field: 'receiver'}
+  ];
+
+  configs.forEach(cfg => {
+    const card = document.querySelector(`#${cfg.pre}.card`);
+    if (!card || card.dataset.injected === '1') return;
+    card.dataset.injected = '1';
+
+    document.getElementById(`${cfg.pre}Amount`).style.maxWidth = '140px';
+    document.getElementById(`${cfg.pre}Currency`).style.maxWidth = '140px';
+
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `<input type="text" id="${cfg.pre}Person" placeholder="${cfg.label}">`;
+    card.appendChild(row);
+  });
+}
+
+const origPush = window.push;
+window.push = function(ref, data) {
+  if (data &&!data.depositor &&!data.receiver) {
+    const path = ref.path.pieces_[0];
+    if (path.includes('deposit') || path.includes('withdraw')) {
+      const pre = path.replace('staff', 'staff');
+      const person = document.getElementById(`${pre}Person`)?.value?.trim();
+      if (person) data[path.includes('deposit')? 'depositor' : 'receiver'] = person;
+    }
+  }
+  return origPush(ref, data);
+};
+
+document.addEventListener('DOMContentLoaded', injectPersonFields);
+
+
+// كود 6: جدول المطابقة 4x4
+function buildMatchTable() {
+  const wrap = document.getElementById('staffMatch');
+  if (!wrap || wrap.dataset.built === '1') return;
+  wrap.dataset.built = '1';
+
+  wrap.innerHTML = `
+    <div class="card">
+      <table id="matchDyn">
+        <thead><tr><th>العملة</th><th>الرصيد الفعلي</th><th>رصيد النظام</th><th>نتيجة المطابقة</th></tr></thead>
+        <tbody>
+          ${[1,2,3,4].map(i => `
+            <tr>
+              <td><select class="mCur" data-i="${i}"><option value="">اختر</option>${activeCurrencies.map(c=>`<option>${c}</option>`).join('')}</select></td>
+              <td><input type="number" class="mAct" data-i="${i}" inputmode="decimal"></td>
+              <td><input type="text" class="mSys" data-i="${i}" readonly></td>
+              <td><input type="text" class="mDiff" data-i="${i}" readonly></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      <div class="row"><button id="btnMatchDyn">مطابقة</button></div>
+    </div>
+  `;
+
+  document.getElementById('btnMatchDyn').onclick = async () => {
+    for (let tr of document.querySelectorAll('#matchDyn tbody tr')) {
+      const cur = tr.querySelector('.mCur').value;
+      const act = parseFloat(tr.querySelector('.mAct').value) || 0;
+      if (!cur) continue;
+      const sys = await calcSystemBalance(currentUser.uid, cur);
+      const diff = act - sys;
+      tr.querySelector('.mSys').value = sys.toFixed(2);
+      tr.querySelector('.mDiff').value = diff.toFixed(2);
+      tr.querySelector('.mDiff').style.color = diff === 0? 'var(--accent-green)' : diff < 0? 'var(--danger)' : '#facc15';
+
+      if (act > 0) await push(ref(db, 'matches'), {
+        userId: currentUser.uid, currency: cur, systemBalance: sys,
+        actualBalance: act, diff, time: Date.now()
+      });
+    }
+    showToast('تمت المطابقة وحفظ النتائج');
+  };
+}
+document.addEventListener('DOMContentLoaded', buildMatchTable);
+
+
+
+// كود 7: الرصيد التراكمي + القيد المزدوج للشراء والبيع
+(function() {
+  const YER = 'YER'; // العملة الرئيسية
+
+  // 1. دالة تحسب رصيد موظف لعملة معينة من كل العمليات
+  async function calcSystemBalance(userId, currency) {
+    let balance = 0;
+
+    const getAll = async (path) => {
+      const snap = await get(query(ref(db, path), orderByChild('userId'), equalTo(userId)));
+      return snap.exists()? Object.values(snap.val()) : [];
+    };
+
+    const buys = await getAll('buy');
+    const sells = await getAll('sell');
+    const deposits = await getAll('deposit');
+    const withdraws = await getAll('withdraw');
+
+    // قبض/ايداع = زيادة الرصيد
+    deposits.forEach(d => { if (d.currency === currency) balance += parseFloat(d.amount) || 0; });
+    
+    // صرف = نقص الرصيد
+    withdraws.forEach(w => { if (w.currency === currency) balance -= parseFloat(w.amount) || 0; });
+
+    // شراء عملة اجنبية = ينقص YER ويزيد العملة
+    buys.forEach(b => {
+      if (b.currency === currency) balance += parseFloat(b.amount) || 0;
+      if (b.currency!== YER && currency === YER) balance -= parseFloat(b.result) || 0;
+    });
+
+    // بيع عملة اجنبية = ينقص العملة ويزيد YER
+    sells.forEach(s => {
+      if (s.currency === currency) balance -= parseFloat(s.amount) || 0;
+      if (s.currency!== YER && currency === YER) balance += parseFloat(s.result) || 0;
+    });
+
+    return balance;
+  }
+
+  // 2. لف على حفظ الشراء عشان يعمل قيد مزدوج تلقائي
+  const origSaveBuy = window.saveBuy;
+  window.saveBuy = async function() {
+    const amount = parseFloat(document.getElementById('buyAmount').value);
+    const rate = parseFloat(document.getElementById('buyRate').value);
+    const currency = document.getElementById('buyCurrency').value;
+    const result = amount * rate;
+
+    if (!amount || !rate || !currency) return;
+
+    // احفظ عملية الشراء العادية
+    await origSaveBuy.apply(this, arguments);
+
+    // احفظ القيد المزدوج: خصم YER + إضافة العملة
+    if (currency!== YER) {
+      await push(ref(db, 'buy'), {
+        amount: result,
+        rate: 1,
+        result: result,
+        currency: YER,
+        type: 'buy',
+        userId: currentUser.uid,
+        userName: currentUser.name,
+        time: Date.now(),
+        note: `قيد مزدوج لشراء ${amount} ${currency}`
+      });
+    }
+  };
+
+  // 3. لف على حفظ البيع عشان يعمل قيد مزدوج تلقائي
+  const origSaveSell = window.saveSell;
+  window.saveSell = async function() {
+    const amount = parseFloat(document.getElementById('sellAmount').value);
+    const rate = parseFloat(document.getElementById('sellRate').value);
+    const currency = document.getElementById('sellCurrency').value;
+    const result = amount * rate;
+
+    if (!amount || !rate || !currency) return;
+
+    // احفظ عملية البيع العادية
+    await origSaveSell.apply(this, arguments);
+
+    // احفظ القيد المزدوج: خصم العملة + إضافة YER
+    if (currency!== YER) {
+      await push(ref(db, 'sell'), {
+        amount: result,
+        rate: 1,
+        result: result,
+        currency: YER,
+        type: 'sell',
+        userId: currentUser.uid,
+        userName: currentUser.name,
+        time: Date.now(),
+        note: `قيد مزدوج لبيع ${amount} ${currency}`
+      });
+    }
+  };
+
+  // 4. استبدل calcSystemBalance القديمة بالجديدة التراكمية
+  window.calcSystemBalance = calcSystemBalance;
+})();
+
+
+
+
 </script>
 
 <div id="bottomBar">
