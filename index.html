@@ -2145,75 +2145,7 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 
 
 
-/* ===== كود منفصل: يعرض بيانات اليوم فقط اول ما تفتح الصفحة ===== */
-/* ===== كود نهائي: يعرض بيانات اليوم فقط عند الدخول ===== */
-/* ===== فلترة اليوم فقط - يشتغل 100% ===== */
-/* ===== فلترة اليوم فقط - نسخة مضمونة ===== */
-/* ===== فلترة اليوم فقط + بوكس ثابت داخل الكارد ===== */
-/* ===== فلترة اليوم فقط - بدون لمس الـHTML ===== */
-/* فلترة اليوم فقط - ما يلمس التصميم */
-(function(){
-  const tables = [
-    'buyTable','sellTable','depositTable','withdrawTable',
-    'staffBuyTable','staffSellTable','staffDepositTable','staffWithdrawTable'
-  ];
 
-  // انتظر لحد ما renderTable تجهز
-  function initFilter(){
-    if(typeof window.renderTable!== 'function'){
-      setTimeout(initFilter, 300);
-      return;
-    }
-
-    const originalRender = window.renderTable;
-    const today = new Date().toISOString().split('T')[0];
-    const fromTime = new Date(today + 'T00:00:00').getTime();
-    const toTime = new Date(today + 'T23:59:59').getTime();
-    let firstLoad = true;
-
-    window.renderTable = async function(id, data){
-      // اول مرة فقط نفلتر على اليوم
-      if(firstLoad && tables.includes(id)){
-        try{
-          const snap = await get(ref(db, 'transactions'));
-          if(snap.exists()){
-            let allData = Object.values(snap.val());
-
-            if(id.startsWith('staff')) allData = allData.filter(d => d.userId === currentUser.uid);
-            if(id.includes('Buy')) allData = allData.filter(d => d.type === 'buy');
-            if(id.includes('Sell')) allData = allData.filter(d => d.type === 'sell');
-            if(id.includes('Deposit')) allData = allData.filter(d => d.type === 'deposit');
-            if(id.includes('Withdraw')) allData = allData.filter(d => d.type === 'withdraw');
-
-            data = allData.filter(d => {
-              const t = Number(d.time);
-              return t >= fromTime && t <= toTime;
-            });
-          } else {
-            data = [];
-          }
-        }catch(e){
-          console.log('Filter error:', e);
-        }
-      }
-      return originalRender(id, data);
-    };
-
-    // شغل الفلترة اول ما الصفحة تفتح
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        firstLoad = false;
-        tables.forEach(id => {
-          if(document.getElementById(id)){
-            originalRender(id, null);
-          }
-        });
-      }, 800);
-    });
-  }
-
-  initFilter();
-})();
 
 </script>
 
