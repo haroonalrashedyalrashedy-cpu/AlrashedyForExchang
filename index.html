@@ -2625,10 +2625,10 @@ document.addEventListener('DOMContentLoaded', initReconcileTable);
 
 
 // كود 7: الرصيد التراكمي لحظي + قيد مزدوج + فحص الرصيد
+// كود 7: الرصيد التراكمي لحظي + منع السالب
 (function() {
   const YER = 'YER';
 
-  // حساب رصيد الموظف لحظياً من Firebase
   async function calcSystemBalance(userId, currency) {
     let balance = 0;
     const paths = ['buy', 'sell', 'deposit', 'withdraw'];
@@ -2657,15 +2657,12 @@ document.addEventListener('DOMContentLoaded', initReconcileTable);
     return balance;
   }
 
-  // حساب رصيد الحساب لحظياً - إيداع وصرف فقط
   async function calcAccountBalance(accountId, currency) {
     let balance = 0;
     const paths = ['deposit', 'withdraw'];
-    
     for (let path of paths) {
       const snap = await get(query(ref(db, path), orderByChild('accountId'), equalTo(accountId)));
       if (!snap.exists()) continue;
-      
       Object.values(snap.val()).forEach(tx => {
         if (tx.currency !== currency) return;
         if (path === 'deposit') balance += parseFloat(tx.amount) || 0;
@@ -2675,7 +2672,77 @@ document.addEventListener('DOMContentLoaded', initReconcileTable);
     return balance;
   }
 
-  // الصرف: يفحص ويحفظ لحظياً
+  // الشراء: يمنع لو الرصيد بيصير سالب
+  window.saveBuy = async function() {
+    const amount = parseFloat(document.getElementById('buyAmount').value);
+    const rate = parseFloat(document.getElementById('buyRate').value);
+    const currency = document.getElementById('buyCurrency').value;
+    const result = amount * rate;
+
+    if (!amount || !rate || !currency) {
+      showToast('املأ كل الحقول');
+      return;
+    }
+
+    const yerBalance = await calcSystemBalance(currentUser.uid, YER);
+    
+    // منع السالب
+    if (yerBalance < result) {
+      showToast(`رصيد YER غير كافي. الرصيد الحالي: ${yerBalance.toFixed(2)}`);
+      return;
+    }
+
+    await push(ref(db, 'buy'), {
+      amount: amount,
+      rate: rate,
+      result: result,
+      currency: currency,
+      userId: currentUser.uid,
+      userName: currentUser.name,
+      time: Date.now()
+    });
+
+    showToast('تم الشراء بنجاح');
+    document.getElementById('buyAmount').value = '';
+    updateBalances();
+  };
+
+  // البيع: يمنع لو رصيد العملة أقل من المطلوب
+  window.saveSell = async function() {
+    const amount = parseFloat(document.getElementById('sellAmount').value);
+    const rate = parseFloat(document.getElementById('sellRate').value);
+    const currency = document.getElementById('sellCurrency').value;
+    const result = amount * rate;
+
+    if (!amount || !rate || !currency) {
+      showToast('املأ كل الحقول');
+      return;
+    }
+
+    const currBalance = await calcSystemBalance(currentUser.uid, currency);
+    
+    // منع السالب
+    if (currBalance < amount) {
+      showToast(`رصيد ${currency} غير كافي. الرصيد الحالي: ${currBalance.toFixed(2)}`);
+      return;
+    }
+
+    await push(ref(db, 'sell'), {
+      amount: amount,
+      rate: rate,
+      result: result,
+      currency: currency,
+      userId: currentUser.uid,
+      userName: currentUser.name,
+      time: Date.now()
+    });
+
+    showToast('تم البيع بنجاح');
+    document.getElementById('sellAmount').value = '';
+    updateBalances();
+  };
+
+  // الصرف: يمنع لو رصيد الحساب أو الموظف أقل
   window.saveWithdraw = async function() {
     const amount = parseFloat(document.getElementById('withdrawAmount').value);
     const currency = document.getElementById('withdrawCurrency').value;
@@ -2692,15 +2759,14 @@ document.addEventListener('DOMContentLoaded', initReconcileTable);
     ]);
 
     if (accBalance < amount) {
-      showToast('رصيد الحساب غير كافي');
+      showToast(`رصيد الحساب غير كافي. الرصيد الحالي: ${accBalance.toFixed(2)}`);
       return;
     }
     if (empBalance < amount) {
-      showToast('رصيدك غير كافي');
+      showToast(`رصيدك غير كافي. الرصيد الحالي: ${empBalance.toFixed(2)}`);
       return;
     }
 
-    // حفظ لحظي في Firebase
     await push(ref(db, 'withdraw'), {
       amount: amount,
       currency: currency,
@@ -2712,10 +2778,10 @@ document.addEventListener('DOMContentLoaded', initReconcileTable);
 
     showToast('تم الصرف بنجاح');
     document.getElementById('withdrawAmount').value = '';
-    updateBalances(); // حدث العرض لحظياً
+    updateBalances();
   };
 
-  // الإيداع: يحفظ لحظياً
+  // الإيداع ما يحتاج فحص لأنه يزيد الرصيد دائماً
   window.saveDeposit = async function() {
     const amount = parseFloat(document.getElementById('depositAmount').value);
     const currency = document.getElementById('depositCurrency').value;
@@ -2740,75 +2806,13 @@ document.addEventListener('DOMContentLoaded', initReconcileTable);
     updateBalances();
   };
 
-  // الشراء: يأثر على الموظف فقط ويحفظ لحظياً
-  window.saveBuy = async function() {
-    const amount = parseFloat(document.getElementById('buyAmount').value);
-    const rate = parseFloat(document.getElementById('buyRate').value);
-    const currency = document.getElementById('buyCurrency').value;
-    const result = amount * rate;
-
-    if (!amount || !rate || !currency) {
-      showToast('املأ كل الحقول');
-      return;
-    }
-
-    const yerBalance = await calcSystemBalance(currentUser.uid, YER);
-    if (yerBalance < result) {
-      showToast('رصيد YER غير كافي للشراء');
-      return;
-    }
-
-    await push(ref(db, 'buy'), {
-      amount: amount,
-      rate: rate,
-      result: result,
-      currency: currency,
-      userId: currentUser.uid,
-      userName: currentUser.name,
-      time: Date.now()
-    });
-
-    showToast('تم الشراء بنجاح');
-    document.getElementById('buyAmount').value = '';
-    updateBalances();
-  };
-
-  // البيع: يأثر على الموظف فقط ويحفظ لحظياً
-  window.saveSell = async function() {
-    const amount = parseFloat(document.getElementById('sellAmount').value);
-    const rate = parseFloat(document.getElementById('sellRate').value);
-    const currency = document.getElementById('sellCurrency').value;
-    const result = amount * rate;
-
-    if (!amount || !rate || !currency) {
-      showToast('املأ كل الحقول');
-      return;
-    }
-
-    const currBalance = await calcSystemBalance(currentUser.uid, currency);
-    if (currBalance < amount) {
-      showToast(`رصيد ${currency} غير كافي للبيع`);
-      return;
-    }
-
-    await push(ref(db, 'sell'), {
-      amount: amount,
-      rate: rate,
-      result: result,
-      currency: currency,
-      userId: currentUser.uid,
-      userName: currentUser.name,
-      time: Date.now()
-    });
-
-    showToast('تم البيع بنجاح');
-    document.getElementById('sellAmount').value = '';
-    updateBalances();
-  };
-
   window.calcSystemBalance = calcSystemBalance;
   window.calcAccountBalance = calcAccountBalance;
 })();
+
+
+
+
 
 // ربط الأزرار بالدوال لحظياً
 (function bindOpButtons() {
