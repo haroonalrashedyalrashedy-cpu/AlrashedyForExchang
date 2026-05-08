@@ -2732,6 +2732,32 @@ document.addEventListener('DOMContentLoaded', initReconcileTable);
     if (typeof updateBalances === 'function') updateBalances();
   };
 
+
+
+async function updateBalances() {
+  const uid = currentUser?.uid;
+  if (!uid) return;
+
+  // 1. احسب الرصيد الحقي من Firebase بنفس الدالة اللي تمنع السالب
+  const yerBal = await _calcSysBal(uid, 'YER');
+  
+  // 2. اعرضه في حقل المطابقة حق الموظف
+  const staffBalEl = document.getElementById('staffSystemBalance');
+  if (staffBalEl) staffBalEl.value = yerBal.toFixed(2);
+
+  // 3. لو عندك شاشة مطابقة ثانية للادمن، اعرضها كمان
+  const adminBalEl = document.getElementById('adminSystemBalance');
+  if (adminBalEl) adminBalEl.value = yerBal.toFixed(2);
+
+  // 4. حدث الجداول عشان تشوف العمليات الجديدة
+  if (typeof loadTransactions === 'function') loadTransactions();
+  if (typeof loadStaffTransactions === 'function') loadStaffTransactions();
+
+  console.log("رصيد YER الحقي من DB:", yerBal.toFixed(2));
+}
+
+
+
   // 3. نعيد ربط الأزرار عشان تشتغل على النسخة الجديدة
   document.getElementById('btnSaveBuy')?.replaceWith(document.getElementById('btnSaveBuy').cloneNode(true));
   document.getElementById('btnSaveSell')?.replaceWith(document.getElementById('btnSaveSell').cloneNode(true));
