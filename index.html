@@ -1903,7 +1903,6 @@ document.getElementById('btnPrint').addEventListener('click', () => {
 function printPDF(type, tableId) {
   let html = '';
   let title = 'سند';
-  let logoUrl = 'ضع_رابط_اللوجو_هنا'; // غيره لرابط اللوجو عندك
 
   if (type === 'row' && window.selectedRowData) {
     title = 'سند عملية';
@@ -1916,13 +1915,18 @@ function printPDF(type, tableId) {
   } else if (type === 'table') {
     title = 'تقرير ' + tableId;
     const table = document.getElementById(tableId);
-    
-    // انسخ الجدول وحوّل قيم الـ input و select لنص
     const tableClone = table.cloneNode(true);
-    tableClone.querySelectorAll('input, select').forEach(el => {
+    
+    // نسخ قيم select و input للنص
+    tableClone.querySelectorAll('select').forEach(el => {
+      const td = el.closest('td');
+      if (td) td.textContent = el.options[el.selectedIndex]?.text || '';
+    });
+    tableClone.querySelectorAll('input').forEach(el => {
       const td = el.closest('td');
       if (td) td.textContent = el.value || '';
     });
+    
     html = tableClone.outerHTML;
   }
 
@@ -1934,24 +1938,24 @@ function printPDF(type, tableId) {
       <meta charset="UTF-8">
       <title>${title}</title>
       <style>
-        body { font-family: 'Segoe UI', Tahoma, Arial; padding: 30px; color: #333; }
+        body { font-family: 'Segoe UI', Tahoma, Arial; padding: 30px; color: #333; background: #fff; }
         .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #8B4513; padding-bottom: 10px; }
-        .logo { max-width: 120px; max-height: 80px; margin-bottom: 10px; }
+        .logo-emoji { 
+          font-size: 48px; 
+          line-height: 1; 
+          margin-bottom: 8px;
+        }
         .header h1 { 
           color: #8B4513; 
           margin: 0; 
-          font-weight: bold; /* عريض */
+          font-weight: 700;
           font-size: 28px;
         }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #333; padding: 8px; text-align: center; }
         th { background: #8B4513; color: #fff; }
-        .footer { margin-top: 60px; text-align: left; font-size: 12px; color: #666; }
-        .signature { 
-          margin-top: 80px; 
-          text-align: right; 
-          font-size: 14px; 
-        }
+        .signature { margin-top: 80px; text-align: right; font-size: 14px; }
+        .footer { margin-top: 20px; text-align: left; font-size: 12px; color: #666; }
         @media print { 
           .no-print { display: none; }
           button { display: none; }
@@ -1960,8 +1964,10 @@ function printPDF(type, tableId) {
     </head>
     <body>
       <div class="header">
-        ${logoUrl && logoUrl !== 'ضع_رابط_اللوجو_هنا' ? `<img src="${logoUrl}" class="logo" alt="logo">` : ''}
-        <h1>نظام الراشدي للصرافة</h1>
+        <div class="logo-emoji">💰</div>
+         
+        <h1> الراشدي للصرافة</h1>
+  
         <p>${new Date().toLocaleString('ar-SA')}</p>
       </div>
       ${html}
@@ -1980,6 +1986,7 @@ function printPDF(type, tableId) {
     </html>
   `);
   win.document.close();
+  win.onload = () => win.focus();
 }
 
 console.log("📌 SCRIPT LOADED SUCCESSFULLY");
@@ -2428,7 +2435,6 @@ document.addEventListener('DOMContentLoaded', injectPersonFields);
 function initReconcileTable() {
   const wrap = document.getElementById('staffMatch');
   if (!wrap) return;
-
   if (wrap.dataset.reconcileBuilt === '1') return;
   wrap.dataset.reconcileBuilt = '1';
 
@@ -2444,7 +2450,7 @@ function initReconcileTable() {
         <span id="recCount" style="white-space:nowrap; font-size:0.85rem;">0</span>
       </div>
 
-      <table id="recTable" class="print-area">
+      <table id="recTable">
         <thead>
           <tr>
             <th>العملة</th>
@@ -2476,65 +2482,62 @@ function initReconcileTable() {
     </div>
   `;
 
-  function calcDiff(tr) {
-    const act = parseFloat(tr.querySelector('.recAct').value) || 0;
-    const sys = parseFloat(tr.querySelector('.recSys').value) || 0;
+  // شلت الـ input event عشان ما يحسب إلا بزر المطابقة
+  // function calcDiff خليتها داخلية وتستدعى فقط وقت المطابقة
+
+  function calcDiff(tr, act, sys) {
     const diff = act - sys;
     const diffInput = tr.querySelector('.recDiff');
     diffInput.value = diff.toFixed(2);
     diffInput.style.color = diff === 0? 'var(--accent-green)' : diff < 0? 'var(--danger)' : '#facc15';
+    tr.querySelector('.recSys').value = sys.toFixed(2);
   }
-
-
-
-
 
   document.getElementById('btnRecMatch').onclick = async () => {
-  const date = document.getElementById('recDate').value;
-  const rowsData = [];
+    const date = document.getElementById('recDate').value;
+    const rowsData = [];
 
-  for (let tr of document.querySelectorAll('#recTable tbody tr')) {
-    const cur = tr.querySelector('.recCur').value;
-    const act = parseFloat(tr.querySelector('.recAct').value) || 0;
-    
-    if (!cur || act === 0) {
-      tr.querySelector('.recSys').value = '';
-      tr.querySelector('.recDiff').value = '';
-      continue;
+    for (let tr of document.querySelectorAll('#recTable tbody tr')) {
+      const cur = tr.querySelector('.recCur').value;
+      const actStr = tr.querySelector('.recAct').value;
+      const act = parseFloat(actStr) || 0;
+
+      if (!cur || actStr === '' || act === 0) {
+        // امسح النتيجة لو الصف فاضي
+        tr.querySelector('.recSys').value = '';
+        tr.querySelector('.recDiff').value = '';
+        continue;
+      }
+
+      // هنا يحسب رصيد النظام والنتيجة فقط عند الضغط
+      const sys = await calcSystemBalance(currentUser.uid, cur);
+      calcDiff(tr, act, sys);
+
+      rowsData.push({
+        currency: cur,
+        actualBalance: act,
+        systemBalance: sys,
+        diff: act - sys
+      });
     }
 
-    // 1. جيب رصيد النظام الجديد
-    const sys = await calcSystemBalance(currentUser.uid, cur);
-    tr.querySelector('.recSys').value = sys.toFixed(2);
+    if (rowsData.length === 0) {
+      showToast('ادخل عملة ومبلغ أولاً');
+      return;
+    }
 
-    // 2. احسب الفرق من جديد بالقيم الحالية
-    const diff = act - sys;
-    tr.querySelector('.recDiff').value = diff.toFixed(2);
-    
-    // 3. ضبط اللون
-    calcDiff(tr);
+    // حفظ المطابقة برقم جديد
+    const matchId = Date.now();
+    await set(ref(db, `reconcile/${currentUser.uid}/${date}/${matchId}`), {
+      time: Date.now(),
+      items: rowsData
+    });
 
-    rowsData.push({currency: cur, actualBalance: act, systemBalance: sys, diff});
-  }
-
-  if (rowsData.length === 0) {
-    showToast('ادخل عملة ومبلغ أولاً');
-    return;
-  }
-
-  const matchId = Date.now();
-  await set(ref(db, `reconcile/${currentUser.uid}/${date}/${matchId}`), {
-    time: Date.now(),
-    items: rowsData
-  });
-
-  await loadReconcileList(date);
-  showToast('تمت المطابقة والحفظ');
-};
-
-
-
-
+    await loadReconcileList(date);
+    // اختار المطابقة الجديدة تلقائياً
+    document.getElementById('recList').value = matchId;
+    showToast('تمت المطابقة والحفظ');
+  };
 
   async function loadReconcileList(date) {
     const snap = await get(ref(db, `reconcile/${currentUser.uid}/${date}`));
@@ -2567,12 +2570,23 @@ function initReconcileTable() {
     const items = snap.val().items;
     const rows = document.querySelectorAll('#recTable tbody tr');
 
-    rows.forEach((tr, i) => {
-      tr.querySelector('.recCur').value = items[i]?.currency || '';
-      tr.querySelector('.recAct').value = items[i]?.actualBalance || '';
-      tr.querySelector('.recSys').value = items[i]?.systemBalance?.toFixed(2) || '';
-      tr.querySelector('.recDiff').value = items[i]?.diff?.toFixed(2) || '';
-      if (items[i]) calcDiff(tr);
+    // امسح الجدول أول
+    rows.forEach(tr => {
+      tr.querySelector('.recCur').value = '';
+      tr.querySelector('.recAct').value = '';
+      tr.querySelector('.recSys').value = '';
+      tr.querySelector('.recDiff').value = '';
+    });
+
+    // عبّي البيانات المحفوظة
+    items.forEach((item, i) => {
+      if (i >= rows.length) return;
+      const tr = rows[i];
+      tr.querySelector('.recCur').value = item.currency || '';
+      tr.querySelector('.recAct').value = item.actualBalance || '';
+      tr.querySelector('.recSys').value = item.systemBalance?.toFixed(2) || '';
+      tr.querySelector('.recDiff').value = item.diff?.toFixed(2) || '';
+      calcDiff(tr, item.actualBalance, item.systemBalance);
     });
   };
 
@@ -2599,12 +2613,11 @@ function initReconcileTable() {
     }
   });
 
-  // CSS: تصغير الهيدر + التكبير + الطباعة
   if (!document.getElementById('recStyle')) {
     const style = document.createElement('style');
     style.id = 'recStyle';
     style.innerHTML = `
-     .rec-header input,.rec-header select {
+    .rec-header input,.rec-header select {
         height: 36px;
         font-size: 0.9rem;
         padding: 4px 6px;
@@ -2618,24 +2631,16 @@ function initReconcileTable() {
         box-shadow: 0 0 15px rgba(0,255,0,0.4);
         transition: all 0.2s ease;
       }
-      @media print{
-        body *{visibility:hidden;}
-       .print-area,.print-area *{visibility:visible;}
-       .print-area{position:absolute; left:0; top:0; width:100%;}
-      }
     `;
     document.head.appendChild(style);
   }
-
-  // الحساب المباشر للفرق
-  document.querySelectorAll('.recAct').forEach(inp => {
-    inp.addEventListener('input', (e) => calcDiff(e.target.closest('tr')));
-  });
 
   loadReconcileList(today);
 }
 
 document.addEventListener('DOMContentLoaded', initReconcileTable);
+
+
 
 
 
