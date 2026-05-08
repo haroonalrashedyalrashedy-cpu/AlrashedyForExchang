@@ -1914,97 +1914,63 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 /* ===== فلترة الجداول - اليوم افتراضي + ثابتة ===== */
 /* ===== فلترة الجداول - اليوم افتراضي + ثابتة ===== */
 /* ===== فلترة الجداول - اليوم افتراضي + يمنع رسم كل البيانات ===== */
+/* ===== فلترة الجداول - اليوم افتراضي + بوكس ثابت ===== */
 (function(){
   const tables = [
     'buyTable','sellTable','depositTable','withdrawTable',
     'staffBuyTable','staffSellTable','staffDepositTable','staffWithdrawTable'
   ];
 
-  // CSS صغير وثابت
+  // CSS
   if(!document.getElementById('filterStyle')){
     const style = document.createElement('style');
     style.id = 'filterStyle';
     style.textContent = `
-  .filterBox{display:flex;align-items:center;gap:3px;padding:3px 5px;margin:5px 0;
-    background:#1e1e1e;border:1px solid #333;border-radius:6px;width:100%;
-    box-sizing:border-box;overflow:hidden;}
-  .filterBox input[type="date"]{width:70px;height:24px;padding:1px 3px;border-radius:4px;
-    border:1px solid #444;background:#222;color:#fff;font-size:10px;}
-  .filterBox button{padding:1px 6px;height:24px;border:none;border-radius:4px;
-    background:#00d26a;color:#000;font-weight:bold;font-size:10px;white-space:nowrap;}
-  .filterBox span{font-size:10px;color:#ccc;white-space:nowrap;}
+  .filterBox{
+      position: sticky; top: 0; z-index: 5;
+      display:flex;align-items:center;gap:4px;padding:4px 6px;margin-bottom:6px;
+      background:#1e1e1e;border:1px solid #333;border-radius:6px;
+    }
+  .filterBox input[type="date"]{
+      width:70px;height:24px;padding:2px 4px;border-radius:4px;border:1px solid #444;
+      background:#222;color:#fff;font-size:11px;
+    }
+  .filterBox button{
+      padding:2px 8px;height:24px;border:none;border-radius:4px;background:#00d26a;
+      color:#000;font-weight:bold;font-size:11px;white-space:nowrap;
+    }
+  .filterBox span{font-size:11px;color:#ccc;white-space:nowrap;}
   .tableScroll{overflow-x:auto;width:100%;}
     `;
     document.head.appendChild(style);
   }
 
-  window.addEventListener('load', initFilter);
+  window.addEventListener('load', () => {
+    setTimeout(init, 600);
+  });
 
-  function initFilter(){
-    // 1. نوقف دالة الرسم القديمة عشان ما ترسم كل البيانات
-    const oldRender = window.renderTable;
-    window.renderTable = function(id, data){
-      // لا تسوي شيء لو البيانات فاضية وجاية من التحميل الاولي
-      if(!data &&!id.includes('skip')) return oldRender(id, []);
-    };
-
-    // 2. نجيب البيانات يدوياً ونفلترها
-    setTimeout(async () => {
-      await loadAndFilterToday();
-      buildFilters();
-    }, 500);
-  }
-
-  async function loadAndFilterToday(){
+  async function init(){
     const today = new Date().toISOString().split('T')[0];
-    const fromTime = new Date(today + 'T00:00:00').getTime();
-    const toTime = new Date(today + 'T23:59:59').getTime();
 
+    // 1. جيب البيانات مرة وحدة
     const snap = await get(ref(db, 'transactions'));
     if(!snap.exists()) return;
-
     const allData = Object.values(snap.val());
-    window.tableDataCache = window.tableDataCache || {};
-
-    tables.forEach(id => {
-      let data = allData;
-
-      // فلتر حسب نوع الجدول والمستخدم
-      if(id.startsWith('staff')) data = data.filter(d => d.userId === currentUser.uid);
-      if(id.includes('Buy')) data = data.filter(d => d.type === 'buy');
-      if(id.includes('Sell')) data = data.filter(d => d.type === 'sell');
-      if(id.includes('Deposit')) data = data.filter(d => d.type === 'deposit');
-      if(id.includes('Withdraw')) data = data.filter(d => d.type === 'withdraw');
-
-      // فلتر اليوم فقط
-      const filtered = data.filter(d => {
-        const t = Number(d.time);
-        return t >= fromTime && t <= toTime;
-      });
-
-      // خزن في الكاش وارسم اليوم فقط
-      window.tableDataCache[id] = data; // خزن الكل عشان الفلترة تشتغل بعدين
-      renderTable(id, filtered);
-    });
-  }
-
-  function buildFilters(){
-    const today = new Date().toISOString().split('T')[0];
 
     tables.forEach(id => {
       const tbl = document.getElementById(id);
       if(!tbl || document.getElementById('fb_' + id)) return;
 
-      // لف الجدول للسكرول
+      // 2. لف الجدول للسكرول
       if(!tbl.parentElement.classList.contains('tableScroll')){
         const wrap = document.createElement('div');
         wrap.className = 'tableScroll';
         tbl.parentNode.insertBefore(wrap, tbl);
         wrap.appendChild(tbl);
       }
-
-      // حط بوكس الفلترة برا السكرول
       const wrap = tbl.parentElement;
+
+      // 3. حط البوكس قبل الجدول داخل الـwrap
       wrap.insertAdjacentHTML('beforebegin', `
         <div id="fb_${id}" class="filterBox">
           <span>من</span>
@@ -2016,26 +1982,45 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
         </div>
       `);
 
-      document.getElementById('fbtn_' + id).onclick = () => doFilter(id);
+      // 4. اربط الازرار
+      document.getElementById('fbtn_' + id).onclick = () => filterTable(id, allData);
       document.getElementById('cbtn_' + id).onclick = () => {
         document.getElementById('from_' + id).value = today;
         document.getElementById('to_' + id).value = today;
-        doFilter(id);
+        filterTable(id, allData);
       };
+
+      // 5. ارسم اليوم فقط اول ما يفتح
+      filterTable(id, allData);
     });
+
+    // 6. عطل دوال التحميل القديمة عشان ما ترسم كل البيانات
+    if(typeof loadStaffTransactions === 'function') window.loadStaffTransactions = () => {};
+    if(typeof loadTransactions === 'function') window.loadTransactions = () => {};
   }
 
-  async function doFilter(tableId){
-    const fromTime = new Date(document.getElementById('from_' + tableId).value + 'T00:00:00').getTime();
-    const toTime = new Date(document.getElementById('to_' + tableId).value + 'T23:59:59').getTime();
-    const allData = window.tableDataCache[tableId] || [];
+  function filterTable(tableId, allData){
+    const fromVal = document.getElementById('from_' + tableId).value;
+    const toVal = document.getElementById('to_' + tableId).value;
+    const fromTime = new Date(fromVal + 'T00:00:00').getTime();
+    const toTime = new Date(toVal + 'T23:59:59').getTime();
 
-    const filtered = allData.filter(d => {
+    let data = allData;
+    if(tableId.startsWith('staff')) data = data.filter(d => d.userId === currentUser.uid);
+    if(tableId.includes('Buy')) data = data.filter(d => d.type === 'buy');
+    if(tableId.includes('Sell')) data = data.filter(d => d.type === 'sell');
+    if(tableId.includes('Deposit')) data = data.filter(d => d.type === 'deposit');
+    if(tableId.includes('Withdraw')) data = data.filter(d => d.type === 'withdraw');
+
+    const filtered = data.filter(d => {
       const t = Number(d.time);
       return t >= fromTime && t <= toTime;
     });
 
-    renderTable(tableId, filtered);
+    // استدعي الرسم الاصلي بالبيانات المفلترة
+    if(typeof renderTable === 'function'){
+      renderTable(tableId, filtered);
+    }
   }
 })();
 
