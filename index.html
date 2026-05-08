@@ -266,7 +266,8 @@ table.table-selected {
   outline-offset: -2px;
 }
     
-    .buy-form{
+ .buy-form,
+.sell-form{
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -274,7 +275,10 @@ table.table-selected {
 
 .buy-form input,
 .buy-form select,
-.buy-form button{
+.buy-form button,
+.sell-form input,
+.sell-form select,
+.sell-form button{
   width: 100%;
   box-sizing: border-box;
   height: 40px;
@@ -293,10 +297,13 @@ table.table-selected {
 
 .row-inline select,
 .row-inline input{
-  flex: 1; /* يخلي العملة والسعر يتقاسموا العرض */
+  flex: 1; 
 }
 
-#btnSaveStaffBuy{
+#btnSaveBuy,
+#btnSaveSell,
+#btnSaveStaffBuy,
+#btnSaveStaffSell{
   background: #00d26a;
   color: #000;
   font-weight: bold;
@@ -304,7 +311,10 @@ table.table-selected {
   cursor: pointer;
 }
 
-#btnSaveStaffBuy:active{
+#btnSaveBuy:active,
+#btnSaveSell:active,
+#btnSaveStaffBuy:active,
+#btnSaveStaffSell:active{
   opacity: 0.8;
 }
     
@@ -375,15 +385,26 @@ table.table-selected {
         <div class="tab" data-subtab="withdraw">صرف</div>
       </div>
 
-      <div id="buy" class="tab-content active">
-        <div class="card">
-          <div class="row">
-            <input type="number" id="buyAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
-            <select id="buyCurrency"></select>
-            <input type="text" id="buyRate" placeholder="السعر" readonly>
-            <input type="text" id="buyResult" placeholder="النتيجة" readonly>
-            <button id="btnSaveBuy">حفظ</button>
-          </div>
+     <div id="buy" class="tab-content active">
+  <div class="card">
+    <div class="buy-form">
+      <!-- الصف 1: المبلغ -->
+      <input type="number" id="buyAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
+      
+      <!-- الصف 2: العملة + السعر جنب بعض -->
+      <div class="row-inline">
+        <select id="buyCurrency"></select>
+        <input type="text" id="buyRate" placeholder="السعر" readonly>
+      </div>
+      
+      <!-- الصف 3: النتيجة -->
+      <input type="text" id="buyResult" placeholder="النتيجة" readonly>
+      
+      <!-- زر الحفظ -->
+      <button id="btnSaveBuy">حفظ</button>
+    </div>
+  </div>
+</div>
           <table id="buyTable">
             <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الموظف</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
@@ -394,15 +415,26 @@ table.table-selected {
         </div>
       </div>
 
-      <div id="sell" class="tab-content">
-        <div class="card">
-          <div class="row">
-            <input type="number" id="sellAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
-            <select id="sellCurrency"></select>
-            <input type="text" id="sellRate" placeholder="السعر" readonly>
-            <input type="text" id="sellResult" placeholder="النتيجة" readonly>
-            <button id="btnSaveSell">حفظ</button>
-          </div>
+     <div id="sell" class="tab-content">
+  <div class="card">
+    <div class="sell-form">
+      <!-- الصف 1: المبلغ -->
+      <input type="number" id="sellAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
+      
+      <!-- الصف 2: العملة + السعر جنب بعض -->
+      <div class="row-inline">
+        <select id="sellCurrency"></select>
+        <input type="text" id="sellRate" placeholder="السعر" readonly>
+      </div>
+      
+      <!-- الصف 3: النتيجة -->
+      <input type="text" id="sellResult" placeholder="النتيجة" readonly>
+      
+      <!-- زر الحفظ -->
+      <button id="btnSaveSell">حفظ</button>
+    </div>
+  </div>
+</div>
           <table id="sellTable">
             <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الموظف</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
@@ -649,15 +681,26 @@ table.table-selected {
         </div>
       </div>
 
-      <div id="staffSell" class="tab-content">
-        <div class="card">
-          <div class="row">
-            <input type="number" id="staffSellAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
-            <select id="staffSellCurrency"></select>
-            <input type="text" id="staffSellRate" placeholder="السعر" readonly>
-            <input type="text" id="staffSellResult" placeholder="النتيجة" readonly>
-            <button id="btnSaveStaffSell">حفظ</button>
-          </div>
+    <div id="staffSell" class="tab-content">
+  <div class="card">
+    <div class="sell-form">
+      <!-- الصف 1: المبلغ -->
+      <input type="number" id="staffSellAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
+      
+      <!-- الصف 2: العملة + السعر جنب بعض -->
+      <div class="row-inline">
+        <select id="staffSellCurrency"></select>
+        <input type="text" id="staffSellRate" placeholder="السعر" readonly>
+      </div>
+      
+      <!-- الصف 3: النتيجة -->
+      <input type="text" id="staffSellResult" placeholder="النتيجة" readonly>
+      
+      <!-- زر الحفظ -->
+      <button id="btnSaveStaffSell">حفظ</button>
+    </div>
+  </div>
+</div>
           <table id="staffSellTable">
             <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الوقت</th></tr></thead>
             <tbody></tbody>
@@ -2105,7 +2148,14 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
 /* ===== كود منفصل: يعرض بيانات اليوم فقط اول ما تفتح الصفحة ===== */
 /* ===== كود نهائي: يعرض بيانات اليوم فقط عند الدخول ===== */
 /* ===== فلترة اليوم فقط - يشتغل 100% ===== */
-(function(){
+/* ===== فلترة اليوم فقط - نسخة مضمونة ===== */
+(function waitForRender(){
+  // انتظر لحد ما renderTable و Firebase يجهزوا
+  if(typeof window.renderTable!== 'function' || typeof get === 'undefined' || typeof ref === 'undefined'){
+    setTimeout(waitForRender, 200);
+    return;
+  }
+
   const tables = [
     'buyTable','sellTable','depositTable','withdrawTable',
     'staffBuyTable','staffSellTable','staffDepositTable','staffWithdrawTable'
@@ -2115,47 +2165,51 @@ console.log("📌 SCRIPT LOADED SUCCESSFULLY");
   const fromTime = new Date(today + 'T00:00:00').getTime();
   const toTime = new Date(today + 'T23:59:59').getTime();
 
-  // 1. خزن دالة renderTable الاصلية
   const originalRender = window.renderTable;
-
-  // 2. استبدلها بدالة تلف عليها وتفلتر اليوم اول مرة
   let firstRun = true;
+
+  // لف على renderTable
   window.renderTable = async function(id, data){
-    // لو هذي اول مرة للجدول وما جاب بيانات مفلترة، فلتر على اليوم
-    if(firstRun && tables.includes(id) && (!data || data.length === 0 || data.length > 50)){
-      const snap = await get(ref(db, 'transactions'));
-      if(!snap.exists()) return originalRender(id, []);
+    try{
+      // فلتر اليوم فقط اول مرة فقط
+      if(firstRun && tables.includes(id)){
+        const snap = await get(ref(db, 'transactions'));
+        if(snap.exists()){
+          let allData = Object.values(snap.val());
 
-      let allData = Object.values(snap.val());
+          if(id.startsWith('staff')) allData = allData.filter(d => d.userId === currentUser.uid);
+          if(id.includes('Buy')) allData = allData.filter(d => d.type === 'buy');
+          if(id.includes('Sell')) allData = allData.filter(d => d.type === 'sell');
+          if(id.includes('Deposit')) allData = allData.filter(d => d.type === 'deposit');
+          if(id.includes('Withdraw')) allData = allData.filter(d => d.type === 'withdraw');
 
-      // فلتر حسب نوع الجدول والمستخدم
-      if(id.startsWith('staff')) allData = allData.filter(d => d.userId === currentUser.uid);
-      if(id.includes('Buy')) allData = allData.filter(d => d.type === 'buy');
-      if(id.includes('Sell')) allData = allData.filter(d => d.type === 'sell');
-      if(id.includes('Deposit')) allData = allData.filter(d => d.type === 'deposit');
-      if(id.includes('Withdraw')) allData = allData.filter(d => d.type === 'withdraw');
-
-      // فلتر اليوم فقط
-      data = allData.filter(d => {
-        const t = Number(d.time);
-        return t >= fromTime && t <= toTime;
-      });
+          data = allData.filter(d => {
+            const t = Number(d.time);
+            return t >= fromTime && t <= toTime;
+          });
+        } else {
+          data = [];
+        }
+      }
+    }catch(e){
+      console.error('Filter error:', e);
+      data = data || [];
     }
 
-    // استدعي الدالة الاصلية بالبيانات المفلترة
     return originalRender(id, data);
   };
 
-  // 3. لما الصفحة تتحمل، استدعي renderTable فاضي عشان يشغل الفلتر
+  // شغل اول رسم بعد التحميل
   window.addEventListener('load', () => {
     setTimeout(() => {
-      firstRun = false; // بعد اول مرة خليها تشتغل عادي
+      firstRun = false;
       tables.forEach(id => {
         if(document.getElementById(id)){
-          renderTable(id, null); // null عشان يعرف انه اول مرة
+          // استدعي الاصلية ببيانات فاضية عشان الكود حقنا يفلترها
+          originalRender(id, null);
         }
       });
-    }, 600);
+    }, 400);
   });
 
 })();
