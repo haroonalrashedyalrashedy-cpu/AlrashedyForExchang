@@ -1951,7 +1951,10 @@ function printPDF(type, tableId) {
     <body>
       <div class="header">
         <div class="logo-emoji">💰</div>
-        <h1>نظام الراشدي للصرافة</h1>
+
+               <h1>الراشدي للصرافة والتحويلات</h1>
+      
+      
         <p>${new Date().toLocaleString('ar-SA')}</p>
       </div>
       ${html}
@@ -2787,6 +2790,96 @@ function initReconcileTable() {
 document.addEventListener('DOMContentLoaded', initReconcileTable);
 
 
+
+
+// ========== نظام تعديل الاسعار + المزامنة المباشرة ==========
+// ===== نظام تعديل الاسعار والمزامنة - نسخة غير متعارضة =====
+(function(){
+  // 1. التحكم بالصلاحية بدون ما المس الكرت القديم
+  function toggleRateCards(show) {
+    const staffCard = document.getElementById('staffEditRateCard');
+    const adminCards = document.querySelectorAll('#permissions.card');
+
+    if (staffCard) staffCard.style.display = show? 'block' : 'none';
+
+    // الكرت الاول في الصلاحيات هو تعديل الاسعار
+    if (adminCards.length > 0) {
+      adminCards[0].style.display = show? 'block' : 'none';
+    }
+  }
+
+  // 2. المزامنة المباشرة - تستمع لـ Firebase بدون ما تكتب على القديم
+  function initRealtimeSync() {
+    // استمع للتغييرات من Firebase فقط
+    onValue(ref(db, 'rates'), (snap) => {
+      if (!snap.exists()) return;
+      const rates = snap.val();
+
+      // حدث الحقول حقت الشراء والبيع في كل التبويبات
+      ['buy', 'sell'].forEach(type => {
+        if (!rates[type]) return;
+        Object.keys(rates[type]).forEach(currency => {
+          const rate = rates[type][currency];
+          updateRateFields(type, currency, rate);
+        });
+      });
+    });
+
+    // استمع للتغييرات من تبويب ثاني عبر localStorage
+    window.addEventListener('storage', (e) => {
+      if (e.key && e.key.startsWith('rates/')) {
+        const data = JSON.parse(e.newValue);
+        updateRateFields(data.type, data.currency, data.rate);
+      }
+    });
+  }
+
+  // 3. تحديث الحقول في الواجهة
+  function updateRateFields(type, currency, rate) {
+    const fields = type === 'buy'
+     ? ['buyRate', 'staffBuyRate']
+      : ['sellRate', 'staffSellRate'];
+
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      const curEl = document.getElementById(id.replace('Rate', 'Currency'));
+      if (el && curEl && curEl.value === currency) {
+        el.value = rate;
+        // اعد حساب النتيجة لو موجودة
+        const calcId = id.replace('Rate', '');
+        if (typeof window.calcResult === 'function') {
+          window.calcResult(calcId);
+        }
+      }
+    });
+  }
+
+  // 4. ربط النظام بعد تسجيل الدخول
+  const oldInitAdmin = window.initAdminPanel;
+  window.initAdminPanel = function() {
+    oldInitAdmin && oldInitAdmin();
+    const canEdit = currentUser?.role === 'admin' || currentUser?.permissions?.editRate === true;
+    toggleRateCards(canEdit);
+    initRealtimeSync();
+  };
+
+  const oldInitStaff = window.initStaffPanel;
+  window.initStaffPanel = function() {
+    oldInitStaff && oldInitStaff();
+    const canEdit = currentUser?.permissions?.editRate === true;
+    toggleRateCards(canEdit);
+    initRealtimeSync();
+  };
+
+  // 5. كود احتياطي لو فتحت الصفحة والمستخدم مسجل دخول
+  document.addEventListener('DOMContentLoaded', () => {
+    if (currentUser) {
+      const canEdit = currentUser.role === 'admin' || currentUser.permissions?.editRate === true;
+      toggleRateCards(canEdit);
+      initRealtimeSync();
+    }
+  });
+})();
 
 
 
