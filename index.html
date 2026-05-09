@@ -3031,21 +3031,27 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadTransferCurrencies() {
   const sels = [document.getElementById('transCurr'), document.getElementById('payCurr')];
   
-  // استمع لـ rates بدل prices
-  onValue(ref(db, 'rates'), (snap) => {
+  // اقرأ rates مرة وحدة get عشان ما نعتمد على onValue
+  get(ref(db, 'rates')).then(snap => {
     let currencies = [];
-    
+
     if (snap.exists()) {
       const data = snap.val();
-      // rates = {buy: {USD: 530, SAR: 141}, sell: {...}}
       if (data.buy && typeof data.buy === 'object') {
         currencies = Object.keys(data.buy);
+      } else if (typeof data === 'object') {
+        currencies = Object.keys(data);
       }
     }
-    
-    // fallback لو rates فاضية
+
+    // fallback
     if (currencies.length === 0 && activeCurrencies && activeCurrencies.length > 0) {
       currencies = activeCurrencies;
+    }
+
+    // لو لسه فاضية، خليها YER SAR USD EUR كافتراضي
+    if (currencies.length === 0) {
+      currencies = ['YER', 'SAR', 'USD', 'EUR'];
     }
 
     sels.forEach(sel => {
@@ -3055,6 +3061,11 @@ document.addEventListener('DOMContentLoaded', () => {
         sel.innerHTML += `<option value="${cur}">${cur}</option>`;
       });
     });
+
+    console.log("📌 Currencies loaded:", currencies);
+  }).catch(err => {
+    console.error("loadTransferCurrencies error:", err);
+    showToast('خطأ في جلب العملات: ' + err.message);
   });
 }
 
