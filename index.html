@@ -3024,30 +3024,26 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSentTransfers();
     loadReceivedTransfers();
     loadPaidTransfers();
-    loadTransferCurrencies();
+  //  loadTransferCurrencies();
   });
 
   // 3. تعبئة العملات
   function loadTransferCurrencies() {
   const sels = [document.getElementById('transCurr'), document.getElementById('payCurr')];
   
-  // اسمع لتغييرات prices مباشرة من Firebase
-  onValue(ref(db, 'prices'), (snap) => {
+  // استمع لـ rates بدل prices
+  onValue(ref(db, 'rates'), (snap) => {
     let currencies = [];
     
     if (snap.exists()) {
       const data = snap.val();
-      // لو prices = {buy: {...}, sell: {...}}
+      // rates = {buy: {USD: 530, SAR: 141}, sell: {...}}
       if (data.buy && typeof data.buy === 'object') {
         currencies = Object.keys(data.buy);
-      } 
-      // لو prices = {USD: 1, SAR: 3.75}
-      else if (typeof data === 'object') {
-        currencies = Object.keys(data);
       }
     }
     
-    // لو لسه فاضية استخدم activeCurrencies كـ fallback
+    // fallback لو rates فاضية
     if (currencies.length === 0 && activeCurrencies && activeCurrencies.length > 0) {
       currencies = activeCurrencies;
     }
