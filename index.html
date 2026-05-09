@@ -1010,24 +1010,24 @@ async function loadSettings() {
   if (snap.exists()) {
     const s = snap.val();
     activeCurrencies = s.currencies || activeCurrencies;
+    
     if (s.colors) {
       document.documentElement.style.setProperty('--accent-green', s.colors.accent);
       document.documentElement.style.setProperty('--bg-dark', s.colors.bg);
-      document.getElementById('colorAccent').value = s.colors.accent;
-      document.getElementById('colorBg').value = s.colors.bg;
+      
+      // شيّك قبل ما تلمس العنصر
+      const accentEl = document.getElementById('colorAccent');
+      const bgEl = document.getElementById('colorBg');
+      if (accentEl) accentEl.value = s.colors.accent;
+      if (bgEl) bgEl.value = s.colors.bg;
     }
+    
+    // شيّك على التشيكات بعد
     document.querySelectorAll('.activeCurrency').forEach(cb => {
       cb.checked = activeCurrencies.includes(cb.value);
     });
-    console.log("📌 SETTINGS LOADED:", s);
-   
-    
-    
-    
   }
-  
-  loadTransferCurrencies();
-  
+  console.log("📌 SETTINGS LOADED:", activeCurrencies);
 }
 
 async function saveSettings() {
@@ -1276,7 +1276,7 @@ function initStaffPanel() {
   loadCurrencies();
 loadStaffTransactions();
   loadRatesRealtime(); 
- // loadTransferCurrencies();
+loadTransferCurrencies();
   // وضيفها هنا
   onValue(ref(db, `users/${currentUser.uid}/permissions`), (snap) => {
     const perms = snap.exists()? snap.val() : {};
@@ -3034,7 +3034,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadTransferCurrencies() {
   const sels = [document.getElementById('transCurr'), document.getElementById('payCurr')];
   
-  console.log("Currencies to load:", activeCurrencies); // للتجربة
+  console.log("Currencies to load:", activeCurrencies);
 
   sels.forEach(sel => {
     if (!sel) return;
@@ -3290,7 +3290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSentTransfers();
     loadReceivedTransfers();
     loadPaidTransfers();
-    loadTransferCurrencies();
+   //  loadTransferCurrencies();
   }
 
 }); // نهاية DOMContentLoaded
