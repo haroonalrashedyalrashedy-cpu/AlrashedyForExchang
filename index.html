@@ -652,176 +652,162 @@ table.table-selected {
   
   
 
-  <div id="staffScreen" class="screen">
-    <div class="header">
-      <span>موظف</span>
-      <span id="staffName">اسم الموظف</span>
-      <button id="btnLogoutStaff">خروج</button>
-    </div>
+<div id="staffScreen" class="screen">
+  <div class="header">
+    <span>موظف</span>
+    <span id="staffName">اسم الموظف</span>
+    <button id="btnLogoutStaff">خروج</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="staffOps">العمليات</div>
+    <div class="tab" data-tab="transfers">الحوالات</div>
+    <div class="tab" data-tab="staffMatch">المطابقات</div>
+    <div class="tab" data-tab="staffPerm">الصلاحيات</div>
+  </div>
+  
+  <!-- تبويب العمليات -->
+  <div id="staffOps" class="tab-content active">
     <div class="tabs">
-      <div class="tab active" data-tab="staffOps">العمليات</div>
-     
-     
-     <!-- الشريط العلوي - ضيف هذا السطر -->
-<div class="tab" data-tab="transfers">الحوالات</div>
-      <div class="tab" data-tab="staffMatch">المطابقات</div>
-      <div class="tab " data-tab="staffPerm">الصلاحيات</div>
-    </div>
-    
-    <div id="staffOps" class="tab-content active ">
-      <div class="tabs">
-        <div class="tab active" data-subtab="staffBuy">شراء</div>
-        <div class="tab " data-subtab="staffSell">بيع</div>
-        <div class="tab " data-subtab="staffDeposit">قبض</div>
-        <div class="tab " data-subtab="staffWithdraw">صرف</div>
-      </div>
-
-     <div id="staffBuy" class="tab-content active">
-  <div class="card">
-    <div class="buy-form">
-      <!-- الصف 1: المبلغ -->
-      <input type="number" id="staffBuyAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
-      
-      <!-- الصف 2: العملة + السعر جنب بعض -->
-      <div class="row-inline">
-        <select id="staffBuyCurrency"></select>
-        <input type="text" id="staffBuyRate" placeholder="السعر" readonly>
-      </div>
-      
-      <!-- الصف 3: النتيجة -->
-      <input type="text" id="staffBuyResult" placeholder="النتيجة" readonly>
-      
-      <!-- زر الحفظ -->
-      <button id="btnSaveStaffBuy">حفظ</button>
+      <div class="tab active" data-subtab="staffBuy">شراء</div>
+      <div class="tab" data-subtab="staffSell">بيع</div>
+      <div class="tab" data-subtab="staffDeposit">قبض</div>
+      <div class="tab" data-subtab="staffWithdraw">صرف</div>
     </div>
 
-          <table id="staffBuyTable">
-            <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
+    <div id="staffBuy" class="tab-content active">
+      <div class="card">
+        <div class="buy-form">
+          <input type="number" id="staffBuyAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
+          <div class="row-inline">
+            <select id="staffBuyCurrency"></select>
+            <input type="text" id="staffBuyRate" placeholder="السعر" readonly>
+          </div>
+          <input type="text" id="staffBuyResult" placeholder="النتيجة" readonly>
+          <button id="btnSaveStaffBuy">حفظ</button>
         </div>
+
+        <table id="staffBuyTable">
+          <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الوقت</th></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
+    </div>
 
     <div id="staffSell" class="tab-content">
-  <div class="card">
-    <div class="sell-form">
-      <!-- الصف 1: المبلغ -->
-      <input type="number" id="staffSellAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
-      
-      <!-- الصف 2: العملة + السعر جنب بعض -->
-      <div class="row-inline">
-        <select id="staffSellCurrency"></select>
-        <input type="text" id="staffSellRate" placeholder="السعر" readonly>
-      </div>
-      
-      <!-- الصف 3: النتيجة -->
-      <input type="text" id="staffSellResult" placeholder="النتيجة" readonly>
-      
-      <!-- زر الحفظ -->
-      <button id="btnSaveStaffSell">حفظ</button>
-    </div>
+      <div class="card">
+        <div class="sell-form">
+          <input type="number" id="staffSellAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
+          <div class="row-inline">
+            <select id="staffSellCurrency"></select>
+            <input type="text" id="staffSellRate" placeholder="السعر" readonly>
+          </div>
+          <input type="text" id="staffSellResult" placeholder="النتيجة" readonly>
+          <button id="btnSaveStaffSell">حفظ</button>
+        </div>
  
-          <table id="staffSellTable">
-            <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div id="staffDeposit" class="tab-content">
-        <div class="card">
-          <div class="row">
-            <select id="staffDepositAccount" class="searchable"></select>
-            <input type="number" id="staffDepositAmount" placeholder="المبلغ" inputmode="numeric">
-            <select id="staffDepositCurrency"></select>
-            <button id="btnSaveStaffDeposit">حفظ</button>
-          </div>
-          <table id="staffDepositTable">
-            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div id="staffWithdraw" class="tab-content">
-        <div class="card">
-          <div class="row">
-            <select id="staffWithdrawAccount" class="searchable"></select>
-            <input type="number" id="staffWithdrawAmount" placeholder="المبلغ" inputmode="numeric">
-            <select id="staffWithdrawCurrency"></select>
-            <button id="btnSaveStaffWithdraw">حفظ</button>
-          </div>
-          <table id="staffWithdrawTable">
-            <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
+        <table id="staffSellTable">
+          <thead><tr><th>المبلغ</th><th>السعر</th><th>النتيجة</th><th>الوقت</th></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
 
-    <div id="staffMatch" class="tab-content">
+    <div id="staffDeposit" class="tab-content">
       <div class="card">
         <div class="row">
-          <select id="staffMatchCurrency"></select>
-          <input type="number" id="staffActualBalance" placeholder="الرصيد في الواقع" inputmode="decimal">
-          <input type="text" id="staffSystemBalance" placeholder="رصيد النظام" readonly>
-          <input type="text" id="staffDiff" placeholder="الفرق" readonly>
-          <button id="btnDoMatch">مطابقة</button>
+          <select id="staffDepositAccount" class="searchable"></select>
+          <input type="number" id="staffDepositAmount" placeholder="المبلغ" inputmode="numeric">
+          <select id="staffDepositCurrency"></select>
+          <button id="btnSaveStaffDeposit">حفظ</button>
         </div>
+        <table id="staffDepositTable">
+          <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
 
- <div id="staffPerm" class="tab-content">
-        
-  <div class="card">
-    <h3>انشاء حساب عميل</h3>
-    <div class="row">
-      <input type="text" id="staffAccName" placeholder="اسم العميل">
-      <input type="number" id="staffAccPhone" placeholder="رقم الهاتف" inputmode="numeric">
-    </div>
-    <div class="row">
-      <label><input type="checkbox" value="YER" class="staffAccCurrency"> ريال يمني</label>
-      <label><input type="checkbox" value="SAR" class="staffAccCurrency"> ريال سعودي</label>
-      <label><input type="checkbox" value="USD" class="staffAccCurrency"> دولار</label>
-      <label><input type="checkbox" value="EUR" class="staffAccCurrency"> يورو</label>
-    </div>
-    <button id="btnStaffCreateAcc">حفظ الحساب</button>
-  </div>
-
-  <div class="card">
-    <h3>تغيير كلمة المرور</h3>
-    <div class="row">
-      <input type="password" id="staffNewPass" placeholder="كلمة المرور الجديدة" inputmode="numeric">
-      <button id="btnChangeStaffPass">حفظ</button>
+    <div id="staffWithdraw" class="tab-content">
+      <div class="card">
+        <div class="row">
+          <select id="staffWithdrawAccount" class="searchable"></select>
+          <input type="number" id="staffWithdrawAmount" placeholder="المبلغ" inputmode="numeric">
+          <select id="staffWithdrawCurrency"></select>
+          <button id="btnSaveStaffWithdraw">حفظ</button>
+        </div>
+        <table id="staffWithdrawTable">
+          <thead><tr><th>الحساب</th><th>المبلغ</th><th>العملة</th><th>الوقت</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
+  <!-- تبويب المطابقات -->
+  <div id="staffMatch" class="tab-content">
+    <div class="card">
+      <div class="row">
+        <select id="staffMatchCurrency"></select>
+        <input type="number" id="staffActualBalance" placeholder="الرصيد في الواقع" inputmode="decimal">
+        <input type="text" id="staffSystemBalance" placeholder="رصيد النظام" readonly>
+        <input type="text" id="staffDiff" placeholder="الفرق" readonly>
+        <button id="btnDoMatch">مطابقة</button>
+      </div>
+    </div>
+  </div>
 
-  </div> <!-- نهاية staffPerm -->
+  <!-- تبويب الصلاحيات -->
+  <div id="staffPerm" class="tab-content">
+    <div class="card">
+      <h3>انشاء حساب عميل</h3>
+      <div class="row">
+        <input type="text" id="staffAccName" placeholder="اسم العميل">
+        <input type="number" id="staffAccPhone" placeholder="رقم الهاتف" inputmode="numeric">
+      </div>
+      <div class="row">
+        <label><input type="checkbox" value="YER" class="staffAccCurrency"> ريال يمني</label>
+        <label><input type="checkbox" value="SAR" class="staffAccCurrency"> ريال سعودي</label>
+        <label><input type="checkbox" value="USD" class="staffAccCurrency"> دولار</label>
+        <label><input type="checkbox" value="EUR" class="staffAccCurrency"> يورو</label>
+      </div>
+      <button id="btnStaffCreateAcc">حفظ الحساب</button>
+    </div>
+
+    <div class="card">
+      <h3>تغيير كلمة المرور</h3>
+      <div class="row">
+        <input type="password" id="staffNewPass" placeholder="كلمة المرور الجديدة" inputmode="numeric">
+        <button id="btnChangeStaffPass">حفظ</button>
+      </div>
+    </div>
+  </div>
 
   <!-- تبويب الحوالات -->
   <div id="tab-transfers" class="tab-content hidden">
     <div class="subtabs">
-      <button class="subtab-btn active" data-subtab="send">إرسال الحوالات</button>
+      <button class="subtab-btn" data-subtab="send">إرسال الحوالات</button>
       <button class="subtab-btn" data-subtab="receive">استلام الحوالات</button>
       <button class="subtab-btn" data-subtab="pay">دفع الحوالات</button>
     </div>
 
-    <!-- تبويب ارسال الحوالات -->
-    <div id="subtab-send" class="subtab-content">
+    <!-- تبويب الإرسال -->
+    <div id="subtab-send" class="subtab-content hidden">
       <div class="card">
         <div class="grid">
           <div class="field">
             <label>اسم المستلم</label>
-            <input type="text" id="trReceiver" placeholder="محمد أحمد">
+            <input type="text" id="trReceiver" placeholder="اسم المستلم">
           </div>
           <div class="field">
             <label>اسم المرسل</label>
-            <input type="text" id="trSender" placeholder="خالد سالم">
+            <input type="text" id="trSender" placeholder="اسم المرسل">
           </div>
+        </div>
+        <div class="grid">
           <div class="field">
             <label>المبلغ</label>
-            <input type="number" id="trAmount" placeholder="0">
+            <input type="number" id="trAmount" placeholder="0" min="0">
           </div>
           <div class="field">
             <label>العملة</label>
@@ -833,18 +819,11 @@ table.table-selected {
       </div>
 
       <div class="card">
-        <h3>الحوالات المرسلة</h3>
+        <h3>سجل الحوالات المرسلة</h3>
         <div class="table-wrap">
           <table id="tblSent">
             <thead>
-              <tr>
-                <th>رقم الحوالة</th>
-                <th>المبلغ</th>
-                <th>العملة</th>
-                <th>المستلم</th>
-                <th>المرسل</th>
-                <th>الوقت</th>
-              </tr>
+              <tr><th>رقم الحوالة</th><th>المبلغ</th><th>العملة</th><th>المستلم</th><th>المرسل</th><th>التاريخ</th></tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -852,23 +831,21 @@ table.table-selected {
       </div>
     </div>
 
-    <!-- تبويب استلام الحوالات -->
+    <!-- تبويب الاستلام -->
     <div id="subtab-receive" class="subtab-content hidden">
       <div class="card">
-        <div class="grid">
-          <div class="field">
-            <label>رقم الحوالة</label>
-            <input type="number" id="trSearchId" placeholder="150123">
-          </div>
-          <button id="btnSearchTransfer" class="btn-secondary">بحث</button>
+        <div class="field">
+          <label>رقم الحوالة</label>
+          <input type="text" id="trSearchId" placeholder="ادخل رقم الحوالة">
         </div>
+        <button id="btnSearchTransfer" class="btn-secondary">بحث</button>
         <div class="grid">
           <div class="field">
-            <label>اسم المستلم</label>
+            <label>المستلم</label>
             <input type="text" id="trRcvReceiver" readonly>
           </div>
           <div class="field">
-            <label>اسم المرسل</label>
+            <label>المرسل</label>
             <input type="text" id="trRcvSender" readonly>
           </div>
         </div>
@@ -877,18 +854,11 @@ table.table-selected {
       </div>
 
       <div class="card">
-        <h3>الحوالات المستلمة</h3>
+        <h3>سجل الحوالات المستلمة</h3>
         <div class="table-wrap">
           <table id="tblReceived">
             <thead>
-              <tr>
-                <th>رقم الحوالة</th>
-                <th>المبلغ</th>
-                <th>العملة</th>
-                <th>المستلم</th>
-                <th>المرسل</th>
-                <th>الوقت</th>
-              </tr>
+              <tr><th>رقم الحوالة</th><th>المبلغ</th><th>العملة</th><th>المستلم</th><th>المرسل</th><th>التاريخ</th></tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -896,13 +866,13 @@ table.table-selected {
       </div>
     </div>
 
-    <!-- تبويب دفع الحوالات -->
+    <!-- تبويب الدفع -->
     <div id="subtab-pay" class="subtab-content hidden">
       <div class="card">
         <div class="grid">
           <div class="field">
             <label>رقم الحوالة</label>
-         <input type="text" id="payTrId" placeholder="ادخل رقم الحوالة" inputmode="numeric">
+            <input type="text" id="payTrId" placeholder="ادخل رقم الحوالة" inputmode="numeric">
           </div>
         </div>
         <div class="grid">
@@ -928,12 +898,7 @@ table.table-selected {
         <div class="table-wrap">
           <table id="tblPaid">
             <thead>
-              <tr>
-                <th>رقم الحوالة</th>
-                <th>المبلغ</th>
-                <th>العملة</th>
-                <th>اسم المستلم</th>
-              </tr>
+              <tr><th>رقم الحوالة</th><th>المبلغ</th><th>العملة</th><th>اسم المستلم</th></tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -943,7 +908,6 @@ table.table-selected {
   </div>
 
 </div> <!-- نهاية staffScreen -->
-
 
 
 
@@ -3047,234 +3011,223 @@ document.addEventListener('DOMContentLoaded', initReconcileTable);
 
 
 // التنقل بين التبويبات الفرعية
-document.querySelectorAll('.subtab-btn').forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll('.subtab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.subtab-content').forEach(s => s.classList.add('hidden'));
-    btn.classList.add('active');
-    document.getElementById('subtab-' + btn.dataset.subtab).classList.remove('hidden');
-  }
-});
+document.addEventListener('DOMContentLoaded', () => {
 
-// تعبئة العملات
-function loadTransferCurrencies() {
-  const sels = [document.getElementById('trCurrency'), document.getElementById('payCurrency')];
-  sels.forEach(sel => {
-    if (!sel) return;
-    sel.innerHTML = '';
-    Object.keys(prices || {}).forEach(cur => {
-      sel.innerHTML += `<option value="${cur}">${cur}</option>`;
-    });
+  // Toggle التبويبات الفرعية
+  document.querySelectorAll('.subtab-btn').forEach(btn => {
+    btn.onclick = () => {
+      const targetId = 'subtab-' + btn.dataset.subtab;
+      const targetContent = document.getElementById(targetId);
+      const isActive = btn.classList.contains('active');
+
+      if (isActive) {
+        btn.classList.remove('active');
+        targetContent.classList.add('hidden');
+        return;
+      }
+
+      document.querySelectorAll('.subtab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.subtab-content').forEach(s => s.classList.add('hidden'));
+      btn.classList.add('active');
+      targetContent.classList.remove('hidden');
+    }
   });
-}
 
-// توليد رقم حوالة 15 رقم
-function genTransferId() {
-  return '15' + Math.floor(1000000 + Math.random() * 9000000);
-}
+  // Toggle التبويب الرئيسي للحوالات
+  const transfersTabBtn = document.querySelector('[data-tab="transfers"]');
+  if (transfersTabBtn) {
+    transfersTabBtn.onclick = () => {
+      const tabContent = document.getElementById('tab-transfers');
+      const isHidden = tabContent.classList.contains('hidden');
 
-// 1. إرسال الحوالات
-document.getElementById('btnSendTransfer').onclick = async () => {
-  const receiver = document.getElementById('trReceiver').value.trim();
-  const sender = document.getElementById('trSender').value.trim();
-  const amount = parseFloat(document.getElementById('trAmount').value);
-  const currency = document.getElementById('trCurrency').value;
-  const msg = document.getElementById('sendMsg');
-
-  if (!receiver || !sender || !amount || amount <= 0) {
-    msg.textContent = 'املأ كل الحقول بشكل صحيح';
-    msg.className = 'msg err';
-    return;
+      if (isHidden) {
+        tabContent.classList.remove('hidden');
+        loadSentTransfers();
+        loadReceivedTransfers();
+        loadPaidTransfers();
+        loadTransferCurrencies();
+        document.querySelector('.subtab-btn[data-subtab="send"]')?.click();
+      } else {
+        tabContent.classList.add('hidden');
+      }
+    }
   }
 
-  const transferId = genTransferId();
-  const transfer = {
-    id: transferId, receiver, sender, amount, currency,
-    status: 'pending', createdAt: Date.now(), createdBy: currentUser.uid
+  // تعبئة العملات
+  window.loadTransferCurrencies = function() {
+    const sels = [document.getElementById('trCurrency'), document.getElementById('payCurrency')];
+    sels.forEach(sel => {
+      if (!sel) return;
+      sel.innerHTML = '';
+      Object.keys(prices || {}).forEach(cur => {
+        sel.innerHTML += `<option value="${cur}">${cur}</option>`;
+      });
+    });
+  }
+
+  // توليد رقم حوالة يبدأ بـ 15
+  window.genTransferId = function() {
+    return '15' + Math.floor(1000000 + Math.random() * 9000000);
+  }
+
+  // إرسال الحوالات
+  document.getElementById('btnSendTransfer').onclick = async () => {
+    const receiver = document.getElementById('trReceiver').value.trim();
+    const sender = document.getElementById('trSender').value.trim();
+    const amount = parseFloat(document.getElementById('trAmount').value);
+    const currency = document.getElementById('trCurrency').value;
+    const msg = document.getElementById('sendMsg');
+
+    if (!receiver || !sender || !amount || amount <= 0) {
+      msg.textContent = 'املأ كل الحقول بشكل صحيح';
+      msg.className = 'msg err';
+      return;
+    }
+
+    const transferId = genTransferId();
+    const transfer = {
+      id: transferId, receiver, sender, amount, currency,
+      status: 'pending', createdAt: Date.now(), createdBy: currentUser.uid
+    };
+
+    await set(ref(db, `transfers/${transferId}`), transfer);
+    const oldBal = await calcSystemBalance(currentUser.uid, currency);
+    await calcSystemBalance(currentUser.uid, currency, oldBal + amount);
+
+    msg.textContent = `تم الإرسال. رقم الحوالة: ${transferId}`;
+    msg.className = 'msg ok';
+    document.getElementById('trReceiver').value = '';
+    document.getElementById('trSender').value = '';
+    document.getElementById('trAmount').value = '';
+    loadSentTransfers();
   };
 
-  await set(ref(db, `transfers/${transferId}`), transfer);
-  
-  const oldBal = await calcSystemBalance(currentUser.uid, currency);
-  await calcSystemBalance(currentUser.uid, currency, oldBal + amount);
+  window.loadSentTransfers = async function() {
+    const snap = await get(ref(db, 'transfers'));
+    const tbody = document.querySelector('#tblSent tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!snap.exists()) return;
+    Object.values(snap.val())
+      .filter(t => t.createdBy === currentUser.uid && t.status === 'pending')
+      .sort((a,b) => b.createdAt - a.createdAt)
+      .forEach(t => {
+        tbody.innerHTML += `<tr>
+          <td>${t.id}</td><td>${t.amount}</td><td>${t.currency}</td>
+          <td>${t.receiver}</td><td>${t.sender}</td>
+          <td>${new Date(t.createdAt).toLocaleString('ar')}</td>
+        </tr>`;
+      });
+  }
 
-  msg.textContent = `تم الإرسال. رقم الحوالة: ${transferId}`;
-  msg.className = 'msg ok';
-  document.getElementById('trReceiver').value = '';
-  document.getElementById('trSender').value = '';
-  document.getElementById('trAmount').value = '';
-  loadSentTransfers();
-};
+  // استلام الحوالات
+  let currentTransfer = null;
+  document.getElementById('btnSearchTransfer').onclick = async () => {
+    const id = document.getElementById('trSearchId').value.trim();
+    const msg = document.getElementById('rcvMsg');
+    currentTransfer = null;
+    msg.textContent = '';
+    
+    if (!id) { msg.textContent = 'ادخل رقم الحوالة'; msg.className = 'msg err'; return; }
 
-async function loadSentTransfers() {
-  const snap = await get(ref(db, 'transfers'));
-  const tbody = document.querySelector('#tblSent tbody');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-  if (!snap.exists()) return;
-  Object.values(snap.val())
-    .filter(t => t.createdBy === currentUser.uid && t.status === 'pending')
-    .sort((a,b) => b.createdAt - a.createdAt)
-    .forEach(t => {
-      tbody.innerHTML += `<tr>
-        <td>${t.id}</td><td>${t.amount}</td><td>${t.currency}</td>
-        <td>${t.receiver}</td><td>${t.sender}</td>
-        <td>${new Date(t.createdAt).toLocaleString('ar')}</td>
-      </tr>`;
+    const snap = await get(ref(db, `transfers/${id}`));
+    if (!snap.exists()) { msg.textContent = 'الحوالة غير موجودة'; msg.className = 'msg err'; return; }
+
+    const t = snap.val();
+    if (t.status === 'received') { msg.textContent = 'الحوالة مستلمة مسبقاً'; msg.className = 'msg err'; return; }
+
+    currentTransfer = t;
+    document.getElementById('trRcvReceiver').value = t.receiver;
+    document.getElementById('trRcvSender').value = t.sender;
+    document.getElementById('btnReceiveTransfer').disabled = false;
+    msg.textContent = 'تم العثور على الحوالة';
+    msg.className = 'msg ok';
+  };
+
+  document.getElementById('btnReceiveTransfer').onclick = async () => {
+    if (!currentTransfer) return;
+    await update(ref(db, `transfers/${currentTransfer.id}`), {
+      status: 'received', receivedAt: Date.now(), receivedBy: currentUser.uid
     });
-}
+    
+    const oldBal = await calcSystemBalance(currentUser.uid, currentTransfer.currency);
+    await calcSystemBalance(currentUser.uid, currentTransfer.currency, oldBal - currentTransfer.amount);
+    
+    document.getElementById('rcvMsg').textContent = 'تم الاستلام بنجاح';
+    document.getElementById('rcvMsg').className = 'msg ok';
+    document.getElementById('btnReceiveTransfer').disabled = true;
+    loadReceivedTransfers();
+    loadSentTransfers();
+  };
 
-// 2. استلام الحوالات
-let currentTransfer = null;
-document.getElementById('btnSearchTransfer').onclick = async () => {
-  const id = document.getElementById('trSearchId').value.trim();
-  const msg = document.getElementById('rcvMsg');
-  currentTransfer = null;
-  msg.textContent = '';
-  
-  if (!id) { 
-    msg.textContent = 'ادخل رقم الحوالة'; 
-    msg.className = 'msg err'; 
-    return; 
+  window.loadReceivedTransfers = async function() {
+    const snap = await get(ref(db, 'transfers'));
+    const tbody = document.querySelector('#tblReceived tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!snap.exists()) return;
+    Object.values(snap.val())
+      .filter(t => t.receivedBy === currentUser.uid && t.status === 'received')
+      .sort((a,b) => b.receivedAt - a.receivedAt)
+      .forEach(t => {
+        tbody.innerHTML += `<tr>
+          <td>${t.id}</td><td>${t.amount}</td><td>${t.currency}</td>
+          <td>${t.receiver}</td><td>${t.sender}</td>
+          <td>${new Date(t.receivedAt).toLocaleString('ar')}</td>
+        </tr>`;
+      });
   }
 
-  const snap = await get(ref(db, `transfers/${id}`));
-  if (!snap.exists()) { 
-    msg.textContent = 'الحوالة غير موجودة'; 
-    msg.className = 'msg err'; 
-    return; 
-  }
+  // دفع الحوالات
+  document.getElementById('btnPayTransfer').onclick = async () => {
+    const trId = document.getElementById('payTrId').value.trim();
+    const amount = parseFloat(document.getElementById('payAmount').value);
+    const currency = document.getElementById('payCurrency').value;
+    const receiver = document.getElementById('payReceiver').value.trim();
+    const msg = document.getElementById('payMsg');
 
-  const t = snap.val();
-  if (t.status === 'received') { 
-    msg.textContent = 'الحوالة مستلمة مسبقاً'; 
-    msg.className = 'msg err'; 
-    return; 
-  }
+    if (!trId) { msg.textContent = 'ادخل رقم الحوالة'; msg.className = 'msg err'; return; }
+    if (!amount || amount <= 0) { msg.textContent = 'ادخل مبلغ صحيح'; msg.className = 'msg err'; return; }
+    if (!receiver) { msg.textContent = 'ادخل اسم المستلم'; msg.className = 'msg err'; return; }
 
-  currentTransfer = t;
-  document.getElementById('trRcvReceiver').value = t.receiver;
-  document.getElementById('trRcvSender').value = t.sender;
-  document.getElementById('btnReceiveTransfer').disabled = false;
-  msg.textContent = 'تم العثور على الحوالة';
-  msg.className = 'msg ok';
-};
+    const checkSnap = await get(ref(db, `paid_transfers/${trId}`));
+    if (checkSnap.exists()) { msg.textContent = 'الحوالة مدفوعة مسبقاً'; msg.className = 'msg err'; return; }
 
-document.getElementById('btnReceiveTransfer').onclick = async () => {
-  if (!currentTransfer) return;
-  
-  await update(ref(db, `transfers/${currentTransfer.id}`), {
-    status: 'received', 
-    receivedAt: Date.now(), 
-    receivedBy: currentUser.uid
-  });
-  
-  const oldBal = await calcSystemBalance(currentUser.uid, currentTransfer.currency);
-  await calcSystemBalance(currentUser.uid, currentTransfer.currency, oldBal - currentTransfer.amount);
-  
-  document.getElementById('rcvMsg').textContent = 'تم الاستلام بنجاح';
-  document.getElementById('rcvMsg').className = 'msg ok';
-  document.getElementById('btnReceiveTransfer').disabled = true;
-  loadReceivedTransfers();
-  loadSentTransfers();
-};
+    const bal = await calcSystemBalance(currentUser.uid, currency);
+    if (bal < amount) { msg.textContent = 'رصيدك غير كافي'; msg.className = 'msg err'; return; }
 
-async function loadReceivedTransfers() {
-  const snap = await get(ref(db, 'transfers'));
-  const tbody = document.querySelector('#tblReceived tbody');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-  if (!snap.exists()) return;
-  Object.values(snap.val())
-    .filter(t => t.receivedBy === currentUser.uid && t.status === 'received')
-    .sort((a,b) => b.receivedAt - a.receivedAt)
-    .forEach(t => {
-      tbody.innerHTML += `<tr>
-        <td>${t.id}</td><td>${t.amount}</td><td>${t.currency}</td>
-        <td>${t.receiver}</td><td>${t.sender}</td>
-        <td>${new Date(t.receivedAt).toLocaleString('ar')}</td>
-      </tr>`;
+    await set(ref(db, `paid_transfers/${trId}`), {
+      id: trId, amount, currency, receiver,
+      paidAt: Date.now(), paidBy: currentUser.uid
     });
-}
+    
+    await calcSystemBalance(currentUser.uid, currency, bal - amount);
 
-// 3. دفع الحوالات - ينقص الرصيد من النظام
-document.getElementById('btnPayTransfer').onclick = async () => {
-  const trId = document.getElementById('payTrId').value.trim();
-  const amount = parseFloat(document.getElementById('payAmount').value);
-  const currency = document.getElementById('payCurrency').value;
-  const receiver = document.getElementById('payReceiver').value.trim();
-  const msg = document.getElementById('payMsg');
+    msg.textContent = 'تم الدفع بنجاح';
+    msg.className = 'msg ok';
+    document.getElementById('payTrId').value = '';
+    document.getElementById('payAmount').value = '';
+    document.getElementById('payReceiver').value = '';
+    loadPaidTransfers();
+  };
 
-  if (!trId) { 
-    msg.textContent = 'ادخل رقم الحوالة'; 
-    msg.className = 'msg err'; 
-    return; 
-  }
-  if (!amount || amount <= 0) { 
-    msg.textContent = 'ادخل مبلغ صحيح'; 
-    msg.className = 'msg err'; 
-    return; 
-  }
-  if (!receiver) { 
-    msg.textContent = 'ادخل اسم المستلم'; 
-    msg.className = 'msg err'; 
-    return; 
-  }
-
-  const checkSnap = await get(ref(db, `paid_transfers/${trId}`));
-  if (checkSnap.exists()) { 
-    msg.textContent = 'الحوالة مدفوعة مسبقاً'; 
-    msg.className = 'msg err'; 
-    return; 
+  window.loadPaidTransfers = async function() {
+    const snap = await get(ref(db, 'paid_transfers'));
+    const tbody = document.querySelector('#tblPaid tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!snap.exists()) return;
+    Object.values(snap.val())
+      .filter(p => p.paidBy === currentUser.uid)
+      .sort((a,b) => b.paidAt - a.paidAt)
+      .forEach(p => {
+        tbody.innerHTML += `<tr>
+          <td>${p.id}</td><td>${p.amount}</td><td>${p.currency}</td><td>${p.receiver}</td>
+        </tr>`;
+      });
   }
 
-  const bal = await calcSystemBalance(currentUser.uid, currency);
-  if (bal < amount) { 
-    msg.textContent = 'رصيدك غير كافي'; 
-    msg.className = 'msg err'; 
-    return; 
-  }
-
-  await set(ref(db, `paid_transfers/${trId}`), {
-    id: trId, amount, currency, receiver,
-    paidAt: Date.now(), paidBy: currentUser.uid
-  });
-  
-  await calcSystemBalance(currentUser.uid, currency, bal - amount);
-
-  msg.textContent = 'تم الدفع بنجاح';
-  msg.className = 'msg ok';
-  document.getElementById('payTrId').value = '';
-  document.getElementById('payAmount').value = '';
-  document.getElementById('payReceiver').value = '';
-  loadPaidTransfers();
-};
-
-async function loadPaidTransfers() {
-  const snap = await get(ref(db, 'paid_transfers'));
-  const tbody = document.querySelector('#tblPaid tbody');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-  if (!snap.exists()) return;
-  Object.values(snap.val())
-    .filter(p => p.paidBy === currentUser.uid)
-    .sort((a,b) => b.paidAt - a.paidAt)
-    .forEach(p => {
-      tbody.innerHTML += `<tr>
-        <td>${p.id}</td><td>${p.amount}</td><td>${p.currency}</td><td>${p.receiver}</td>
-      </tr>`;
-    });
-}
-
-// تحميل البيانات لما تفتح تبويب الحوالات
-document.querySelector('[data-tab="transfers"]').onclick = () => {
-  loadSentTransfers();
-  loadReceivedTransfers();
-  loadPaidTransfers();
-  loadTransferCurrencies();
-};
-
-
+});
 
 </script>
 
