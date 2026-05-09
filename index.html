@@ -1276,7 +1276,7 @@ function initStaffPanel() {
   loadCurrencies();
 loadStaffTransactions();
   loadRatesRealtime(); 
-loadTransferCurrencies();
+//   loadTransferCurrencies();
   // وضيفها هنا
   onValue(ref(db, `users/${currentUser.uid}/permissions`), (snap) => {
     const perms = snap.exists()? snap.val() : {};
@@ -3027,33 +3027,29 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSentTransfers();
     loadReceivedTransfers();
     loadPaidTransfers();
-  //  loadTransferCurrencies();
+loadTransferCurrencies();
   });
 
   // 3. تعبئة العملات
-  function loadTransferCurrencies() {
+function loadTransferCurrencies() {
   const sels = [document.getElementById('transCurr'), document.getElementById('payCurr')];
-  
-  // لو activeCurrencies فاضية استخدم الافتراضي
-  const currencies = (activeCurrencies && activeCurrencies.length > 0) 
-    ? activeCurrencies 
+
+  // لو العناصر لسه ما نخلقت، جرب بعد 200ms
+  if (!sels[0] ||!sels[1]) {
+    setTimeout(loadTransferCurrencies, 200);
+    return;
+  }
+
+  const currencies = (activeCurrencies && activeCurrencies.length > 0)
+  ? activeCurrencies
     : ['YER', 'SAR', 'USD', 'EUR'];
-  
-  let done = false;
-  
+
   sels.forEach(sel => {
-    if (!sel) return;
     sel.innerHTML = '<option value="">اختر العملة</option>';
     currencies.forEach(cur => {
       sel.innerHTML += `<option value="${cur}">${cur}</option>`;
     });
-    done = true;
   });
-  
-  // لو ما لقا العناصر جرب مرة ثانية بعد 300ms
-  if (!done) {
-    setTimeout(loadTransferCurrencies, 300);
-  }
 }
 
   // 4. توليد رقم حوالة 6 ارقام يبدأ بـ 15
