@@ -3031,24 +3031,33 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadTransferCurrencies() {
   const sels = [document.getElementById('transCurr'), document.getElementById('payCurr')];
   
-  // خذ العملات بأمان بدون ما تضرب Error لو prices غير موجودة
-  let currencies = [];
-  
-  if (activeCurrencies && activeCurrencies.length > 0) {
-    currencies = activeCurrencies;
-  } else if (typeof prices !== 'undefined' && prices) {
-    if (prices.buy && typeof prices.buy === 'object') {
-      currencies = Object.keys(prices.buy);
-    } else if (typeof prices === 'object') {
-      currencies = Object.keys(prices);
+  // اسمع لتغييرات prices مباشرة من Firebase
+  onValue(ref(db, 'prices'), (snap) => {
+    let currencies = [];
+    
+    if (snap.exists()) {
+      const data = snap.val();
+      // لو prices = {buy: {...}, sell: {...}}
+      if (data.buy && typeof data.buy === 'object') {
+        currencies = Object.keys(data.buy);
+      } 
+      // لو prices = {USD: 1, SAR: 3.75}
+      else if (typeof data === 'object') {
+        currencies = Object.keys(data);
+      }
     }
-  }
+    
+    // لو لسه فاضية استخدم activeCurrencies كـ fallback
+    if (currencies.length === 0 && activeCurrencies && activeCurrencies.length > 0) {
+      currencies = activeCurrencies;
+    }
 
-  sels.forEach(sel => {
-    if (!sel) return;
-    sel.innerHTML = '<option value="">اختر العملة</option>';
-    currencies.forEach(cur => {
-      sel.innerHTML += `<option value="${cur}">${cur}</option>`;
+    sels.forEach(sel => {
+      if (!sel) return;
+      sel.innerHTML = '<option value="">اختر العملة</option>';
+      currencies.forEach(cur => {
+        sel.innerHTML += `<option value="${cur}">${cur}</option>`;
+      });
     });
   });
 }
