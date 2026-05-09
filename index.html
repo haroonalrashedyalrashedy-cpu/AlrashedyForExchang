@@ -1025,6 +1025,9 @@ async function loadSettings() {
     
     
   }
+  
+  loadTransferCurrencies();
+  
 }
 
 async function saveSettings() {
@@ -1273,7 +1276,7 @@ function initStaffPanel() {
   loadCurrencies();
 loadStaffTransactions();
   loadRatesRealtime(); 
-  loadTransferCurrencies();
+ // loadTransferCurrencies();
   // وضيفها هنا
   onValue(ref(db, `users/${currentUser.uid}/permissions`), (snap) => {
     const perms = snap.exists()? snap.val() : {};
@@ -3031,6 +3034,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadTransferCurrencies() {
   const sels = [document.getElementById('transCurr'), document.getElementById('payCurr')];
   
+  console.log("Currencies to load:", activeCurrencies); // للتجربة
+
   sels.forEach(sel => {
     if (!sel) return;
     sel.innerHTML = '<option value="">اختر العملة</option>';
