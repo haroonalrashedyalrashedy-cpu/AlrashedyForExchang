@@ -784,7 +784,7 @@ table.table-selected {
   </div>
 
   <!-- تبويب الحوالات -->
-  <div id="tab-transfers" class="tab-content hidden">
+ <div id="tab-transfers" class="tab-content hidden">
     <div class="subtabs">
       <button class="subtab-btn" data-subtab="send">إرسال الحوالات</button>
       <button class="subtab-btn" data-subtab="receive">استلام الحوالات</button>
@@ -3013,34 +3013,38 @@ document.addEventListener('DOMContentLoaded', initReconcileTable);
 // التنقل بين التبويبات الفرعية
 document.addEventListener('DOMContentLoaded', () => {
 
-  // 1. Toggle تبويب الحوالات الرئيسي
-  const transfersTabBtn = document.querySelector('.tab[data-tab="transfers"]');
-  const transfersContent = document.getElementById('tab-transfers');
+  // 1. كود التبويبات الرئيسية - معدل عشان يشتغل على كل التبويبات بما فيها الحوالات
+  document.querySelectorAll('.tabs > .tab[data-tab]').forEach(tabBtn => {
+    tabBtn.onclick = () => {
+      const targetId = 'tab-' + tabBtn.dataset.tab;
+      const targetContent = document.getElementById(targetId);
+      if (!targetContent) return;
 
-  if (transfersTabBtn && transfersContent) {
-    transfersTabBtn.onclick = () => {
-      const isHidden = transfersContent.classList.contains('hidden');
+      // اقفل كل التبويبات والمحتويات داخل staffScreen فقط
+      const parentScreen = tabBtn.closest('#staffScreen');
+      if (!parentScreen) return;
 
-      if (isHidden) {
-        // افتح تبويب الحوالات
-        transfersContent.classList.remove('hidden');
-        transfersTabBtn.classList.add('active');
-        
-        // حمّل البيانات وافتح اول تبويب فرعي
-        loadSentTransfers();
-        loadReceivedTransfers();
-        loadPaidTransfers();
-        loadTransferCurrencies();
+      parentScreen.querySelectorAll('.tabs > .tab[data-tab]').forEach(b => b.classList.remove('active'));
+      parentScreen.querySelectorAll('> .tab-content').forEach(s => s.classList.remove('active'));
+      parentScreen.querySelectorAll('> .tab-content').forEach(s => s.classList.add('hidden'));
+
+      // فعل التبويب والمحتوى المطلوب
+      tabBtn.classList.add('active');
+      targetContent.classList.add('active');
+      targetContent.classList.remove('hidden');
+
+      // لو فتحت الحوالات شغل الدوال حقها
+      if (tabBtn.dataset.tab === 'transfers') {
+        loadSentTransfers && loadSentTransfers();
+        loadReceivedTransfers && loadReceivedTransfers();
+        loadPaidTransfers && loadPaidTransfers();
+        loadTransferCurrencies && loadTransferCurrencies();
         document.querySelector('#tab-transfers .subtab-btn[data-subtab="send"]')?.click();
-      } else {
-        // اقفل تبويب الحوالات
-        transfersContent.classList.add('hidden');
-        transfersTabBtn.classList.remove('active');
       }
     }
-  }
+  });
 
-  // 2. Toggle التبويبات الفرعية حق الحوالات فقط
+  // 2. كود التبويبات الفرعية حق الحوالات فقط
   document.querySelectorAll('#tab-transfers .subtab-btn').forEach(btn => {
     btn.onclick = () => {
       const targetId = 'subtab-' + btn.dataset.subtab;
@@ -3061,7 +3065,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 3. تعبئة العملات
+  // 3. دوال الحوالات
   window.loadTransferCurrencies = function() {
     const sels = [document.getElementById('trCurrency'), document.getElementById('payCurrency')];
     sels.forEach(sel => {
@@ -3073,12 +3077,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 4. توليد رقم حوالة
   window.genTransferId = function() {
     return '15' + Math.floor(1000000 + Math.random() * 9000000);
   }
 
-  // 5. إرسال الحوالات
   document.getElementById('btnSendTransfer').onclick = async () => {
     const receiver = document.getElementById('trReceiver').value.trim();
     const sender = document.getElementById('trSender').value.trim();
@@ -3128,7 +3130,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  // 6. استلام الحوالات
   let currentTransfer = null;
   document.getElementById('btnSearchTransfer').onclick = async () => {
     const id = document.getElementById('trSearchId').value.trim();
@@ -3136,25 +3137,13 @@ document.addEventListener('DOMContentLoaded', () => {
     currentTransfer = null;
     msg.textContent = '';
     
-    if (!id) { 
-      msg.textContent = 'ادخل رقم الحوالة'; 
-      msg.className = 'msg err'; 
-      return; 
-    }
+    if (!id) { msg.textContent = 'ادخل رقم الحوالة'; msg.className = 'msg err'; return; }
 
     const snap = await get(ref(db, `transfers/${id}`));
-    if (!snap.exists()) { 
-      msg.textContent = 'الحوالة غير موجودة'; 
-      msg.className = 'msg err'; 
-      return; 
-    }
+    if (!snap.exists()) { msg.textContent = 'الحوالة غير موجودة'; msg.className = 'msg err'; return; }
 
     const t = snap.val();
-    if (t.status === 'received') { 
-      msg.textContent = 'الحوالة مستلمة مسبقاً'; 
-      msg.className = 'msg err'; 
-      return; 
-    }
+    if (t.status === 'received') { msg.textContent = 'الحوالة مستلمة مسبقاً'; msg.className = 'msg err'; return; }
 
     currentTransfer = t;
     document.getElementById('trRcvReceiver').value = t.receiver;
@@ -3166,11 +3155,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('btnReceiveTransfer').onclick = async () => {
     if (!currentTransfer) return;
-    
     await update(ref(db, `transfers/${currentTransfer.id}`), {
-      status: 'received', 
-      receivedAt: Date.now(), 
-      receivedBy: currentUser.uid
+      status: 'received', receivedAt: Date.now(), receivedBy: currentUser.uid
     });
     
     const oldBal = await calcSystemBalance(currentUser.uid, currentTransfer.currency);
@@ -3201,7 +3187,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
   }
 
-  // 7. دفع الحوالات
   document.getElementById('btnPayTransfer').onclick = async () => {
     const trId = document.getElementById('payTrId').value.trim();
     const amount = parseFloat(document.getElementById('payAmount').value);
