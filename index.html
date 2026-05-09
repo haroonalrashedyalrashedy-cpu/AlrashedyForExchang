@@ -1021,7 +1021,7 @@ async function loadSettings() {
     });
     console.log("📌 SETTINGS LOADED:", s);
    
-   loadTransferCurrencies(); 
+    
     
     
   }
@@ -3031,14 +3031,22 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadTransferCurrencies() {
   const sels = [document.getElementById('transCurr'), document.getElementById('payCurr')];
   
-  // خذ العملات من activeCurrencies او من prices لو فاضية
-  let currencies = (activeCurrencies && activeCurrencies.length > 0) 
-    ? activeCurrencies 
-    : (typeof prices !== 'undefined' ? Object.keys(prices.buy || prices) : []);
+  // خذ العملات بأمان بدون ما تضرب Error لو prices غير موجودة
+  let currencies = [];
+  
+  if (activeCurrencies && activeCurrencies.length > 0) {
+    currencies = activeCurrencies;
+  } else if (typeof prices !== 'undefined' && prices) {
+    if (prices.buy && typeof prices.buy === 'object') {
+      currencies = Object.keys(prices.buy);
+    } else if (typeof prices === 'object') {
+      currencies = Object.keys(prices);
+    }
+  }
 
   sels.forEach(sel => {
     if (!sel) return;
-    sel.innerHTML = '<option value="">اختر العملة</option>'; // خيار افتراضي
+    sel.innerHTML = '<option value="">اختر العملة</option>';
     currencies.forEach(cur => {
       sel.innerHTML += `<option value="${cur}">${cur}</option>`;
     });
