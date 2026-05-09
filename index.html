@@ -1020,6 +1020,10 @@ async function loadSettings() {
       cb.checked = activeCurrencies.includes(cb.value);
     });
     console.log("📌 SETTINGS LOADED:", s);
+   
+   loadTransferCurrencies(); 
+    
+    
   }
 }
 
@@ -1268,7 +1272,9 @@ function initStaffPanel() {
   loadAccounts();
   loadCurrencies();
 loadStaffTransactions();
-  loadRatesRealtime(); // وضيفها هنا
+  loadRatesRealtime(); 
+  loadTransferCurrencies();
+  // وضيفها هنا
   onValue(ref(db, `users/${currentUser.uid}/permissions`), (snap) => {
     const perms = snap.exists()? snap.val() : {};
     currentUser.permissions = perms;
@@ -3023,15 +3029,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 3. تعبئة العملات
   function loadTransferCurrencies() {
-    const sels = [document.getElementById('transCurr'), document.getElementById('payCurr')];
-    sels.forEach(sel => {
-      if (!sel) return;
-      sel.innerHTML = '';
-      (activeCurrencies || []).forEach(cur => {
-        sel.innerHTML += `<option value="${cur}">${cur}</option>`;
-      });
+  const sels = [document.getElementById('transCurr'), document.getElementById('payCurr')];
+  
+  // خذ العملات من activeCurrencies او من prices لو فاضية
+  let currencies = (activeCurrencies && activeCurrencies.length > 0) 
+    ? activeCurrencies 
+    : (typeof prices !== 'undefined' ? Object.keys(prices.buy || prices) : []);
+
+  sels.forEach(sel => {
+    if (!sel) return;
+    sel.innerHTML = '<option value="">اختر العملة</option>'; // خيار افتراضي
+    currencies.forEach(cur => {
+      sel.innerHTML += `<option value="${cur}">${cur}</option>`;
     });
-  }
+  });
+}
 
   // 4. توليد رقم حوالة 6 ارقام يبدأ بـ 15
   function genTransferId() {
