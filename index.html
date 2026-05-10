@@ -791,6 +791,50 @@ togglePass.addEventListener('click', () => {
 // 4. تسجيل الدخول
 
 
+// 4. تسجيل الدخول
+btnLogin.addEventListener('click', async () => {
+  const username = userSelect.value.trim();
+  const password = passwordInput.value.trim();
+
+  if (!username ||!password) {
+    alert('ادخل اسم المستخدم وكلمة المرور');
+    return;
+  }
+
+  const snap = await get(ref(db, `users/${username}`));
+  if (!snap.exists()) {
+    alert('المستخدم غير موجود');
+    return;
+  }
+
+  const user = snap.val();
+  if (user.active === false) {
+    alert('الحساب موقف');
+    return;
+  }
+  if (user.password!== password) {
+    alert('كلمة المرور خطأ');
+    return;
+  }
+
+  // نجح الدخول
+  currentUser = username;
+  currentRole = user.role;
+  loginScreen.classList.remove('active');
+
+  if (currentRole === 'admin') {
+    adminScreen.classList.add('active');
+    document.getElementById('adminName').textContent = user.name;
+    document.getElementById('adminRole').textContent = 'مدير';
+  } else {
+    alert('واجهة الموظف لسه ما جهزت');
+  }
+
+  passwordInput.value = '';
+});
+
+
+
 // 5. خروج
 btnLogoutAdmin.addEventListener('click', () => {
   currentUser = null;
@@ -955,25 +999,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+
+
 <script type="module">
+// سكربت إدارة الموظفين - مستقل وما يمسح شي من الكود القديم
 import { getDatabase, ref, set, get, update, remove, onValue }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-// قاعدة البيانات موجودة من الكود اللي فوق
-const db = getDatabase();
+const db_emp = getDatabase(); // اسم مختلف عشان ما يتعارض
 
-// ===== عناصر DOM =====
-const newEmpName = document.getElementById('newEmpName');
-const newEmpPass = document.getElementById('newEmpPass');
-const btnAddEmp = document.getElementById('btnAddEmp');
-const empSelect = document.getElementById('empSelect');
-const btnEditEmp = document.getElementById('btnEditEmp');
-const btnSuspendEmp = document.getElementById('btnSuspendEmp');
-const btnStopSuspendEmp = document.getElementById('btnStopSuspendEmp');
-const btnDeleteEmp = document.getElementById('btnDeleteEmp');
+// عناصر DOM - اسماء مختلفة عشان ما نتعارض
+const emp_newName = document.getElementById('newEmpName');
+const emp_newPass = document.getElementById('newEmpPass');
+const emp_btnAdd = document.getElementById('btnAddEmp');
+const emp_select = document.getElementById('empSelect');
+const emp_btnEdit = document.getElementById('btnEditEmp');
+const emp_btnSuspend = document.getElementById('btnSuspendEmp');
+const emp_btnUnSuspend = document.getElementById('btnStopSuspendEmp');
+const emp_btnDelete = document.getElementById('btnDeleteEmp');
+const emp_btnLogout = document.getElementById('btnLogoutAdmin');
 
-// ===== مودال عام =====
-function showModal(html, onConfirm) {
+// مودال وتوست لحالهم
+function emp_showModal(html, onConfirm) {
   let modal = document.getElementById('empModal');
   if (!modal) {
     modal = document.createElement('div');
@@ -983,19 +1035,19 @@ function showModal(html, onConfirm) {
   }
   modal.innerHTML = html + `
     <div class="row" style="margin-top:12px; justify-content:flex-end">
-      <button id="modalCancel">إلغاء</button>
-      <button id="modalConfirm" style="background:var(--accent-green)">موافق</button>
+      <button id="empModalCancel">إلغاء</button>
+      <button id="empModalConfirm" style="background:var(--accent-green)">موافق</button>
     </div>
   `;
   modal.classList.add('active');
-  document.getElementById('modalCancel').onclick = () => modal.classList.remove('active');
-  document.getElementById('modalConfirm').onclick = () => {
+  document.getElementById('empModalCancel').onclick = () => modal.classList.remove('active');
+  document.getElementById('empModalConfirm').onclick = () => {
     onConfirm();
     modal.classList.remove('active');
   };
 }
 
-function toast(msg) {
+function emp_toast(msg) {
   let t = document.getElementById('empToast');
   if (!t) {
     t = document.createElement('div');
@@ -1008,10 +1060,11 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// ===== 1. تحميل الموظفين في السلكت وتحديث لحظي =====
-const empRef = ref(db, 'users');
-onValue(empRef, (snap) => {
-  empSelect.innerHTML = '<option value="">اختر موظف</option>';
+// 1. تحديث قائمة الموظفين لحظي
+const emp_ref = ref(db_emp, 'users');
+onValue(emp_ref, (snap) => {
+  if (!emp_select) return;
+  emp_select.innerHTML = '<option value="">اختر موظف</option>';
   if (!snap.exists()) return;
 
   const users = snap.val();
@@ -1021,176 +1074,114 @@ onValue(empRef, (snap) => {
       const opt = document.createElement('option');
       opt.value = u;
       opt.textContent = u + status;
-      empSelect.appendChild(opt);
+      emp_select.appendChild(opt);
     }
   });
 
-  // لو الموظف المفتوح حالياً صار موقف، طرده
-  if (currentUser && currentRole === 'employee') {
-    const emp = users[currentUser];
+  // طرد الموظف لو صار موقف وهو فاتح
+  // نجيب المتغيرات من السكوب العام بدون ما نلمسها
+  if (window.currentUser && window.currentRole === 'employee') {
+    const emp = users[window.currentUser];
     if (emp && emp.active === false) {
       alert(`تم إيقاف حسابك\nالسبب: ${emp.suspendReason || 'بدون سبب'}`);
-      btnLogoutAdmin.click();
+      emp_btnLogout?.click();
     }
   }
 });
 
-// ===== 2. إضافة موظف =====
-btnAddEmp.onclick = async () => {
-  const name = newEmpName.value.trim();
-  const pass = newEmpPass.value.trim();
+// 2. إضافة موظف
+emp_btnAdd?.addEventListener('click', async () => {
+  const name = emp_newName.value.trim();
+  const pass = emp_newPass.value.trim();
 
-  if (!name ||!pass) {
-    toast('ادخل الاسم وكلمة المرور');
-    return;
-  }
-  if (!/^\d{3,8}$/.test(pass)) {
-    toast('كلمة المرور ارقام 3-8 خانات');
-    return;
-  }
+  if (!name ||!pass) { emp_toast('ادخل الاسم وكلمة المرور'); return; }
+  if (!/^\d{3,8}$/.test(pass)) { emp_toast('كلمة المرور ارقام 3-8 خانات'); return; }
 
-  const check = await get(ref(db, `users/${name}`));
-  if (check.exists()) {
-    toast('الاسم موجود مسبقاً');
-    return;
-  }
+  const check = await get(ref(db_emp, `users/${name}`));
+  if (check.exists()) { emp_toast('الاسم موجود مسبقاً'); return; }
 
-  await set(ref(db, `users/${name}`), {
+  await set(ref(db_emp, `users/${name}`), {
     name: name,
     password: pass,
     role: 'employee',
     active: true,
-    permissions: {}, // صلاحيات فاضية
+    permissions: {},
     createdAt: Date.now()
   });
 
-  toast('تم إضافة الموظف');
-  newEmpName.value = '';
-  newEmpPass.value = '';
-};
+  emp_toast('تم إضافة الموظف');
+  emp_newName.value = '';
+  emp_newPass.value = '';
+});
 
-// ===== 3. تعديل كلمة المرور =====
-btnEditEmp.onclick = async () => {
-  const username = empSelect.value;
-  if (!username) {
-    toast('اختر موظف اول');
-    return;
-  }
+// 3. تعديل كلمة المرور
+emp_btnEdit?.addEventListener('click', async () => {
+  const username = emp_select.value;
+  if (!username) { emp_toast('اختر موظف اول'); return; }
 
-  const snap = await get(ref(db, `users/${username}`));
+  const snap = await get(ref(db_emp, `users/${username}`));
   const emp = snap.val();
 
-  showModal(`
+  emp_showModal(`
     <h3>تعديل كلمة مرور ${username}</h3>
     <div class="row">
-      <input type="number" id="editPass" placeholder="كلمة المرور الجديدة"
+      <input type="number" id="empEditPass" placeholder="كلمة المرور الجديدة"
              value="${emp.password}" inputmode="numeric">
     </div>
   `, async () => {
-    const newPass = document.getElementById('editPass').value.trim();
-    if (!/^\d{3,8}$/.test(newPass)) {
-      toast('كلمة المرور ارقام 3-8 خانات');
-      return;
-    }
-    await update(ref(db, `users/${username}`), { password: newPass });
-    toast('تم تحديث كلمة المرور');
+    const newPass = document.getElementById('empEditPass').value.trim();
+    if (!/^\d{3,8}$/.test(newPass)) { emp_toast('كلمة المرور ارقام 3-8 خانات'); return; }
+    await update(ref(db_emp, `users/${username}`), { password: newPass });
+    emp_toast('تم تحديث كلمة المرور');
   });
-};
+});
 
-// ===== 4. إيقاف موظف =====
-btnSuspendEmp.onclick = async () => {
-  const username = empSelect.value;
-  if (!username) {
-    toast('اختر موظف اول');
-    return;
-  }
+// 4. إيقاف موظف
+emp_btnSuspend?.addEventListener('click', async () => {
+  const username = emp_select.value;
+  if (!username) { emp_toast('اختر موظف اول'); return; }
 
-  showModal(`
+  emp_showModal(`
     <h3>إيقاف ${username}</h3>
     <div class="row">
-      <input type="text" id="suspendReason" placeholder="سبب الإيقاف">
+      <input type="text" id="empSuspendReason" placeholder="سبب الإيقاف">
     </div>
   `, async () => {
-    const reason = document.getElementById('suspendReason').value.trim();
-    await update(ref(db, `users/${username}`), {
+    const reason = document.getElementById('empSuspendReason').value.trim();
+    await update(ref(db_emp, `users/${username}`), {
       active: false,
       suspendReason: reason || 'بدون سبب'
     });
-    toast('تم إيقاف الموظف');
-
-    // لو موقف نفسه وهو فاتح، طرده
-    if (currentUser === username) btnLogoutAdmin.click();
+    emp_toast('تم إيقاف الموظف');
+    if (window.currentUser === username) emp_btnLogout?.click();
   });
-};
+});
 
-// ===== 5. إلغاء الإيقاف =====
-btnStopSuspendEmp.onclick = async () => {
-  const username = empSelect.value;
-  if (!username) {
-    toast('اختر موظف اول');
-    return;
-  }
+// 5. إلغاء الإيقاف
+emp_btnUnSuspend?.addEventListener('click', async () => {
+  const username = emp_select.value;
+  if (!username) { emp_toast('اختر موظف اول'); return; }
 
-  await update(ref(db, `users/${username}`), {
+  await update(ref(db_emp, `users/${username}`), {
     active: true,
     suspendReason: null
   });
-  toast('تم إلغاء الإيقاف');
-};
+  emp_toast('تم إلغاء الإيقاف');
+});
 
-// ===== 6. حذف موظف =====
-btnDeleteEmp.onclick = async () => {
-  const username = empSelect.value;
-  if (!username) {
-    toast('اختر موظف اول');
-    return;
-  }
+// 6. حذف موظف
+emp_btnDelete?.addEventListener('click', async () => {
+  const username = emp_select.value;
+  if (!username) { emp_toast('اختر موظف اول'); return; }
 
-  showModal(`
+  emp_showModal(`
     <h3>تأكيد الحذف</h3>
     <p>هل انت متأكد من حذف ${username}؟ لا يمكن التراجع.</p>
   `, async () => {
-    await remove(ref(db, `users/${username}`));
-    toast('تم حذف الموظف');
+    await remove(ref(db_emp, `users/${username}`));
+    emp_toast('تم حذف الموظف');
   });
-};
-
-// ===== 7. تسجيل دخول الموظف + هيدر =====
-// عدّل دالة تسجيل الدخول القديمة عشان تدعم الموظف
-const oldLogin = btnLogin.onclick;
-btnLogin.onclick = async () => {
-  const username = userSelect.value.trim();
-  const password = passwordInput.value.trim();
-
-  const snap = await get(ref(db, `users/${username}`));
-  if (!snap.exists()) {
-    alert('المستخدم غير موجود');
-    return;
-  }
-
-  const user = snap.val();
-  if (user.active === false) {
-    alert(`الحساب موقف\nالسبب: ${user.suspendReason || 'بدون سبب'}`);
-    return;
-  }
-  if (user.password!== password) {
-    alert('كلمة المرور خطأ');
-    return;
-  }
-
-  currentUser = username;
-  currentRole = user.role;
-  loginScreen.classList.remove('active');
-  adminScreen.classList.add('active');
-
-  closeAllTabsOnLogin();
-
-  // هيدر ديناميكي
-  document.getElementById('adminName').textContent = user.name;
-  document.getElementById('adminRole').textContent = user.role === 'admin'? 'مدير' : 'موظف';
-
-  passwordInput.value = '';
-};
+});
 </script>
 
 
