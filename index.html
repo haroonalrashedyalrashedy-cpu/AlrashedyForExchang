@@ -859,7 +859,6 @@ loadUsers();
 document.addEventListener('DOMContentLoaded', () => {
   let hideTimer = null;
 
-  // دالة إعادة تعيين تايمر الاخفاء
   function resetHideTimer() {
     if (hideTimer) clearTimeout(hideTimer);
     hideTimer = setTimeout(() => {
@@ -871,7 +870,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 15000);
   }
 
-  // دالة التبويبات العامة
   function setupTabs(container, tabSelector, contentAttr, isSub = false) {
     const tabs = container.querySelectorAll(tabSelector);
     const contents = container.querySelectorAll('.tab-content');
@@ -885,11 +883,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const isActive = tab.classList.contains('active');
 
-        // شيل active من الكل في نفس المجموعة
+        // شيل active من نفس المجموعة فقط
         tabs.forEach(t => t.classList.remove('active'));
-        contents.forEach(c => c.classList.remove('active'));
+        contents.forEach(c => {
+          if (c.parentElement === container) c.classList.remove('active');
+        });
 
-        // لو كان مقفل افتحه، لو كان مفتوح خليه مقفل
+        // افتح لو كان مقفل، واقفل لو كان مفتوح
         if (!isActive) {
           tab.classList.add('active');
           const target = document.getElementById(targetId);
@@ -915,7 +915,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const diffY = e.changedTouches[0].clientY - startY;
             if (Math.abs(diffY) > Math.abs(diffX) || Math.abs(diffX) < 50) return;
 
-            const contentList = [...contents].filter(c => c.parentElement === container);
+            const parentContent = contentEl.parentElement;
+            const contentList = [...parentContent.querySelectorAll('.tab-content.sub')];
             const idx = contentList.findIndex(c => c.classList.contains('active'));
             if (idx === -1) return;
 
@@ -923,26 +924,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (nextIdx < 0) nextIdx = contentList.length - 1;
             if (nextIdx >= contentList.length) nextIdx = 0;
 
-            const nextContent = contentList[nextIdx];
-            if (nextContent) {
-              const nextTab = [...tabs].find(t => t.getAttribute(contentAttr) === nextContent.id);
-              if (nextTab) nextTab.click();
-            }
+            const nextTab = [...tabs].find(t => t.getAttribute(contentAttr) === contentList[nextIdx].id);
+            if (nextTab) nextTab.click();
           });
         }
       }
     });
   }
 
-  // 1. التبويبات الرئيسية - تفتح وتقفل عادي
+  // التبويبات الرئيسية
   setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab');
 
-  // 2. التبويبات الفرعية - تفتح وتقفل + سحب
+  // التبويبات الفرعية - لاحظ السيلكتور صار.subtabs.tab مش.subtabs.tab
   setupTabs(document.getElementById('operations'), '.subtabs.tab', 'data-subtab', true);
   setupTabs(document.getElementById('transfers'), '.subtabs.tab', 'data-subtab', true);
   setupTabs(document.getElementById('accounts'), '.subtabs.tab', 'data-subtab', true);
 
-  // 3. اظهار التبويبات الفرعية لما تفتح الرئيسي
+  // اظهار التبويبات الفرعية لما تفتح الرئيسي
   document.querySelectorAll('#adminScreen.tabs >.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       const targetSection = document.getElementById(tab.getAttribute('data-tab'));
@@ -951,25 +949,25 @@ document.addEventListener('DOMContentLoaded', () => {
       const subtabs = targetSection.querySelector('.subtabs');
       if (subtabs) {
         subtabs.style.display = 'flex';
+        // فعّل اول تبويب فرعي تلقائي
+        const firstSub = subtabs.querySelector('.tab');
+        if (firstSub) firstSub.click();
         resetHideTimer();
       }
     });
   });
 
-  // 4. اعادة تعيين التايمر عند اي تفاعل
+  // اعادة تعيين التايمر
   ['click', 'touchstart', 'scroll', 'keydown'].forEach(evt => {
     document.addEventListener(evt, resetHideTimer, {passive: true});
   });
 
-  // 5. اقفل كل التبويبات عند الدخول
-  function closeAllTabs() {
+  // اقفل كل التبويبات عند الدخول
+  window.closeAllTabsOnLogin = () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     document.querySelectorAll('.subtabs').forEach(sub => sub.style.display = 'none');
-  }
-
-  // ناديها بعد تسجيل الدخول
-  window.closeAllTabsOnLogin = closeAllTabs;
+  };
 });
 </script>
 
