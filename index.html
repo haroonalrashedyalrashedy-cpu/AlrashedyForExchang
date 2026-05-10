@@ -861,37 +861,40 @@ document.addEventListener('DOMContentLoaded', () => {
   function resetHideTimer() {
     if (hideTimer) clearTimeout(hideTimer);
     hideTimer = setTimeout(() => {
+      // اخفي التبويبات الفرعية
       document.querySelectorAll('.subtabs').forEach(sub => {
         sub.style.display = 'none';
         sub.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       });
-      document.querySelectorAll('.tab-content.sub').forEach(c => c.classList.remove('active'));
+      // اخفي الكروت الفرعية فقط
+      document.querySelectorAll('#operations >.tab-content, #transfers >.tab-content, #accounts >.tab-content')
+       .forEach(c => c.classList.remove('active'));
     }, 15000);
   }
 
   function setupTabs(container, tabSelector, contentAttr, isSub = false) {
     if (!container) return;
     const tabs = container.querySelectorAll(tabSelector);
-    const contents = container.querySelectorAll('.tab-content');
+    // مهم: خذ الكروت المباشرة فقط عشان ما تخرب الرئيسية
+    const contents = container.querySelectorAll(':scope >.tab-content');
 
     tabs.forEach(tab => {
       tab.addEventListener('click', (e) => {
         e.stopPropagation();
+        e.preventDefault();
 
         const targetId = tab.getAttribute(contentAttr);
-        if (!targetId) return;
+        const target = document.getElementById(targetId);
+        if (!target) return;
 
         const isActive = tab.classList.contains('active');
-        const target = document.getElementById(targetId);
 
         // شيل active من نفس المجموعة فقط
         tabs.forEach(t => t.classList.remove('active'));
-        contents.forEach(c => {
-          if (c.parentElement === container) c.classList.remove('active');
-        });
+        contents.forEach(c => c.classList.remove('active'));
 
         // افتح لو كان مقفل، اقفل لو كان مفتوح
-        if (!isActive && target) {
+        if (!isActive) {
           tab.classList.add('active');
           target.classList.add('active');
         }
@@ -899,7 +902,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isSub) resetHideTimer();
       });
 
-      // السحب الافقي على الكروت الفرعية فقط
+      // السحب الافقي للكروت الفرعية
       if (isSub) {
         let startX = 0, startY = 0;
         const contentEl = document.getElementById(tab.getAttribute(contentAttr));
@@ -915,8 +918,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const diffY = e.changedTouches[0].clientY - startY;
           if (Math.abs(diffY) > Math.abs(diffX) || Math.abs(diffX) < 50) return;
 
-          const parentContent = contentEl.parentElement;
-          const contentList = [...parentContent.querySelectorAll('.tab-content.sub')];
+          const parent = contentEl.parentElement;
+          const contentList = [...parent.querySelectorAll(':scope >.tab-content')];
           const idx = contentList.findIndex(c => c.classList.contains('active'));
           if (idx === -1) return;
 
@@ -924,8 +927,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (nextIdx < 0) nextIdx = contentList.length - 1;
           if (nextIdx >= contentList.length) nextIdx = 0;
 
-          const nextContent = contentList[nextIdx];
-          const nextTab = [...tabs].find(t => t.getAttribute(contentAttr) === nextContent.id);
+          const nextTab = [...tabs].find(t => t.getAttribute(contentAttr) === contentList[nextIdx].id);
           if (nextTab) nextTab.click();
         });
       }
@@ -957,7 +959,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 4. اعادة تعيين التايمر
+  // 4. اعادة تعيين التايمر عند اي تفاعل
   ['click', 'touchstart', 'scroll', 'keydown'].forEach(evt => {
     document.addEventListener(evt, resetHideTimer, {passive: true});
   });
