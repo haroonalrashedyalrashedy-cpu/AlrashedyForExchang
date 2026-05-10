@@ -759,6 +759,63 @@ async function createAdminIfMissing() {
 }
 createAdminIfMissing();
 
+
+
+
+
+
+
+
+
+const SYSTEM_BAL_PATH = 'systemBalance';
+const ACCOUNTS_PATH = 'accounts';
+const TRANSFERS_PENDING = 'transfers/pending';
+const TRANSFERS_RECEIVED = 'transfers/received';
+const OPS_PATH = 'ops';
+const RATES_PATH = 'rates';
+const RATE_LOGS_PATH = 'rateLogs';
+
+const getToday = () => new Date().toISOString().split('T')[0];
+
+async function getSystemBalance(currency) {
+  const snap = await get(ref(db, `${SYSTEM_BAL_PATH}/${currency}`));
+  return snap.val() || 0;
+}
+
+async function getAccountBalance(accId, currency) {
+  const snap = await get(ref(db, `${ACCOUNTS_PATH}/${accId}/currencies/${currency}`));
+  return snap.val() || 0;
+}
+
+async function updateSystemBalance(updates) {
+  const updatesObj = {};
+  for (const [cur, val] of Object.entries(updates)) {
+    const current = await getSystemBalance(cur);
+    const newVal = current + val;
+    if (newVal < 0) throw new Error(`رصيد النظام ${cur} لا يسمح`);
+    updatesObj[`${SYSTEM_BAL_PATH}/${cur}`] = newVal;
+  }
+  await update(ref(db), updatesObj);
+}
+
+async function updateAccountBalance(accId, currency, amount) {
+  const current = await getAccountBalance(accId, currency);
+  const newVal = current + amount;
+  if (newVal < 0) throw new Error(`رصيد الحساب ${currency} غير كافي`);
+  await update(ref(db, `${ACCOUNTS_PATH}/${accId}/currencies`), { [currency]: newVal });
+}
+
+
+
+
+
+
+
+
+
+
+
+
 // 2. تحميل المستخدمين لحظي للدروب داون
 function loadUsers() {
   const usersRef = ref(db, 'users');
@@ -1025,11 +1082,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // الترتيب المطلوب للعملات
 // ====== كود 1: إدارة الأسعار والعملات - يوم بيومه ======
 const CURRENCIES_AR = ["يمني", "ريال سعودي", "سعودي نقد", "دولار", "يورو"];
-const RATES_PATH = 'rates';
-const RATE_LOGS_PATH = 'rateLogs';
+
+
 
 // دالة تجيب تاريخ اليوم بصيغة YYYY-MM-DD
-const getToday = () => new Date().toISOString().split('T')[0];
+
 
 // تعبئة القوائم المنسدلة بالعربي
 function fillCurrencySelect(selectId) {
@@ -1273,11 +1330,10 @@ initRateLogFilter();
 
 
 // ====== كود 2: عمليات الشراء ======
-const SYSTEM_BAL_PATH = 'systemBalance';
-const OPS_PATH = 'ops';
+
 
 // دالة تجيب تاريخ اليوم بصيغة YYYY-MM-DD
-const getToday = () => new Date().toISOString().split('T')[0];
+
 
 // حساب الرصيد الحالي للعملة
 async function getBalance(currency) {
@@ -1405,11 +1461,10 @@ listenBuyOps();
 
 
 // ====== كود 3: عمليات البيع ======
-const SYSTEM_BAL_PATH = 'systemBalance';
-const OPS_PATH = 'ops';
+
+
 
 // دالة تجيب تاريخ اليوم بصيغة YYYY-MM-DD
-const getToday = () => new Date().toISOString().split('T')[0];
 
 // حساب الرصيد الحالي للعملة
 async function getBalance(currency) {
@@ -1540,38 +1595,20 @@ listenSellOps();
 
 
 // ====== كود 4: عمليات القبض/الإيداع ======
-const SYSTEM_BAL_PATH = 'systemBalance';
-const ACCOUNTS_PATH = 'accounts';
-const OPS_PATH = 'ops';
 
-const getToday = () => new Date().toISOString().split('T')[0];
+
+
+
+
 
 // جلب رصيد حساب معين
-async function getAccountBalance(accId, currency) {
-  const snap = await get(ref(db, `${ACCOUNTS_PATH}/${accId}/currencies/${currency}`));
-  return snap.val() || 0;
-}
+
 
 // تحديث رصيد النظام ذرياً
-async function updateSystemBalance(updates) {
-  const updatesObj = {};
-  for (const [cur, val] of Object.entries(updates)) {
-    const current = await get(ref(db, `${SYSTEM_BAL_PATH}/${cur}`)).then(s => s.val() || 0);
-    const newVal = current + val;
-    if (newVal < 0) throw new Error(`رصيد النظام ${cur} لا يسمح`);
-    updatesObj[`${SYSTEM_BAL_PATH}/${cur}`] = newVal;
-  }
-  await update(ref(db), updatesObj);
-}
+
 
 // تحديث رصيد الحساب تراكمي
-async function updateAccountBalance(accId, currency, amount) {
-  const current = await getAccountBalance(accId, currency);
-  const newVal = current + amount;
-  await update(ref(db, `${ACCOUNTS_PATH}/${accId}/currencies`), {
-    [currency]: newVal
-  });
-}
+
 
 // تعبئة قائمة الحسابات
 function listenAccounts() {
@@ -1711,45 +1748,22 @@ listenDepositOps();
 
 
 // ====== كود 5: عمليات الصرف ======
-const SYSTEM_BAL_PATH = 'systemBalance';
-const ACCOUNTS_PATH = 'accounts';
-const OPS_PATH = 'ops';
 
-const getToday = () => new Date().toISOString().split('T')[0];
+
+
+
 
 // جلب رصيد النظام
-async function getSystemBalance(currency) {
-  const snap = await get(ref(db, `${SYSTEM_BAL_PATH}/${currency}`));
-  return snap.val() || 0;
-}
+
 
 // جلب رصيد حساب معين
-async function getAccountBalance(accId, currency) {
-  const snap = await get(ref(db, `${ACCOUNTS_PATH}/${accId}/currencies/${currency}`));
-  return snap.val() || 0;
-}
+
 
 // تحديث رصيد النظام ذرياً
-async function updateSystemBalance(updates) {
-  const updatesObj = {};
-  for (const [cur, val] of Object.entries(updates)) {
-    const current = await getSystemBalance(cur);
-    const newVal = current + val;
-    if (newVal < 0) throw new Error(`رصيد النظام ${cur} غير كافي`);
-    updatesObj[`${SYSTEM_BAL_PATH}/${cur}`] = newVal;
-  }
-  await update(ref(db), updatesObj);
-}
+
 
 // تحديث رصيد الحساب
-async function updateAccountBalance(accId, currency, amount) {
-  const current = await getAccountBalance(accId, currency);
-  const newVal = current + amount;
-  if (newVal < 0) throw new Error(`رصيد الحساب ${currency} غير كافي`);
-  await update(ref(db, `${ACCOUNTS_PATH}/${accId}/currencies`), {
-    [currency]: newVal
-  });
-}
+
 
 // حفظ عملية الصرف
 document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () => {
@@ -1876,11 +1890,11 @@ listenWithdrawOps();
 
 
 // ====== كود 6: إرسال الحوالات ======
-const SYSTEM_BAL_PATH = 'systemBalance';
-const TRANSFERS_PATH = 'transfers/pending';
-const OPS_PATH = 'ops';
 
-const getToday = () => new Date().toISOString().split('T')[0];
+const TRANSFERS_PATH = 'transfers/pending';
+
+
+
 
 // توليد رقم حوالة فريد يبدأ بـ 77 وطوله 7 أرقام
 async function generateTransferNumber() {
@@ -1903,16 +1917,7 @@ async function generateTransferNumber() {
 }
 
 // تحديث رصيد النظام
-async function updateSystemBalance(updates) {
-  const updatesObj = {};
-  for (const [cur, val] of Object.entries(updates)) {
-    const current = await get(ref(db, `${SYSTEM_BAL_PATH}/${cur}`)).then(s => s.val() || 0);
-    const newVal = current + val;
-    if (newVal < 0) throw new Error(`رصيد النظام ${cur} لا يسمح`);
-    updatesObj[`${SYSTEM_BAL_PATH}/${cur}`] = newVal;
-  }
-  await update(ref(db), updatesObj);
-}
+
 
 // إرسال الحوالة
 document.getElementById('sendbtn')?.addEventListener('click', async () => {
@@ -2040,12 +2045,12 @@ listenSendTransfers();
 
 // ====== كود 7: استلام الحوالات - يخصم من النظام ======
 // ====== كود 7: استلام الحوالات - يخصم من النظام ======
-const SYSTEM_BAL_PATH = 'systemBalance';
-const TRANSFERS_PENDING = 'transfers/pending';
-const TRANSFERS_RECEIVED = 'transfers/received';
-const OPS_PATH = 'ops';
 
-const getToday = () => new Date().toISOString().split('T')[0];
+
+
+
+
+
 let currentTransfer = null;
 
 // البحث
@@ -2166,10 +2171,10 @@ listenReceiveTransfers();
 
 // ====== كود 8: دفع الحوالات - مستقل يدوي ======
 // ====== كود 8: دفع الحوالات - مستقل يدوي ======
-const SYSTEM_BAL_PATH = 'systemBalance';
-const OPS_PATH = 'ops';
 
-const getToday = () => new Date().toISOString().split('T')[0];
+
+
+
 
 document.getElementById('paybtn')?.addEventListener('click', async () => {
   const amount = parseFloat(document.getElementById('payRat').value);
@@ -2257,7 +2262,7 @@ listenPayTransfers();
 
 
 // ====== كود 9: تعديل السعر لحظي ======
-const RATES_PATH = 'rates';
+
 
 // تحميل العملات في القوائم المنسدلة بالعربي
 function loadCurrenciesToSelects() {
