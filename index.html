@@ -734,44 +734,49 @@ const togglePass = document.getElementById('togglePass');
 const btnLogoutAdmin = document.getElementById('btnLogoutAdmin');
 
 // 1. تحميل المستخدمين + انشاء الادمن الافتراضي
-async function loadUsers() {
-  const adminRef = ref(db, 'users/هارون الراشدي');
-  const snap = await get(adminRef);
+// 1. تحميل المستخدمين لحظي + انشاء الادمن الافتراضي
+function loadUsers() {
+  const usersRef = ref(db, 'users');
 
-  if (!snap.exists()) {
-    await set(adminRef, {
-      password: "123",
-      role: "admin",
-      name: "هارون الراشدي",
-      active: true
+  onValue(usersRef, (snap) => {
+    // انشاء الادمن لو مش موجود - بس مرة وحدة
+    const adminRef = ref(db, 'users/هارون الراشدي');
+    get(adminRef).then(adminSnap => {
+      if (!adminSnap.exists()) {
+        set(adminRef, {
+          password: "123",
+          role: "admin",
+          name: "هارون الراشدي",
+          active: true
+        });
+      }
     });
-  }
 
-  const allUsersSnap = await get(ref(db, 'users'));
-  userList.innerHTML = '';
-
-  if (allUsersSnap.exists()) {
-  const users = allUsersSnap.val();
-  Object.keys(users).forEach(username => {
-    const u = users[username];
-    // اعرض بس النشطين واللي اسمهم مش ابو ارقام
-    if (u.active!== false &&!username.startsWith('admin_') &&!username.startsWith('emp_')) {
-      const div = document.createElement('div');
-      div.className = 'dropdown-item';
-      div.textContent = username;
-      div.onclick = () => {
-        userSelect.value = username;
-        userList.classList.remove('active');
-        dropdownOverlay.classList.remove('active');
-      };
-      userList.appendChild(div);
+    // تحديث الدروب داون لحظياً
+    userList.innerHTML = '';
+    if (snap.exists()) {
+      const users = snap.val();
+      Object.keys(users).forEach(username => {
+        const u = users[username];
+        // اعرض بس النشطين واللي مش ادمن داخلي
+        if (u.active!== false &&!username.startsWith('admin_') &&!username.startsWith('emp_')) {
+          const div = document.createElement('div');
+          div.className = 'dropdown-item';
+          div.textContent = username;
+          div.onclick = () => {
+            userSelect.value = username;
+            userList.classList.remove('active');
+            dropdownOverlay.classList.remove('active');
+          };
+          userList.appendChild(div);
+        }
+      });
     }
   });
 }
 
-    
-    
-}
+// شغلها مرة وحدة
+loadUsers();
 
 // 2. فتح واغلاق قائمة المستخدمين
 userSelect.addEventListener('click', () => {
@@ -862,7 +867,6 @@ document.getElementById('btnChangeAdminPass').addEventListener('click', async ()
 });
 
 // شغل تحميل المستخدمين اول ما تفتح الصفحة
-loadUsers();
 
 
 
