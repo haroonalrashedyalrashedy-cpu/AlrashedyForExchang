@@ -868,19 +868,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 15000);
   }
 
-  function setupTabGroup(container) {
+  // 1. التبويبات الرئيسية
+  const mainTabs = document.querySelectorAll('#adminScreen >.tabs >.tab');
+  const mainContents = document.querySelectorAll('#adminScreen >.tab-content');
+
+  mainTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      mainTabs.forEach(t => t.classList.remove('active'));
+      mainContents.forEach(c => c.classList.remove('active'));
+
+      tab.classList.add('active');
+      const target = document.getElementById(tab.getAttribute('data-tab'));
+      if (target) {
+        target.classList.add('active');
+        // افتح اول تبويب فرعي تلقائي
+        const firstSub = target.querySelector('.subtabs.tab');
+        if (firstSub) firstSub.click();
+      }
+    });
+  });
+
+  // 2. التبويبات الفرعية + السحب
+  function setupSubTabs(container) {
     const tabs = container.querySelectorAll('.subtabs.tab');
     const contents = container.querySelectorAll('.tab-content.sub');
+    if (!tabs.length) return;
 
-    if (!tabs.length ||!contents.length) return;
-
-    // دالة تفعيل تبويب ومحتوى
     function activateTabById(id) {
       tabs.forEach(t => t.classList.toggle('active', t.getAttribute('data-subtab') === id));
       contents.forEach(c => c.classList.toggle('active', c.id === id));
     }
 
-    // تفعيل الكليك العادي
     tabs.forEach(tab => {
       tab.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -889,10 +907,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // سحب افقي على الكروت نفسها
-    let startX = 0;
-    let startY = 0;
-
+    // السحب الافقي على الكروت
+    let startX = 0, startY = 0;
     contents.forEach(content => {
       content.addEventListener('touchstart', e => {
         startX = e.touches[0].clientX;
@@ -902,63 +918,30 @@ document.addEventListener('DOMContentLoaded', () => {
       content.addEventListener('touchend', e => {
         const diffX = e.changedTouches[0].clientX - startX;
         const diffY = e.changedTouches[0].clientY - startY;
-
-        // تجاهل السحب العمودي
         if (Math.abs(diffY) > Math.abs(diffX) || Math.abs(diffX) < 50) return;
 
-        const contentList = [...contents].filter(c => c.classList.contains('active') || c.parentElement.contains(c));
-        const activeIdx = contentList.findIndex(c => c.classList.contains('active'));
+        const list = [...contents];
+        const idx = list.findIndex(c => c.classList.contains('active'));
+        if (idx === -1) return;
 
-        let nextIdx = diffX > 0? activeIdx - 1 : activeIdx + 1;
-        if (nextIdx < 0) nextIdx = contentList.length - 1;
-        if (nextIdx >= contentList.length) nextIdx = 0;
+        let nextIdx = diffX > 0? idx - 1 : idx + 1;
+        if (nextIdx < 0) nextIdx = list.length - 1;
+        if (nextIdx >= list.length) nextIdx = 0;
 
-        const nextContent = contentList[nextIdx];
-        if (nextContent) {
-          activateTabById(nextContent.id);
-          resetHideTimer();
-        }
+        activateTabById(list[nextIdx].id);
+        resetHideTimer();
       });
     });
   }
 
-  // فعل كل مجموعة تبويبات فرعية
   ['operations', 'transfers', 'accounts'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) setupTabGroup(el);
+    if (el) setupSubTabs(el);
   });
 
-  // اظهار التبويبات الفرعية لما تضغط على الرئيسي
-  document.querySelectorAll('#adminScreen.tabs >.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      const targetId = tab.getAttribute('data-tab');
-      const targetSection = document.getElementById(targetId);
-      if (!targetSection) return;
-
-      const subtabs = targetSection.querySelector('.subtabs');
-      if (subtabs) {
-        subtabs.style.display = 'flex';
-        // فعّل اول تبويب فرعي تلقائي
-        const firstSub = subtabs.querySelector('.tab');
-        if (firstSub) firstSub.click();
-        resetHideTimer();
-      }
-    });
-  });
-
-  // اعادة تعيين التايمر
+  // 3. اعادة تعيين التايمر
   ['click', 'touchstart', 'scroll'].forEach(evt => {
     document.addEventListener(evt, resetHideTimer, {passive: true});
-  });
-
-  // كود التبويبات الرئيسية يبقى زي ما هو
-  document.querySelectorAll('#adminScreen.tabs >.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('#adminScreen.tabs >.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('#adminScreen.tab-content').forEach(c => c.classList.remove('active'));
-      tab.classList.add('active');
-      document.getElementById(tab.getAttribute('data-tab'))?.classList.add('active');
-    });
   });
 });
 </script>
