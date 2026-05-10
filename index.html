@@ -843,5 +843,61 @@ loadUsers();
 
 
 </script>
+
+
+<script>
+// تشغيل التبويبات الرئيسية والفرعية - فتح وقفل
+document.addEventListener('DOMContentLoaded', () => {
+  
+  // دالة عامة للتبويبات
+  function setupTabs(tabSelector, contentSelector) {
+    document.querySelectorAll(tabSelector).forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab || tab.dataset.subtab;
+        const parent = tab.closest('.tabs');
+        const contentArea = parent.nextElementSibling;
+
+        // لو التبويب شغال وانت ضغطت عليه مرة ثانية = اقفله
+        if (tab.classList.contains('active')) {
+          tab.classList.remove('active');
+          document.querySelectorAll(contentSelector + '.active').forEach(c => {
+            c.classList.remove('active');
+          });
+          return;
+        }
+
+        // شيل active من كل التبويبات والمحتوى في نفس المستوى
+        parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        
+        // لو المحتوى داخل نفس الـ parent
+        if (contentArea && contentArea.classList.contains('tab-content')) {
+          contentArea.parentElement.querySelectorAll(contentSelector).forEach(c => c.classList.remove('active'));
+        }
+
+        // فعّل التبويب والمحتوى المطلوب
+        tab.classList.add('active');
+        const targetContent = document.getElementById(tabName);
+        if (targetContent) {
+          targetContent.classList.add('active');
+        }
+      });
+    });
+  }
+
+  // شغل التبويبات الرئيسية
+  setupTabs('#adminScreen .tabs > .tab', '#adminScreen .tab-content');
+
+  // شغل التبويبات الفرعية داخل العمليات
+  setupTabs('#operations .tabs > .tab', '#operations .tab-content');
+
+  // شغل التبويبات الفرعية داخل الحوالات
+  setupTabs('#transfers .tabs > .tab', '#transfers .tab-content');
+
+  // شغل التبويبات الفرعية داخل الحسابات
+  setupTabs('#accounts .tabs > .tab', '#accounts .tab-content');
+});
+</script>
+
+
 </body>
 </html>
