@@ -854,7 +854,6 @@ loadUsers();
 
 </script>
 
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   let hideTimer = null;
@@ -883,6 +882,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!targetId) return;
 
         const isActive = tab.classList.contains('active');
+        const target = document.getElementById(targetId);
 
         // شيل active من نفس المجموعة فقط
         tabs.forEach(t => t.classList.remove('active'));
@@ -890,11 +890,10 @@ document.addEventListener('DOMContentLoaded', () => {
           if (c.parentElement === container) c.classList.remove('active');
         });
 
-        // تفعيل التبويب لو كان مقفل
-        if (!isActive) {
+        // افتح لو كان مقفل، اقفل لو كان مفتوح
+        if (!isActive && target) {
           tab.classList.add('active');
-          const target = document.getElementById(targetId);
-          if (target) target.classList.add('active');
+          target.classList.add('active');
         }
 
         if (isSub) resetHideTimer();
@@ -925,7 +924,8 @@ document.addEventListener('DOMContentLoaded', () => {
           if (nextIdx < 0) nextIdx = contentList.length - 1;
           if (nextIdx >= contentList.length) nextIdx = 0;
 
-          const nextTab = [...tabs].find(t => t.getAttribute(contentAttr) === contentList[nextIdx].id);
+          const nextContent = contentList[nextIdx];
+          const nextTab = [...tabs].find(t => t.getAttribute(contentAttr) === nextContent.id);
           if (nextTab) nextTab.click();
         });
       }
@@ -935,7 +935,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1. التبويبات الرئيسية
   setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab');
 
-  // 2. التبويبات الفرعية
+  // 2. التبويبات الفرعية - لاحظ المسافة بين.subtabs و.tab
   setupTabs(document.getElementById('operations'), '.subtabs.tab', 'data-subtab', true);
   setupTabs(document.getElementById('transfers'), '.subtabs.tab', 'data-subtab', true);
   setupTabs(document.getElementById('accounts'), '.subtabs.tab', 'data-subtab', true);
@@ -949,6 +949,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const subtabs = targetSection.querySelector('.subtabs');
       if (subtabs) {
         subtabs.style.display = 'flex';
+        // فعّل اول تبويب فرعي تلقائي
         const firstSub = subtabs.querySelector('.tab');
         if (firstSub) firstSub.click();
         resetHideTimer();
