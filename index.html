@@ -868,78 +868,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 15000);
   }
 
-  function setupTabs(container, tabSelector, contentAttr, isSub = false) {
-    const tabs = container.querySelectorAll(tabSelector);
-    const contents = container.querySelectorAll('.tab-content');
+  function setupTabGroup(container) {
+    const tabs = container.querySelectorAll('.subtabs.tab');
+    const contents = container.querySelectorAll('.tab-content.sub');
 
+    if (!tabs.length ||!contents.length) return;
+
+    // دالة تفعيل تبويب ومحتوى
+    function activateTabById(id) {
+      tabs.forEach(t => t.classList.toggle('active', t.getAttribute('data-subtab') === id));
+      contents.forEach(c => c.classList.toggle('active', c.id === id));
+    }
+
+    // تفعيل الكليك العادي
     tabs.forEach(tab => {
       tab.addEventListener('click', (e) => {
         e.stopPropagation();
-
-        const targetId = tab.getAttribute(contentAttr);
-        if (!targetId) return;
-
-        const isActive = tab.classList.contains('active');
-
-        // شيل active من الكل في نفس المجموعة
-        tabs.forEach(t => t.classList.remove('active'));
-        contents.forEach(c => c.classList.remove('active'));
-
-        if (!isActive) {
-          // افتح التبويب
-          tab.classList.add('active');
-          const target = document.getElementById(targetId);
-          if (target) target.classList.add('active');
-        }
-        // لو كان مفتوح وضغطت عليه ثاني = بيقفل لاننا شلنا active فوق وما رجعناه
-
+        activateTabById(tab.getAttribute('data-subtab'));
         resetHideTimer();
-      });
-
-      // سحب افقي للتبويبات
-      let startX = 0;
-      tab.addEventListener('touchstart', e => {
-        startX = e.touches[0].clientX;
-      }, {passive: true});
-
-      tab.addEventListener('touchend', e => {
-        const diffX = e.changedTouches[0].clientX - startX;
-        if (Math.abs(diffX) > 50) {
-          const parentTabs = tab.parentElement;
-          const tabList = [...parentTabs.querySelectorAll('.tab')];
-          const idx = tabList.indexOf(tab);
-          const nextIdx = diffX > 0? idx - 1 : idx + 1;
-          if (tabList[nextIdx]) tabList[nextIdx].click();
-        }
       });
     });
 
-    // اظهار التبويبات الفرعية لما نفتح الرئيسي
-    if (isSub) {
-      container.style.display = 'flex';
-    }
+    // سحب افقي على الكروت نفسها
+    let startX = 0;
+    let startY = 0;
+
+    contents.forEach(content => {
+      content.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      }, {passive: true});
+
+      content.addEventListener('touchend', e => {
+        const diffX = e.changedTouches[0].clientX - startX;
+        const diffY = e.changedTouches[0].clientY - startY;
+
+        // تجاهل السحب العمودي
+        if (Math.abs(diffY) > Math.abs(diffX) || Math.abs(diffX) < 50) return;
+
+        const contentList = [...contents].filter(c => c.classList.contains('active') || c.parentElement.contains(c));
+        const activeIdx = contentList.findIndex(c => c.classList.contains('active'));
+
+        let nextIdx = diffX > 0? activeIdx - 1 : activeIdx + 1;
+        if (nextIdx < 0) nextIdx = contentList.length - 1;
+        if (nextIdx >= contentList.length) nextIdx = 0;
+
+        const nextContent = contentList[nextIdx];
+        if (nextContent) {
+          activateTabById(nextContent.id);
+          resetHideTimer();
+        }
+      });
+    });
   }
 
-  // التبويبات الرئيسية
-  const adminScreen = document.getElementById('adminScreen');
-  setupTabs(adminScreen, '.tabs >.tab', 'data-tab');
-
-  // التبويبات الفرعية - مخفية اول ما تفتح
+  // فعل كل مجموعة تبويبات فرعية
   ['operations', 'transfers', 'accounts'].forEach(id => {
     const el = document.getElementById(id);
-    if (!el) return;
-    const subtabs = el.querySelector('.subtabs');
-    if (subtabs) subtabs.style.display = 'none';
-
-    setupTabs(el, '.subtabs >.tab', 'data-subtab', true);
+    if (el) setupTabGroup(el);
   });
 
-  // اعادة تعيين التايمر عند اي تفاعل
-  ['click', 'touchstart', 'scroll'].forEach(evt => {
-    document.addEventListener(evt, resetHideTimer, {passive: true});
-  });
-
-  // خلي التبويبات الفرعية تظهر لما تضغط على تبويب رئيسي
+  // اظهار التبويبات الفرعية لما تضغط على الرئيسي
   document.querySelectorAll('#adminScreen.tabs >.tab').forEach(tab => {
     tab.addEventListener('click', () => {
       const targetId = tab.getAttribute('data-tab');
@@ -949,8 +938,26 @@ document.addEventListener('DOMContentLoaded', () => {
       const subtabs = targetSection.querySelector('.subtabs');
       if (subtabs) {
         subtabs.style.display = 'flex';
+        // فعّل اول تبويب فرعي تلقائي
+        const firstSub = subtabs.querySelector('.tab');
+        if (firstSub) firstSub.click();
         resetHideTimer();
       }
+    });
+  });
+
+  // اعادة تعيين التايمر
+  ['click', 'touchstart', 'scroll'].forEach(evt => {
+    document.addEventListener(evt, resetHideTimer, {passive: true});
+  });
+
+  // كود التبويبات الرئيسية يبقى زي ما هو
+  document.querySelectorAll('#adminScreen.tabs >.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#adminScreen.tabs >.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('#adminScreen.tab-content').forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.getAttribute('data-tab'))?.classList.add('active');
     });
   });
 });
