@@ -730,21 +730,26 @@ async function loadUsers() {
   userList.innerHTML = '';
 
   if (allUsersSnap.exists()) {
-    const users = allUsersSnap.val();
-    Object.keys(users).forEach(username => {
-      if (users[username].active!== false) {
-        const div = document.createElement('div');
-        div.className = 'dropdown-item';
-        div.textContent = username;
-        div.onclick = () => {
-          userSelect.value = username;
-          userList.classList.remove('active');
-          dropdownOverlay.classList.remove('active');
-        };
-        userList.appendChild(div);
-      }
-    });
-  }
+  const users = allUsersSnap.val();
+  Object.keys(users).forEach(username => {
+    const u = users[username];
+    // اعرض بس النشطين واللي اسمهم مش ابو ارقام
+    if (u.active!== false &&!username.startsWith('admin_') &&!username.startsWith('emp_')) {
+      const div = document.createElement('div');
+      div.className = 'dropdown-item';
+      div.textContent = username;
+      div.onclick = () => {
+        userSelect.value = username;
+        userList.classList.remove('active');
+        dropdownOverlay.classList.remove('active');
+      };
+      userList.appendChild(div);
+    }
+  });
+}
+
+    
+    
 }
 
 // 2. فتح واغلاق قائمة المستخدمين
