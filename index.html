@@ -847,54 +847,49 @@ loadUsers();
 
 <script>
 // تشغيل التبويبات الرئيسية والفرعية - فتح وقفل
+
+// تشغيل التبويبات الرئيسية والفرعية - فتح وقفل
 document.addEventListener('DOMContentLoaded', () => {
   
-  // دالة عامة للتبويبات
-  function setupTabs(tabSelector, contentSelector) {
-    document.querySelectorAll(tabSelector).forEach(tab => {
+  function setupTabs(container, tabSelector, contentAttr) {
+    container.querySelectorAll(tabSelector).forEach(tab => {
       tab.addEventListener('click', () => {
-        const tabName = tab.dataset.tab || tab.dataset.subtab;
-        const parent = tab.closest('.tabs');
-        const contentArea = parent.nextElementSibling;
+        const targetId = tab.getAttribute(contentAttr);
+        const tabGroup = tab.closest('.tabs');
+        const tabContents = tabGroup.parentElement.querySelectorAll('.tab-content');
 
-        // لو التبويب شغال وانت ضغطت عليه مرة ثانية = اقفله
+        // لو ضغطت على نفس التبويب وهو مفتوح = اقفله
         if (tab.classList.contains('active')) {
           tab.classList.remove('active');
-          document.querySelectorAll(contentSelector + '.active').forEach(c => {
-            c.classList.remove('active');
+          tabContents.forEach(c => {
+            if (c.id === targetId) c.classList.remove('active');
           });
           return;
         }
 
-        // شيل active من كل التبويبات والمحتوى في نفس المستوى
-        parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        
-        // لو المحتوى داخل نفس الـ parent
-        if (contentArea && contentArea.classList.contains('tab-content')) {
-          contentArea.parentElement.querySelectorAll(contentSelector).forEach(c => c.classList.remove('active'));
-        }
+        // شيل active من كل التبويبات والمحتويات في نفس المجموعة
+        tabGroup.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
 
         // فعّل التبويب والمحتوى المطلوب
         tab.classList.add('active');
-        const targetContent = document.getElementById(tabName);
-        if (targetContent) {
-          targetContent.classList.add('active');
-        }
+        const target = document.getElementById(targetId);
+        if (target) target.classList.add('active');
       });
     });
   }
 
-  // شغل التبويبات الرئيسية
-  setupTabs('#adminScreen .tabs > .tab', '#adminScreen .tab-content');
+  // التبويبات الرئيسية
+  setupTabs(document.getElementById('adminScreen'), '.tabs > .tab', 'data-tab');
 
-  // شغل التبويبات الفرعية داخل العمليات
-  setupTabs('#operations .tabs > .tab', '#operations .tab-content');
+  // التبويبات الفرعية داخل العمليات
+  setupTabs(document.getElementById('operations'), '.tabs > .tab', 'data-subtab');
 
-  // شغل التبويبات الفرعية داخل الحوالات
-  setupTabs('#transfers .tabs > .tab', '#transfers .tab-content');
+  // التبويبات الفرعية داخل الحوالات
+  setupTabs(document.getElementById('transfers'), '.tabs > .tab', 'data-subtab');
 
-  // شغل التبويبات الفرعية داخل الحسابات
-  setupTabs('#accounts .tabs > .tab', '#accounts .tab-content');
+  // التبويبات الفرعية داخل الحسابات
+  setupTabs(document.getElementById('accounts'), '.tabs > .tab', 'data-subtab');
 });
 </script>
 
