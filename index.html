@@ -618,7 +618,7 @@
     
     
      
-    <div id="matchs" class="tab-content active">
+    <div id="matchs" class="tab-content ">
       <div class="card">
         <h3>مطابقة الموظف</h3>
    </div>
@@ -1014,6 +1014,1554 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.subtabs').forEach(sub => sub.style.display = 'none');
   };
 });
+
+
+
+
+
+
+
+// ====== كود 1: إدارة الأسعار والعملات ======
+// الترتيب المطلوب للعملات
+// ====== كود 1: إدارة الأسعار والعملات - يوم بيومه ======
+const CURRENCIES_AR = ["يمني", "ريال سعودي", "سعودي نقد", "دولار", "يورو"];
+const RATES_PATH = 'rates';
+const RATE_LOGS_PATH = 'rateLogs';
+
+// دالة تجيب تاريخ اليوم بصيغة YYYY-MM-DD
+const getToday = () => new Date().toISOString().split('T')[0];
+
+// تعبئة القوائم المنسدلة بالعربي
+function fillCurrencySelect(selectId) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+
+  const currentVal = select.value;
+  select.innerHTML = '<option value="">اختر العملة</option>';
+
+  CURRENCIES_AR.forEach(cur => {
+    const opt = document.createElement('option');
+    opt.value = cur;
+    opt.textContent = cur;
+    select.appendChild(opt);
+  });
+
+  if (CURRENCIES_AR.includes(currentVal)) select.value = currentVal;
+}
+
+function initCurrenciesDropdowns() {
+  const selects = ['buyCurrency', 'sellCurrency','depositCurrency', 'withdrawCurrency',
+    'transCurr', 'payCurr','rateCurrency', 'matchCurrencySelect'];
+  selects.forEach(fillCurrencySelect);
+}
+
+// استماع للأسعار الحالية وتحديث الحقول
+function listenRates() {
+  onValue(ref(db, RATES_PATH), (snap) => {
+    const rates = snap.val() || {};
+
+    const buyCur = document.getElementById('buyCurrency')?.value;
+    if (buyCur && rates[buyCur]) {
+      document.getElementById('buyRate').value = rates[buyCur].buy || '';
+    }
+
+    const sellCur = document.getElementById('sellCurrency')?.value;
+    if (sellCur && rates[sellCur]) {
+      document.getElementById('sellRate').value = rates[sellCur].sell || '';
+    }
+  });
+}
+
+// إضافة فلترة التاريخ فوق جدول سجل الأسعار
+function initRateLogFilter() {
+  const card = document.querySelector('#permissions.card:has(#rateLogTable)');
+  if (!card || document.getElementById('rateLogFilter')) return;
+
+  const filterHTML = `
+    <div id="rateLogFilter" class="row" style="margin-bottom:8px">
+      <input type="date" id="rateLogFrom">
+      <input type="date" id="rateLogTo">
+      <button id="btnRateLogFilter">فلترة</button>
+      <button id="btnRateLogClear">مسح</button>
+    </div>
+  `;
+  card.insertAdjacentHTML('afterbegin', filterHTML);
+
+  // خلي التاريخ الافتراضي اليوم
+  document.getElementById('rateLogFrom').value = getToday();
+  document.getElementById('rateLogTo').value = getToday();
+
+  document.getElementById('btnRateLogFilter').onclick = () => loadRateLogs();
+  document.getElementById('btnRateLogClear').onclick = () => {
+    document.getElementById('rateLogFrom').value = getToday();
+    document.getElementById('rateLogTo').value = getToday();
+    loadRateLogs();
+  };
+
+  loadRateLogs();
+}
+
+// تحميل سجل الأسعار ليوم محدد
+function loadRateLogs() {
+  const from = document.getElementById('rateLogFrom')?.value || getToday();
+  const to = document.getElementById('rateLogTo')?.value || getToday();
+  const tbody = document.querySelector('#rateLogTable tbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  // نجيب كل الأيام من From الى To
+  const start = new Date(from);
+  const end = new Date(to);
+  const days = [];
+
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    days.push(d.toISOString().split('T')[0]);
+  }
+
+  days.forEach(day => {
+    onValue(ref(db, `${RATE_LOGS_PATH}/${day}`), (snap) => {
+      const data = snap.val();
+      if (!data) return;
+
+      // امسح بيانات اليوم هذا عشان ما تتكرر
+      tbody.querySelectorAll(`tr[data-day="${day}"]`).forEach(r => r.remove());
+
+      Object.values(data).forEach(log => {
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-day', day);
+        tr.innerHTML = `
+          <td>${log.currency}</td>
+          <td>${log.type}</td>
+          <td>${log.rate}</td>
+          <td>${new Date(log.time).toLocaleString('ar-EG')}</td>
+          <td>${log.by}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }, {onlyOnce: true});
+  });
+}
+
+// حفظ سعر الشراء + حفظ في السجل اليومي
+document.getElementById('btnSaveBuyRate')?.addEventListener('click', async () => {
+  const cur = document.getElementById('rateCurrency').value;
+  const buy = parseFloat(document.getElementById('buyRateInput').value);
+  const btn = document.getElementById('btnSaveBuyRate');
+
+  if (!cur) { alert('اختر العملة'); return; }
+  if (isNaN(buy) || buy <= 0) { alert('ادخل سعر شراء صحيح'); return; }
+  if (!navigator.onLine) { alert('لا يمكن اجراء العملية الان - لا يوجد انترنت'); return; }
+  if (btn.disabled) return;
+
+  btn.disabled = true;
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('العملية تأخرت')), 3000)
+  );
+
+  try {
+    const today = getToday();
+    const logId = `rl_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+
+    await Promise.race([
+      Promise.all([
+        update(ref(db, `${RATES_PATH}/${cur}`), {
+          buy: buy, updatedAt: Date.now(), by: window.currentUser || 'مجهول'
+        }),
+        set(ref(db, `${RATE_LOGS_PATH}/${today}/${logId}`), {
+          currency: cur, type: 'شراء', rate: buy,
+          time: Date.now(), by: window.currentUser || 'مجهول'
+        })
+      ]),
+      timeoutPromise
+    ]);
+
+    document.getElementById('buyRateInput').value = '';
+    alert('تم حفظ سعر الشراء بنجاح');
+    loadRateLogs();
+  } catch (e) {
+    alert(e.message === 'العملية تأخرت'? 'لا يمكن اجراء العملية الان - النت ضعيف'
+      : 'فشل الحفظ: ' + e.message);
+  } finally {
+    setTimeout(() => btn.disabled = false, 500);
+  }
+});
+
+// حفظ سعر البيع + حفظ في السجل اليومي
+document.getElementById('btnSaveSellRate')?.addEventListener('click', async () => {
+  const cur = document.getElementById('rateCurrency').value;
+  const sell = parseFloat(document.getElementById('sellRateInput').value);
+  const btn = document.getElementById('btnSaveSellRate');
+
+  if (!cur) { alert('اختر العملة'); return; }
+  if (isNaN(sell) || sell <= 0) { alert('ادخل سعر بيع صحيح'); return; }
+  if (!navigator.onLine) { alert('لا يمكن اجراء العملية الان - لا يوجد انترنت'); return; }
+  if (btn.disabled) return;
+
+  btn.disabled = true;
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('العملية تأخرت')), 3000)
+  );
+
+  try {
+    const today = getToday();
+    const logId = `rl_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+
+    await Promise.race([
+      Promise.all([
+        update(ref(db, `${RATES_PATH}/${cur}`), {
+          sell: sell, updatedAt: Date.now(), by: window.currentUser || 'مجهول'
+        }),
+        set(ref(db, `${RATE_LOGS_PATH}/${today}/${logId}`), {
+          currency: cur, type: 'بيع', rate: sell,
+          time: Date.now(), by: window.currentUser || 'مجهول'
+        })
+      ]),
+      timeoutPromise
+    ]);
+
+    document.getElementById('sellRateInput').value = '';
+    alert('تم حفظ سعر البيع بنجاح');
+    loadRateLogs();
+  } catch (e) {
+    alert(e.message === 'العملية تأخرت'? 'لا يمكن اجراء العملية الان - النت ضعيف'
+      : 'فشل الحفظ: ' + e.message);
+  } finally {
+    setTimeout(() => btn.disabled = false, 500);
+  }
+});
+
+// تحديث سعر الشراء/البيع في الفورم لما يغير العملة
+document.getElementById('buyCurrency')?.addEventListener('change', (e) => {
+  get(ref(db, `${RATES_PATH}/${e.target.value}`)).then(snap => {
+    document.getElementById('buyRate').value = snap.val()?.buy || '';
+    calcBuyResult();
+  });
+});
+
+document.getElementById('sellCurrency')?.addEventListener('change', (e) => {
+  get(ref(db, `${RATES_PATH}/${e.target.value}`)).then(snap => {
+    document.getElementById('sellRate').value = snap.val()?.sell || '';
+    calcSellResult();
+  });
+});
+
+function calcBuyResult() {
+  const amt = parseFloat(document.getElementById('buyAmount').value) || 0;
+  const rate = parseFloat(document.getElementById('buyRate').value) || 0;
+  document.getElementById('buyResult').value = (amt * rate).toFixed(2);
+}
+
+function calcSellResult() {
+  const amt = parseFloat(document.getElementById('sellAmount').value) || 0;
+  const rate = parseFloat(document.getElementById('sellRate').value) || 0;
+  document.getElementById('sellResult').value = (amt * rate).toFixed(2);
+}
+
+document.getElementById('buyAmount')?.addEventListener('input', calcBuyResult);
+document.getElementById('sellAmount')?.addEventListener('input', calcSellResult);
+
+// تشغيل
+initCurrenciesDropdowns();
+listenRates();
+initRateLogFilter();
+
+
+
+
+
+
+
+// ====== كود 2: عمليات الشراء ======
+const SYSTEM_BAL_PATH = 'systemBalance';
+const OPS_PATH = 'ops';
+
+// دالة تجيب تاريخ اليوم بصيغة YYYY-MM-DD
+const getToday = () => new Date().toISOString().split('T')[0];
+
+// حساب الرصيد الحالي للعملة
+async function getBalance(currency) {
+  const snap = await get(ref(db, `${SYSTEM_BAL_PATH}/${currency}`));
+  return snap.val() || 0;
+}
+
+// تحديث الرصيد ذرياً
+async function updateBalance(updates) {
+  const updatesObj = {};
+  for (const [cur, val] of Object.entries(updates)) {
+    const current = await getBalance(cur);
+    const newVal = current + val;
+    if (newVal < 0) throw new Error(`رصيد ${cur} لا يسمح`);
+    updatesObj[`${SYSTEM_BAL_PATH}/${cur}`] = newVal;
+  }
+  await update(ref(db), updatesObj);
+}
+
+// حفظ عملية الشراء
+document.getElementById('btnSaveBuy')?.addEventListener('click', async () => {
+  const amount = parseFloat(document.getElementById('buyAmount').value);
+  const currency = document.getElementById('buyCurrency').value;
+  const rate = parseFloat(document.getElementById('buyRate').value);
+  const result = parseFloat(document.getElementById('buyResult').value);
+  const btn = document.getElementById('btnSaveBuy');
+
+  // 1. التحقق من المدخلات
+  if (!amount ||!currency ||!rate ||!result) {
+    alert('عبئ كل الحقول أولاً');
+    return;
+  }
+  if (!navigator.onLine) {
+    alert('لا يمكن اجراء العملية الان - لا يوجد انترنت');
+    return;
+  }
+
+  // 2. منع الضغط المكرر
+  if (btn.disabled) return;
+  btn.disabled = true;
+
+  // 3. Timeout 3 ثواني لو النت ضعيف
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('العملية تأخرت')), 3000)
+  );
+
+  try {
+    // 4. التحقق من الرصيد اليمني
+    const yemenBalance = await getBalance('يمني');
+    if (yemenBalance < result) {
+      alert('رصيد اليمني لا يسمح بإجراء العملية');
+      return;
+    }
+
+    // 5. التنفيذ ذرياً: خصم يمني + زيادة العملة
+    await Promise.race([
+      updateBalance({ 'يمني': -result, [currency]: amount }),
+      timeoutPromise
+    ]);
+
+    // 6. حفظ العملية
+    const today = getToday();
+    const buyId = `buy_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    await set(ref(db, `${OPS_PATH}/${today}/buy/${buyId}`), {
+      amount: amount,
+      rate: rate,
+      currency: currency,
+      result: result,
+      type: 'شراء',
+      emp: window.currentUser || 'مجهول',
+      time: Date.now()
+    });
+
+    // 7. تفريغ الحقول + رسالة نجاح
+    document.getElementById('buyAmount').value = '';
+    document.getElementById('buyRate').value = '';
+    document.getElementById('buyCurrency').value = '';
+    document.getElementById('buyResult').value = '';
+    alert('تمت العملية بنجاح');
+
+  } catch (e) {
+    alert(e.message === 'العملية تأخرت'
+     ? 'لا يمكن اجراء العملية الان - النت ضعيف'
+      : 'فشل العملية: ' + e.message);
+  } finally {
+    setTimeout(() => btn.disabled = false, 500);
+  }
+});
+
+// عرض عمليات الشراء لحظي في الجدول
+function listenBuyOps() {
+  const today = getToday();
+  const tbody = document.querySelector('#buyTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/buy`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    // اعرض الأحدث أولاً
+    Object.values(data).reverse().forEach(op => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${op.amount}</td>
+        <td>${op.rate}</td>
+        <td>${op.currency}</td>
+        <td>${op.result}</td>
+        <td>${op.type}</td>
+        <td>${op.emp}</td>
+        <td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  });
+}
+
+// شغل الاستماع عند التحميل
+listenBuyOps();
+
+
+
+
+
+
+
+// ====== كود 3: عمليات البيع ======
+const SYSTEM_BAL_PATH = 'systemBalance';
+const OPS_PATH = 'ops';
+
+// دالة تجيب تاريخ اليوم بصيغة YYYY-MM-DD
+const getToday = () => new Date().toISOString().split('T')[0];
+
+// حساب الرصيد الحالي للعملة
+async function getBalance(currency) {
+  const snap = await get(ref(db, `${SYSTEM_BAL_PATH}/${currency}`));
+  return snap.val() || 0;
+}
+
+// تحديث الرصيد ذرياً
+async function updateBalance(updates) {
+  const updatesObj = {};
+  for (const [cur, val] of Object.entries(updates)) {
+    const current = await getBalance(cur);
+    const newVal = current + val;
+    if (newVal < 0) throw new Error(`رصيد ${cur} لا يسمح`);
+    updatesObj[`${SYSTEM_BAL_PATH}/${cur}`] = newVal;
+  }
+  await update(ref(db), updatesObj);
+}
+
+// حفظ عملية البيع
+document.getElementById('btnSaveSell')?.addEventListener('click', async () => {
+  const amount = parseFloat(document.getElementById('sellAmount').value);
+  const currency = document.getElementById('sellCurrency').value;
+  const rate = parseFloat(document.getElementById('sellRate').value);
+  const result = parseFloat(document.getElementById('sellResult').value);
+  const btn = document.getElementById('btnSaveSell');
+
+  // 1. التحقق من المدخلات
+  if (!amount ||!currency ||!rate ||!result) {
+    alert('عبئ كل الحقول أولاً');
+    return;
+  }
+  if (!navigator.onLine) {
+    alert('لا يمكن اجراء العملية الان - لا يوجد انترنت');
+    return;
+  }
+
+  // 2. منع الضغط المكرر
+  if (btn.disabled) return;
+  btn.disabled = true;
+
+  // 3. Timeout 3 ثواني
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('العملية تأخرت')), 3000)
+  );
+
+  try {
+    // 4. التحقق من رصيد العملة المباعة
+    const curBalance = await getBalance(currency);
+    if (curBalance < amount) {
+      alert(`رصيد ${currency} لا يسمح بإجراء العملية`);
+      return;
+    }
+
+    // 5. التنفيذ ذرياً: خصم العملة + زيادة اليمني
+    await Promise.race([
+      updateBalance({ [currency]: -amount, 'يمني': result }),
+      timeoutPromise
+    ]);
+
+    // 6. حفظ العملية
+    const today = getToday();
+    const sellId = `sell_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    await set(ref(db, `${OPS_PATH}/${today}/sell/${sellId}`), {
+      amount: amount,
+      rate: rate,
+      currency: currency,
+      result: result,
+      type: 'بيع',
+      emp: window.currentUser || 'مجهول',
+      time: Date.now()
+    });
+
+    // 7. تفريغ الحقول + رسالة نجاح
+    document.getElementById('sellAmount').value = '';
+    document.getElementById('sellRate').value = '';
+    document.getElementById('sellCurrency').value = '';
+    document.getElementById('sellResult').value = '';
+    alert('تمت العملية بنجاح');
+
+  } catch (e) {
+    alert(e.message === 'العملية تأخرت'
+    ? 'لا يمكن اجراء العملية الان - النت ضعيف'
+      : 'فشل العملية: ' + e.message);
+  } finally {
+    setTimeout(() => btn.disabled = false, 500);
+  }
+});
+
+// عرض عمليات البيع لحظي في الجدول
+function listenSellOps() {
+  const today = getToday();
+  const tbody = document.querySelector('#sellTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/sell`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    Object.values(data).reverse().forEach(op => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${op.amount}</td>
+        <td>${op.rate}</td>
+        <td>${op.currency}</td>
+        <td>${op.result}</td>
+        <td>${op.type}</td>
+        <td>${op.emp}</td>
+        <td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  });
+}
+
+// شغل الاستماع عند التحميل
+listenSellOps();
+
+
+
+
+
+
+
+
+
+
+
+// ====== كود 4: عمليات القبض/الإيداع ======
+const SYSTEM_BAL_PATH = 'systemBalance';
+const ACCOUNTS_PATH = 'accounts';
+const OPS_PATH = 'ops';
+
+const getToday = () => new Date().toISOString().split('T')[0];
+
+// جلب رصيد حساب معين
+async function getAccountBalance(accId, currency) {
+  const snap = await get(ref(db, `${ACCOUNTS_PATH}/${accId}/currencies/${currency}`));
+  return snap.val() || 0;
+}
+
+// تحديث رصيد النظام ذرياً
+async function updateSystemBalance(updates) {
+  const updatesObj = {};
+  for (const [cur, val] of Object.entries(updates)) {
+    const current = await get(ref(db, `${SYSTEM_BAL_PATH}/${cur}`)).then(s => s.val() || 0);
+    const newVal = current + val;
+    if (newVal < 0) throw new Error(`رصيد النظام ${cur} لا يسمح`);
+    updatesObj[`${SYSTEM_BAL_PATH}/${cur}`] = newVal;
+  }
+  await update(ref(db), updatesObj);
+}
+
+// تحديث رصيد الحساب تراكمي
+async function updateAccountBalance(accId, currency, amount) {
+  const current = await getAccountBalance(accId, currency);
+  const newVal = current + amount;
+  await update(ref(db, `${ACCOUNTS_PATH}/${accId}/currencies`), {
+    [currency]: newVal
+  });
+}
+
+// تعبئة قائمة الحسابات
+function listenAccounts() {
+  const selects = ['depositAccount', 'withdrawAccount', 'viewAccSelect', 'editAccSelect', 'deleteAccSelect'];
+
+  onValue(ref(db, ACCOUNTS_PATH), (snap) => {
+    const accounts = snap.val() || {};
+    selects.forEach(selId => {
+      const select = document.getElementById(selId);
+      if (!select) return;
+
+      const currentVal = select.value;
+      select.innerHTML = '<option value="">اختر الحساب</option>';
+
+      Object.entries(accounts).forEach(([id, acc]) => {
+        if (acc.active === false) return;
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = `${acc.name} - ${acc.phone || ''}`;
+        select.appendChild(opt);
+      });
+
+      if (accounts[currentVal]) select.value = currentVal;
+    });
+  });
+}
+
+// حفظ عملية القبض/الإيداع
+document.getElementById('btnSaveDeposit')?.addEventListener('click', async () => {
+  const accId = document.getElementById('depositAccount').value;
+  const amount = parseFloat(document.getElementById('depositAmount').value);
+  const currency = document.getElementById('depositCurrency').value;
+  const depositor = document.getElementById('nameMod').value.trim();
+  const btn = document.getElementById('btnSaveDeposit');
+
+  if (!accId ||!amount ||!currency ||!depositor) {
+    alert('عبئ كل الحقول أولاً');
+    return;
+  }
+  if (amount <= 0) {
+    alert('المبلغ لازم يكون أكبر من صفر');
+    return;
+  }
+  if (!navigator.onLine) {
+    alert('لا يمكن اجراء العملية الان - لا يوجد انترنت');
+    return;
+  }
+  if (btn.disabled) return;
+
+  btn.disabled = true;
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('العملية تأخرت')), 3000)
+  );
+
+  try {
+    // تنفيذ ذري: زيادة رصيد النظام + زيادة رصيد الحساب
+    await Promise.race([
+      Promise.all([
+        updateSystemBalance({ [currency]: amount }),
+        updateAccountBalance(accId, currency, amount)
+      ]),
+      timeoutPromise
+    ]);
+
+    // حفظ العملية
+    const today = getToday();
+    const depId = `dep_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    await set(ref(db, `${OPS_PATH}/${today}/deposit/${depId}`), {
+      accountId: accId,
+      amount: amount,
+      currency: currency,
+      depositor: depositor,
+      type: 'قبض',
+      emp: window.currentUser || 'مجهول',
+      time: Date.now()
+    });
+
+    // تفريغ الحقول
+    document.getElementById('depositAmount').value = '';
+    document.getElementById('depositCurrency').value = '';
+    document.getElementById('nameMod').value = '';
+    alert('تمت العملية بنجاح');
+
+  } catch (e) {
+    alert(e.message === 'العملية تأخرت'
+     ? 'لا يمكن اجراء العملية الان - النت ضعيف'
+      : 'فشل العملية: ' + e.message);
+  } finally {
+    setTimeout(() => btn.disabled = false, 500);
+  }
+});
+
+// عرض عمليات الإيداع لحظي
+function listenDepositOps() {
+  const today = getToday();
+  const tbody = document.querySelector('#depositTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/deposit`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    onValue(ref(db, ACCOUNTS_PATH), (accSnap) => {
+      const accounts = accSnap.val() || {};
+      tbody.innerHTML = '';
+
+      Object.values(data).reverse().forEach(op => {
+        const accName = accounts[op.accountId]?.name || 'محذوف';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${accName}</td>
+          <td>${op.amount}</td>
+          <td>${op.currency}</td>
+          <td>${op.type}</td>
+          <td>${op.depositor}</td>
+          <td>${op.emp}</td>
+          <td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }, {onlyOnce: true});
+  });
+}
+
+// تشغيل
+listenAccounts();
+listenDepositOps();
+
+
+
+
+
+
+
+
+
+
+// ====== كود 5: عمليات الصرف ======
+const SYSTEM_BAL_PATH = 'systemBalance';
+const ACCOUNTS_PATH = 'accounts';
+const OPS_PATH = 'ops';
+
+const getToday = () => new Date().toISOString().split('T')[0];
+
+// جلب رصيد النظام
+async function getSystemBalance(currency) {
+  const snap = await get(ref(db, `${SYSTEM_BAL_PATH}/${currency}`));
+  return snap.val() || 0;
+}
+
+// جلب رصيد حساب معين
+async function getAccountBalance(accId, currency) {
+  const snap = await get(ref(db, `${ACCOUNTS_PATH}/${accId}/currencies/${currency}`));
+  return snap.val() || 0;
+}
+
+// تحديث رصيد النظام ذرياً
+async function updateSystemBalance(updates) {
+  const updatesObj = {};
+  for (const [cur, val] of Object.entries(updates)) {
+    const current = await getSystemBalance(cur);
+    const newVal = current + val;
+    if (newVal < 0) throw new Error(`رصيد النظام ${cur} غير كافي`);
+    updatesObj[`${SYSTEM_BAL_PATH}/${cur}`] = newVal;
+  }
+  await update(ref(db), updatesObj);
+}
+
+// تحديث رصيد الحساب
+async function updateAccountBalance(accId, currency, amount) {
+  const current = await getAccountBalance(accId, currency);
+  const newVal = current + amount;
+  if (newVal < 0) throw new Error(`رصيد الحساب ${currency} غير كافي`);
+  await update(ref(db, `${ACCOUNTS_PATH}/${accId}/currencies`), {
+    [currency]: newVal
+  });
+}
+
+// حفظ عملية الصرف
+document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () => {
+  const accId = document.getElementById('withdrawAccount').value;
+  const amount = parseFloat(document.getElementById('withdrawAmount').value);
+  const currency = document.getElementById('withdrawCurrency').value;
+  const receiver = document.getElementById('nameWithd').value.trim();
+  const btn = document.getElementById('btnSaveWithdraw');
+
+  if (!accId ||!amount ||!currency ||!receiver) {
+    alert('عبئ كل الحقول أولاً');
+    return;
+  }
+  if (amount <= 0) {
+    alert('المبلغ لازم يكون أكبر من صفر');
+    return;
+  }
+  if (!navigator.onLine) {
+    alert('لا يمكن اجراء العملية الان - لا يوجد انترنت');
+    return;
+  }
+  if (btn.disabled) return;
+
+  btn.disabled = true;
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('العملية تأخرت')), 3000)
+  );
+
+  try {
+    // التحقق من الرصيد قبل الخصم
+    const sysBal = await getSystemBalance(currency);
+    const accBal = await getAccountBalance(accId, currency);
+
+    if (sysBal < amount) {
+      alert('رصيد النظام غير كافي');
+      return;
+    }
+    if (accBal < amount) {
+      alert('رصيد الحساب غير كافي');
+      return;
+    }
+
+    // تنفيذ ذري: نقص رصيد النظام + نقص رصيد الحساب
+    await Promise.race([
+      Promise.all([
+        updateSystemBalance({ [currency]: -amount }),
+        updateAccountBalance(accId, currency, -amount)
+      ]),
+      timeoutPromise
+    ]);
+
+    // حفظ العملية
+    const today = getToday();
+    const withId = `with_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    await set(ref(db, `${OPS_PATH}/${today}/withdraw/${withId}`), {
+      accountId: accId,
+      amount: amount,
+      currency: currency,
+      receiver: receiver,
+      type: 'صرف',
+      emp: window.currentUser || 'مجهول',
+      time: Date.now()
+    });
+
+    // تفريغ الحقول
+    document.getElementById('withdrawAmount').value = '';
+    document.getElementById('withdrawCurrency').value = '';
+    document.getElementById('nameWithd').value = '';
+    alert('تمت العملية بنجاح');
+
+  } catch (e) {
+    alert(e.message === 'العملية تأخرت'
+    ? 'لا يمكن اجراء العملية الان - النت ضعيف'
+      : 'فشل العملية: ' + e.message);
+  } finally {
+    setTimeout(() => btn.disabled = false, 500);
+  }
+});
+
+// عرض عمليات الصرف لحظي
+function listenWithdrawOps() {
+  const today = getToday();
+  const tbody = document.querySelector('#withdrawTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/withdraw`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    onValue(ref(db, ACCOUNTS_PATH), (accSnap) => {
+      const accounts = accSnap.val() || {};
+      tbody.innerHTML = '';
+
+      Object.values(data).reverse().forEach(op => {
+        const accName = accounts[op.accountId]?.name || 'محذوف';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${accName}</td>
+          <td>${op.amount}</td>
+          <td>${op.currency}</td>
+          <td>${op.type}</td>
+          <td>${op.receiver}</td>
+          <td>${op.emp}</td>
+          <td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }, {onlyOnce: true});
+  });
+}
+
+// شغل الاستماع
+listenWithdrawOps();
+
+
+
+
+
+
+
+
+
+
+
+// ====== كود 6: إرسال الحوالات ======
+const SYSTEM_BAL_PATH = 'systemBalance';
+const TRANSFERS_PATH = 'transfers/pending';
+const OPS_PATH = 'ops';
+
+const getToday = () => new Date().toISOString().split('T')[0];
+
+// توليد رقم حوالة فريد يبدأ بـ 77 وطوله 7 أرقام
+async function generateTransferNumber() {
+  let number;
+  let exists = true;
+  let attempts = 0;
+
+  while (exists && attempts < 100) {
+    // رقم عشوائي من 10000 الى 99999
+    const random = Math.floor(10000 + Math.random() * 90000);
+    number = `77${random}`;
+
+    const snap = await get(ref(db, `${TRANSFERS_PATH}/${number}`));
+    exists = snap.exists();
+    attempts++;
+  }
+
+  if (exists) throw new Error('تعذر توليد رقم حوالة فريد');
+  return number;
+}
+
+// تحديث رصيد النظام
+async function updateSystemBalance(updates) {
+  const updatesObj = {};
+  for (const [cur, val] of Object.entries(updates)) {
+    const current = await get(ref(db, `${SYSTEM_BAL_PATH}/${cur}`)).then(s => s.val() || 0);
+    const newVal = current + val;
+    if (newVal < 0) throw new Error(`رصيد النظام ${cur} لا يسمح`);
+    updatesObj[`${SYSTEM_BAL_PATH}/${cur}`] = newVal;
+  }
+  await update(ref(db), updatesObj);
+}
+
+// إرسال الحوالة
+document.getElementById('sendbtn')?.addEventListener('click', async () => {
+  const amount = parseFloat(document.getElementById('sendRat').value);
+  const currency = document.getElementById('transCurr').value;
+  const receiver = document.getElementById('recNam').value.trim();
+  const sender = document.getElementById('sendNam').value.trim();
+  const btn = document.getElementById('sendbtn');
+
+  if (!amount ||!currency ||!receiver ||!sender) {
+    alert('عبئ كل الحقول أولاً');
+    return;
+  }
+  if (amount <= 0) {
+    alert('المبلغ لازم يكون أكبر من صفر');
+    return;
+  }
+  if (!navigator.onLine) {
+    alert('لا يمكن اجراء العملية الان - لا يوجد انترنت');
+    return;
+  }
+  if (btn.disabled) return;
+
+  btn.disabled = true;
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('العملية تأخرت')), 3000)
+  );
+
+  try {
+    // 1. توليد رقم حوالة فريد
+    const transferNumber = await generateTransferNumber();
+
+    // 2. زيادة رصيد النظام
+    await Promise.race([
+      updateSystemBalance({ [currency]: amount }),
+      timeoutPromise
+    ]);
+
+    // 3. حفظ الحوالة في pending
+    const transferData = {
+      number: transferNumber,
+      amount: amount,
+      currency: currency,
+      receiver: receiver,
+      sender: sender,
+      status: 'متاحة',
+      emp: window.currentUser || 'مجهول',
+      time: Date.now()
+    };
+
+    await Promise.race([
+      set(ref(db, `${TRANSFERS_PATH}/${transferNumber}`), transferData),
+      timeoutPromise
+    ]);
+
+    // 4. حفظ العملية في سجل اليوم
+    const today = getToday();
+    const sendId = `send_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    await set(ref(db, `${OPS_PATH}/${today}/sendTransfer/${sendId}`), {
+     ...transferData,
+      type: 'إرسال'
+    });
+
+    // 5. تفريغ الحقول + إظهار رقم الحوالة
+    document.getElementById('sendRat').value = '';
+    document.getElementById('transCurr').value = '';
+    document.getElementById('recNam').value = '';
+    document.getElementById('sendNam').value = '';
+    alert(`تمت العملية بنجاح\nرقم الحوالة: ${transferNumber}`);
+
+  } catch (e) {
+    alert(e.message === 'العملية تأخرت'
+   ? 'لا يمكن اجراء العملية الان - النت ضعيف'
+      : 'فشل العملية: ' + e.message);
+  } finally {
+    setTimeout(() => btn.disabled = false, 500);
+  }
+});
+
+// عرض حوالات الإرسال لحظي
+function listenSendTransfers() {
+  const today = getToday();
+  const tbody = document.querySelector('#sendTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/sendTransfer`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    Object.values(data).reverse().forEach(op => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${op.number}</td>
+        <td>${op.amount}</td>
+        <td>${op.currency}</td>
+        <td>${op.receiver}</td>
+        <td>${op.sender}</td>
+        <td>${op.type}</td>
+        <td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  });
+}
+
+// شغل الاستماع
+listenSendTransfers();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ====== كود 7: استلام الحوالات - يخصم من النظام ======
+// ====== كود 7: استلام الحوالات - يخصم من النظام ======
+const SYSTEM_BAL_PATH = 'systemBalance';
+const TRANSFERS_PENDING = 'transfers/pending';
+const TRANSFERS_RECEIVED = 'transfers/received';
+const OPS_PATH = 'ops';
+
+const getToday = () => new Date().toISOString().split('T')[0];
+let currentTransfer = null;
+
+// البحث
+document.getElementById('searshbtn')?.addEventListener('click', async () => {
+  const number = document.getElementById('numRec').value.trim();
+  const recInput = document.getElementById('nameRec');
+  const sendInput = document.getElementById('nameSend');
+
+  if (!number) { alert('ادخل رقم الحوالة'); return; }
+
+  currentTransfer = null;
+  recInput.value = '';
+  sendInput.value = '';
+
+  try {
+    const snap = await get(ref(db, `${TRANSFERS_PENDING}/${number}`));
+    if (!snap.exists()) { alert('لا يوجد حوالة بهذا الرقم في النظام'); return; }
+
+    currentTransfer = snap.val();
+    if (currentTransfer.status === 'مستلمة') { alert('الحوالة مستلمة مسبقاً'); return; }
+
+    recInput.value = currentTransfer.receiver;
+    sendInput.value = currentTransfer.sender;
+    recInput.readOnly = true;
+    sendInput.readOnly = true;
+
+  } catch (e) { alert('فشل البحث: ' + e.message); }
+});
+
+// الاستلام
+document.getElementById('Recbtn')?.addEventListener('click', async () => {
+  const btn = document.getElementById('Recbtn');
+  if (!currentTransfer) { alert('ابحث عن الحوالة أولاً'); return; }
+  if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+  if (btn.disabled) return;
+
+  btn.disabled = true;
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('العملية تأخرت')), 3000)
+  );
+
+  try {
+    const { number, amount, currency } = currentTransfer;
+    const sysBal = await get(ref(db, `${SYSTEM_BAL_PATH}/${currency}`)).then(s => s.val() || 0);
+    if (sysBal < amount) { alert('رصيد النظام غير كافي'); return; }
+
+    await Promise.race([
+      Promise.all([
+        update(ref(db, SYSTEM_BAL_PATH), { [currency]: sysBal - amount }),
+        set(ref(db, `${TRANSFERS_RECEIVED}/${number}`), {...currentTransfer, status: 'مستلمة', receiveTime: Date.now(), receivedBy: window.currentUser || 'مجهول'}),
+        remove(ref(db, `${TRANSFERS_PENDING}/${number}`))
+      ]),
+      timeoutPromise
+    ]);
+
+    const today = getToday();
+    const recId = `rec_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    await set(ref(db, `${OPS_PATH}/${today}/receiveTransfer/${recId}`), {
+     ...currentTransfer,
+      type: 'استلام',
+      emp: window.currentUser || 'مجهول',
+      time: Date.now()
+    });
+
+    document.getElementById('numRec').value = '';
+    document.getElementById('nameRec').value = '';
+    document.getElementById('nameSend').value = '';
+    currentTransfer = null;
+    alert('تم استلام الحوالة بنجاح');
+
+  } catch (e) {
+    alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+  } finally {
+    setTimeout(() => btn.disabled = false, 500);
+  }
+});
+
+// عرض الجدول
+function listenReceiveTransfers() {
+  const today = getToday();
+  const tbody = document.querySelector('#RecTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/receiveTransfer`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    Object.values(data).reverse().forEach(op => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${op.number}</td>
+        <td>${op.amount}</td>
+        <td>${op.currency}</td>
+        <td>${op.receiver}</td>
+        <td>${op.sender}</td>
+        <td>${op.type}</td>
+        <td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  });
+}
+listenReceiveTransfers();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ====== كود 8: دفع الحوالات - مستقل يدوي ======
+// ====== كود 8: دفع الحوالات - مستقل يدوي ======
+const SYSTEM_BAL_PATH = 'systemBalance';
+const OPS_PATH = 'ops';
+
+const getToday = () => new Date().toISOString().split('T')[0];
+
+document.getElementById('paybtn')?.addEventListener('click', async () => {
+  const amount = parseFloat(document.getElementById('payRat').value);
+  const currency = document.getElementById('payCurr').value;
+  const receiver = document.getElementById('payName').value.trim();
+  const btn = document.getElementById('paybtn');
+
+  if (!amount ||!currency ||!receiver) {
+    alert('عبئ كل الحقول أولاً');
+    return;
+  }
+  if (amount <= 0) { alert('المبلغ لازم يكون أكبر من صفر'); return; }
+  if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+  if (btn.disabled) return;
+
+  btn.disabled = true;
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('العملية تأخرت')), 3000)
+  );
+
+  try {
+    const sysBal = await get(ref(db, `${SYSTEM_BAL_PATH}/${currency}`)).then(s => s.val() || 0);
+    if (sysBal < amount) { alert('رصيد النظام غير كافي'); return; }
+
+    await Promise.race([
+      update(ref(db, SYSTEM_BAL_PATH), { [currency]: sysBal - amount }),
+      timeoutPromise
+    ]);
+
+    const today = getToday();
+    const payId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    await set(ref(db, `${OPS_PATH}/${today}/payTransfer/${payId}`), {
+      amount: amount,
+      currency: currency,
+      receiver: receiver,
+      sender: '', // فاضي لانك ما عندك حقل مرسل في الفورم
+      type: 'دفع يدوي',
+      emp: window.currentUser || 'مجهول',
+      time: Date.now()
+    });
+
+    document.getElementById('payRat').value = '';
+    document.getElementById('payCurr').value = '';
+    document.getElementById('payName').value = '';
+    alert('تم دفع الحوالة بنجاح');
+
+  } catch (e) {
+    alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+  } finally {
+    setTimeout(() => btn.disabled = false, 500);
+  }
+});
+
+// عرض الجدول - مطابق لـ thead عندك
+function listenPayTransfers() {
+  const today = getToday();
+  const tbody = document.querySelector('#payTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/payTransfer`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    Object.values(data).reverse().forEach(op => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${op.amount}</td>
+        <td>${op.currency}</td>
+        <td>${op.receiver}</td>
+        <td>${op.type}</td>
+        <td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  });
+}
+listenPayTransfers();
+
+
+
+
+
+
+
+
+// ====== كود 9: تعديل السعر لحظي ======
+const RATES_PATH = 'rates';
+
+// تحميل العملات في القوائم المنسدلة بالعربي
+function loadCurrenciesToSelects() {
+  const currencies = ['يمني', 'سعودي شبكة', 'سعودي نقد', 'دولار', 'يورو'];
+
+  ['rateCurrency', 'buyCurrency', 'sellCurrency', 'depositCurrency', 'withdrawCurrency', 'transCurr', 'payCurr', 'matchCurrencySelect'].forEach(selId => {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    sel.innerHTML = '';
+    currencies.forEach(cur => {
+      const opt = document.createElement('option');
+      opt.value = cur;
+      opt.textContent = cur; // بالعربي
+      sel.appendChild(opt);
+    });
+  });
+}
+loadCurrenciesToSelects();
+
+// حفظ سعر الشراء
+document.getElementById('btnSaveBuyRate')?.addEventListener('click', async () => {
+  const currency = document.getElementById('rateCurrency').value;
+  const rate = parseFloat(document.getElementById('buyRateInput').value);
+  if (!currency ||!rate || rate <= 0) { alert('ادخل العملة والسعر صح'); return; }
+
+  await set(ref(db, `${RATES_PATH}/${currency}/buy`), rate);
+  await set(ref(db, `rateLogs/${Date.now()}`), {
+    currency, type: 'شراء', rate, emp: window.currentUser, time: Date.now()
+  });
+  document.getElementById('buyRateInput').value = '';
+  alert('تم حفظ سعر الشراء');
+});
+
+// حفظ سعر البيع
+document.getElementById('btnSaveSellRate')?.addEventListener('click', async () => {
+  const currency = document.getElementById('rateCurrency').value;
+  const rate = parseFloat(document.getElementById('sellRateInput').value);
+  if (!currency ||!rate || rate <= 0) { alert('ادخل العملة والسعر صح'); return; }
+
+  await set(ref(db, `${RATES_PATH}/${currency}/sell`), rate);
+  await set(ref(db, `rateLogs/${Date.now()}`), {
+    currency, type: 'بيع', rate, emp: window.currentUser, time: Date.now()
+  });
+  document.getElementById('sellRateInput').value = '';
+  alert('تم حفظ سعر البيع');
+});
+
+// مزامنة السعر لحظي في تبويب الشراء والبيع
+onValue(ref(db, RATES_PATH), (snap) => {
+  const rates = snap.val() || {};
+  const buyCur = document.getElementById('buyCurrency')?.value;
+  const sellCur = document.getElementById('sellCurrency')?.value;
+
+  if (buyCur && rates[buyCur]?.buy) {
+    document.getElementById('buyRate').value = rates[buyCur].buy;
+    calcBuyResult();
+  }
+  if (sellCur && rates[sellCur]?.sell) {
+    document.getElementById('sellRate').value = rates[sellCur].sell;
+    calcSellResult();
+  }
+});
+
+// حساب النتيجة لحظي
+function calcBuyResult() {
+  const amt = parseFloat(document.getElementById('buyAmount').value) || 0;
+  const rate = parseFloat(document.getElementById('buyRate').value) || 0;
+  document.getElementById('buyResult').value = amt * rate;
+}
+function calcSellResult() {
+  const amt = parseFloat(document.getElementById('sellAmount').value) || 0;
+  const rate = parseFloat(document.getElementById('sellRate').value) || 0;
+  document.getElementById('sellResult').value = amt * rate;
+}
+document.getElementById('buyAmount')?.addEventListener('input', calcBuyResult);
+document.getElementById('sellAmount')?.addEventListener('input', calcSellResult);
+
+
+
+
+
+
+
+
+
+
+// ====== كود 10: الفلترة والتواريخ والترتيب ======
+
+// يضيف مربعات التاريخ فوق كل جدول
+function addDateFiltersToTables() {
+  const tables = ['buyTable', 'sellTable', 'depositTable', 'withdrawTable', 'sendTable', 'RecTable', 'payTable', 'accBalanceTable', 'rateLogTable', 'matchTable'];
+
+  tables.forEach(id => {
+    const table = document.getElementById(id);
+    if (!table) return;
+
+    const card = table.closest('.card');
+    if (card.querySelector('.dateFilter')) return; // لا تكرر
+
+    const filterDiv = document.createElement('div');
+    filterDiv.className = 'dateFilter row';
+    filterDiv.innerHTML = `
+      <input type="date" id="${id}From" placeholder="من">
+      <input type="date" id="${id}To" placeholder="الى">
+      <button id="${id}Filter">فلترة</button>
+      <button id="${id}Clear">مسح</button>
+    `;
+    card.insertBefore(filterDiv, table);
+
+    // الافتراضي اليوم
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById(`${id}From`).value = today;
+    document.getElementById(`${id}To`).value = today;
+
+    document.getElementById(`${id}Filter`).onclick = () => filterTable(id);
+    document.getElementById(`${id}Clear`).onclick = () => {
+      document.getElementById(`${id}From`).value = today;
+      document.getElementById(`${id}To`).value = today;
+      filterTable(id);
+    };
+  });
+}
+addDateFiltersToTables();
+
+// فلترة الجدول حسب التاريخ
+function filterTable(tableId) {
+  const from = document.getElementById(`${tableId}From`).value;
+  const to = document.getElementById(`${tableId}To`).value;
+  const tbody = document.querySelector(`#${tableId} tbody`);
+
+  // امسح الجدول
+  tbody.innerHTML = '';
+
+  // جيب البيانات من كل يوم بين from و to
+  let current = new Date(from);
+  const end = new Date(to);
+
+  while (current <= end) {
+    const day = current.toISOString().split('T')[0];
+    const path = getPathForTable(tableId, day);
+    if (path) {
+      onValue(ref(db, path), (snap) => {
+        const data = snap.val();
+        if (data) {
+          Object.values(data).reverse().forEach(op => appendRow(tableId, op));
+        }
+      }, {onlyOnce: true});
+    }
+    current.setDate(current.getDate() + 1);
+  }
+}
+
+// تحديد مسار البيانات لكل جدول
+function getPathForTable(tableId, day) {
+  const map = {
+    buyTable: `ops/${day}/buy`,
+    sellTable: `ops/${day}/sell`,
+    depositTable: `ops/${day}/deposit`,
+    withdrawTable: `ops/${day}/withdraw`,
+    sendTable: `ops/${day}/sendTransfer`,
+    RecTable: `ops/${day}/receiveTransfer`,
+    payTable: `ops/${day}/payTransfer`,
+    rateLogTable: `rateLogs` // هذا مش مقسم باليوم
+  };
+  return map[tableId];
+}
+
+// إضافة صف للجدول
+function appendRow(tableId, op) {
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  const tr = document.createElement('tr');
+
+  // نفس تنسيق الجدول اللي عطيتك اياه
+  if (tableId === 'buyTable' || tableId === 'sellTable') {
+    tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td><td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+  } else if (tableId === 'depositTable' || tableId === 'withdrawTable') {
+    tr.innerHTML = `<td>${op.accountId}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td><td>${op.depositor || op.receiver}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+  } else if (tableId === 'sendTable' || tableId === 'RecTable') {
+    tr.innerHTML = `<td>${op.number}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.receiver}</td><td>${op.sender}</td><td>${op.type}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+  } else if (tableId === 'payTable') {
+    tr.innerHTML = `<td>${op.amount}</td><td>${op.currency}</td><td>${op.receiver}</td><td>${op.type}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+  }
+  tbody.appendChild(tr);
+}
+
+// ترتيب الجدول عند الضغط على الراس
+document.querySelectorAll('th').forEach((th, i) => {
+  th.style.cursor = 'pointer';
+  th.onclick = () => sortTable(th.closest('table'), i);
+});
+
+function sortTable(table, colIndex) {
+  const tbody = table.querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const isAsc = table.getAttribute('data-sort')!== 'asc';
+
+  rows.sort((a, b) => {
+    const A = a.cells[colIndex].textContent.trim();
+    const B = b.cells[colIndex].textContent.trim();
+    return isAsc? A.localeCompare(B, 'ar') : B.localeCompare(A, 'ar');
+  });
+
+  tbody.innerHTML = '';
+  rows.forEach(row => tbody.appendChild(row));
+  table.setAttribute('data-sort', isAsc? 'asc' : 'desc');
+}
+
+// تحديد الجدول كامل عند الضغط على الركن
+document.querySelectorAll('table').forEach(table => {
+  table.addEventListener('click', (e) => {
+    if (e.target.tagName === 'TH' && e.target.cellIndex === 0) {
+      table.classList.toggle('table-selected');
+    }
+  });
+});
+
+// تحديد الصف عند الضغط عليه
+document.addEventListener('click', (e) => {
+  if (e.target.tagName === 'TD') {
+    e.target.parentElement.classList.toggle('selected');
+  }
+});
+
+// السكرول الافقي والرأسي شغال من CSS اللي عندك
+
+
+
+
+
+
+
+
+
+
+
+// ====== كود 11: ضبط عرض أعمدة الجدول حسب طول العنوان والمحتوى ======
+function autoSizeTableColumns() {
+  document.querySelectorAll('table').forEach(table => {
+    const thead = table.querySelector('thead tr');
+    const tbody = table.querySelector('tbody');
+    if (!thead) return;
+
+    const headers = thead.querySelectorAll('th');
+    const rows = tbody? tbody.querySelectorAll('tr') : [];
+
+    headers.forEach((th, colIndex) => {
+      let maxWidth = getTextWidth(th.textContent, getComputedStyle(th).font);
+
+      // شوف أطول محتوى في العمود
+      rows.forEach(row => {
+        const cell = row.cells[colIndex];
+        if (cell) {
+          const w = getTextWidth(cell.textContent, getComputedStyle(cell).font);
+          if (w > maxWidth) maxWidth = w;
+        }
+      });
+
+      // زود 20px للـ padding والـ border
+      maxWidth = Math.min(maxWidth + 20, 250); // حد أقصى 250px عشان ما يكبر بزيادة
+      maxWidth = Math.max(maxWidth, 60); // حد أدنى 60px عشان ما يختفي
+
+      th.style.minWidth = maxWidth + 'px';
+      th.style.width = maxWidth + 'px';
+
+      // طبقه على كل الخلايا في العمود
+      rows.forEach(row => {
+        if (row.cells[colIndex]) {
+          row.cells[colIndex].style.minWidth = maxWidth + 'px';
+          row.cells[colIndex].style.width = maxWidth + 'px';
+        }
+      });
+    });
+  });
+}
+
+// يحسب عرض النص بالبكسل
+function getTextWidth(text, font) {
+  const canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement('canvas'));
+  const ctx = canvas.getContext('2d');
+  ctx.font = font;
+  return ctx.measureText(text).width;
+}
+
+// شغلها أول ما الصفحة تتحمل وكل ما يتغير محتوى الجدول
+document.addEventListener('DOMContentLoaded', autoSizeTableColumns);
+
+// راقب أي تغيير في الجداول وشغل الضبط تلقائي
+const observer = new MutationObserver(() => autoSizeTableColumns());
+document.querySelectorAll('table tbody').forEach(tbody => {
+  observer.observe(tbody, { childList: true, subtree: true });
+});
+
+// اعد الضبط عند تغيير حجم الشاشة
+window.addEventListener('resize', () => setTimeout(autoSizeTableColumns, 200));
+
+
+
+
+
+
+
+
+
+
 </script>
 
 
