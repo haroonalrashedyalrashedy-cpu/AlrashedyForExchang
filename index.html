@@ -842,34 +842,34 @@ loadUsers();
 
 
 
+
+
+
+
+
+
+
+
 </script>
 
 
 <script>
-// تشغيل التبويبات الرئيسية والفرعية - فتح وقفل
-
-// تشغيل التبويبات الرئيسية والفرعية - فتح وقفل
 document.addEventListener('DOMContentLoaded', () => {
   
   function setupTabs(container, tabSelector, contentAttr) {
-    container.querySelectorAll(tabSelector).forEach(tab => {
-      tab.addEventListener('click', () => {
+    const tabs = container.querySelectorAll(tabSelector);
+    const contents = container.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.stopPropagation(); // يمنع التصادم مع التبويبات الرئيسية
+        
         const targetId = tab.getAttribute(contentAttr);
-        const tabGroup = tab.closest('.tabs');
-        const tabContents = tabGroup.parentElement.querySelectorAll('.tab-content');
+        if (!targetId) return;
 
-        // لو ضغطت على نفس التبويب وهو مفتوح = اقفله
-        if (tab.classList.contains('active')) {
-          tab.classList.remove('active');
-          tabContents.forEach(c => {
-            if (c.id === targetId) c.classList.remove('active');
-          });
-          return;
-        }
-
-        // شيل active من كل التبويبات والمحتويات في نفس المجموعة
-        tabGroup.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        tabContents.forEach(c => c.classList.remove('active'));
+        // شيل active من كل التبويبات والمحتويات في نفس الحاوية
+        tabs.forEach(t => t.classList.remove('active'));
+        contents.forEach(c => c.classList.remove('active'));
 
         // فعّل التبويب والمحتوى المطلوب
         tab.classList.add('active');
@@ -882,13 +882,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // التبويبات الرئيسية
   setupTabs(document.getElementById('adminScreen'), '.tabs > .tab', 'data-tab');
 
-  // التبويبات الفرعية داخل العمليات
+  // التبويبات الفرعية
   setupTabs(document.getElementById('operations'), '.tabs > .tab', 'data-subtab');
-
-  // التبويبات الفرعية داخل الحوالات
   setupTabs(document.getElementById('transfers'), '.tabs > .tab', 'data-subtab');
-
-  // التبويبات الفرعية داخل الحسابات
   setupTabs(document.getElementById('accounts'), '.tabs > .tab', 'data-subtab');
 });
 </script>
