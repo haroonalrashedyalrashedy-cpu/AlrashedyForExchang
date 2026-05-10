@@ -938,9 +938,9 @@ document.addEventListener('DOMContentLoaded', () => {
   setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab');
 
   // 2. التبويبات الفرعية - لاحظ المسافة بين.subtabs و.tab
-  setupTabs(document.getElementById('operations'), '.subtabs.tab', 'data-subtab', true);
-  setupTabs(document.getElementById('transfers'), '.subtabs.tab', 'data-subtab', true);
-  setupTabs(document.getElementById('accounts'), '.subtabs.tab', 'data-subtab', true);
+  setupTabs(document.getElementById('operations'), '.subtabs .tab', 'data-subtab', true);
+  setupTabs(document.getElementById('transfers'), '.subtabs .tab', 'data-subtab', true);
+  setupTabs(document.getElementById('accounts'), '.subtabs .tab', 'data-subtab', true);
 
   // 3. اظهار التبويبات الفرعية لما تفتح الرئيسي
   document.querySelectorAll('#adminScreen >.tabs >.tab').forEach(tab => {
