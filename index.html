@@ -48,8 +48,8 @@
   .dropdown-item:hover {background: var(--bg-dark);}
   .dropdown-search {position: sticky; top: 0; background: var(--bg-panel); padding: 8px; border-bottom: 1px solid var(--border-color); z-index: 1;}
   .password-box {position: relative; width: 100%;}
-  .password-box.eye {position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; opacity: 0.7;}
-  .password-box.eye:hover {opacity: 1;}
+  .password-box. eye {position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; opacity: 0.7;}
+  .password-box. eye:hover {opacity: 1;}
   .overlay {position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 5; background: rgba(0,0,0,0.3);}
   .overlay.active {display: block;}
 
@@ -679,23 +679,164 @@
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, set, get, push, update, remove, query, orderByChild, equalTo, limitToLast, onValue }
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+ <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set, get, update }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDSWYRUfeO0ruDXO-2lv4tnrqxBVUHXFIs",
-      authDomain: "watsapp-haroon.firebaseapp.com",
-      databaseURL: "https://watsapp-haroon-default-rtdb.firebaseio.com",
-      projectId: "watsapp-haroon",
-      storageBucket: "watsapp-haroon.firebasestorage.app",
-      messagingSenderId: "85603158090",
-      appId: "1:85603158090:web:001303416bd3a68879feb3"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyDSWYRUfeO0ruDXO-2lv4tnrqxBVUHXFIs",
+  authDomain: "watsapp-haroon.firebaseapp.com",
+  databaseURL: "https://watsapp-haroon-default-rtdb.firebaseio.com",
+  projectId: "watsapp-haroon",
+  storageBucket: "watsapp-haroon.firebasestorage.app",
+  messagingSenderId: "85603158090",
+  appId: "1:85603158090:web:001303416bd3a68879feb3"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-  </script>
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// المتغيرات
+let currentUser = null;
+let currentRole = null;
+
+// عناصر الصفحة
+const loginScreen = document.getElementById('loginScreen');
+const adminScreen = document.getElementById('adminScreen');
+const userSelect = document.getElementById('userSelect');
+const userList = document.getElementById('userList');
+const dropdownOverlay = document.getElementById('dropdownOverlay');
+const passwordInput = document.getElementById('passwordInput');
+const btnLogin = document.getElementById('btnLogin');
+const togglePass = document.getElementById('togglePass');
+const btnLogoutAdmin = document.getElementById('btnLogoutAdmin');
+
+// 1. تحميل المستخدمين + انشاء الادمن الافتراضي
+async function loadUsers() {
+  const adminRef = ref(db, 'users/هارون الراشدي');
+  const snap = await get(adminRef);
+
+  if (!snap.exists()) {
+    await set(adminRef, {
+      password: "123",
+      role: "admin",
+      name: "هارون الراشدي",
+      active: true
+    });
+  }
+
+  const allUsersSnap = await get(ref(db, 'users'));
+  userList.innerHTML = '';
+
+  if (allUsersSnap.exists()) {
+    const users = allUsersSnap.val();
+    Object.keys(users).forEach(username => {
+      if (users[username].active!== false) {
+        const div = document.createElement('div');
+        div.className = 'dropdown-item';
+        div.textContent = username;
+        div.onclick = () => {
+          userSelect.value = username;
+          userList.classList.remove('active');
+          dropdownOverlay.classList.remove('active');
+        };
+        userList.appendChild(div);
+      }
+    });
+  }
+}
+
+// 2. فتح واغلاق قائمة المستخدمين
+userSelect.addEventListener('click', () => {
+  userList.classList.toggle('active');
+  dropdownOverlay.classList.toggle('active');
+});
+dropdownOverlay.addEventListener('click', () => {
+  userList.classList.remove('active');
+  dropdownOverlay.classList.remove('active');
+});
+
+// 3. اظهار واخفاء كلمة المرور
+togglePass.addEventListener('click', () => {
+  passwordInput.type = passwordInput.type === 'password'? 'text' : 'password';
+});
+
+// 4. تسجيل الدخول
+btnLogin.addEventListener('click', async () => {
+  const username = userSelect.value.trim();
+  const password = passwordInput.value.trim();
+
+  if (!username ||!password) {
+    alert('ادخل اسم المستخدم وكلمة المرور');
+    return;
+  }
+
+  const snap = await get(ref(db, `users/${username}`));
+  if (!snap.exists()) {
+    alert('المستخدم غير موجود');
+    return;
+  }
+
+  const user = snap.val();
+  if (user.active === false) {
+    alert('الحساب موقف');
+    return;
+  }
+  if (user.password!== password) {
+    alert('كلمة المرور خطأ');
+    return;
+  }
+
+  // نجح الدخول
+  currentUser = username;
+  currentRole = user.role;
+  loginScreen.classList.remove('active');
+
+  if (currentRole === 'admin') {
+    adminScreen.classList.add('active');
+    document.getElementById('adminName').textContent = user.name;
+    document.getElementById('adminRole').textContent = 'مدير';
+  } else {
+    alert('واجهة الموظف لسه ما جهزت');
+  }
+
+  passwordInput.value = '';
+});
+
+// 5. خروج
+btnLogoutAdmin.addEventListener('click', () => {
+  currentUser = null;
+  currentRole = null;
+  adminScreen.classList.remove('active');
+  loginScreen.classList.add('active');
+  userSelect.value = '';
+});
+
+// 6. تغيير كلمة مرور الادمن
+document.getElementById('btnChangeAdminPass').addEventListener('click', async () => {
+  const newPass = document.getElementById('adminNewPass').value.trim();
+  if (!newPass) {
+    alert('ادخل كلمة المرور الجديدة');
+    return;
+  }
+  if (!/^\d{3,8}$/.test(newPass)) {
+    alert('كلمة المرور لازم تكون ارقام 3-8 خانات');
+    return;
+  }
+
+  await update(ref(db, `users/${currentUser}`), { password: newPass });
+  alert('تم تغيير كلمة المرور بنجاح');
+  document.getElementById('adminNewPass').value = '';
+});
+
+// شغل تحميل المستخدمين اول ما تفتح الصفحة
+loadUsers();
+
+
+
+
+
+</script>
 </body>
 </html>
