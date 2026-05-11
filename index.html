@@ -17,315 +17,532 @@
 
   <style>
     /* 📌 القسم 2: ستايل الواجهة + Responsive */
-    :root {
-      --bg-dark: #111b21;
-      --bg-panel: #202c33;
-      --text-primary: #e9edef;
-      --text-secondary: #8696a0;
-      --accent-green: #25d366;
-      --border-color: #2a3942;
-      --danger: #d32f2f;
-    }
-    * {margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent;}
-    body {height: 100dvh; background: var(--bg-dark); color: var(--text-primary); font-family: 'Segoe UI', Tahoma, Arial, sans-serif; overflow: hidden; font-size: 16px;}
-  .screen {display: none; flex-direction: column; height: 100dvh; width: 100vw; overflow: hidden;}
-  .screen.active {display: flex;}
-    button {background: var(--accent-green); color: var(--bg-dark); border: none; border-radius: 8px; padding: 12px 20px; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.2s, transform 0.1s;}
-    button:active {opacity: 0.8; transform: scale(0.98);}
-    button:disabled {opacity: 0.5; cursor: not-allowed;}
-    input, select {background: var(--bg-panel); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; font-size: 16px; outline: none; text-align: center; width: 100%;}
-    input:focus, select:focus {border-color: var(--accent-green); box-shadow: 0 0 0 2px rgba(37, 211, 102, 0.2);}
-    input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}
-    input[type="number"] {-moz-appearance: textfield;}
-    input[readonly], input[readOnly] {user-select: none; -webkit-user-select: none;}
-  .login-container {display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 24px; gap: 20px; max-width: 400px; margin: 0 auto;}
-  .login-logo {font-size: 64px; margin-bottom: 8px;}
-  .login-title {font-size: 28px; font-weight: 700; margin-bottom: 12px;}
-  .dropdown {position: relative; width: 100%;}
-  .dropdown-list {position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; max-height: 200px; overflow-y: auto; display: none; z-index: 10; margin-top: 4px;}
-  .dropdown-list.active {display: block;}
-  .dropdown-item {padding: 12px 16px; cursor: pointer; transition: background 0.2s;}
-  .dropdown-item:hover {background: var(--bg-dark);}
-  .dropdown-search {position: sticky; top: 0; background: var(--bg-panel); padding: 8px; border-bottom: 1px solid var(--border-color); z-index: 1;}
-  .password-box {position: relative; width: 100%;}
-  .password-box .eye {position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; opacity: 0.7;}
-  .password-box .eye:hover {opacity: 1;}
-  .overlay {position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 5; background: rgba(0,0,0,0.3);}
-  .overlay.active {display: block;}
+   :root {
+  --bg-dark: #111b21;
+  --bg-panel: #202c33;
+  --text-primary: #e9edef;
+  --text-secondary: #8696a0;
+  --accent-green: #25d366;
+  --border-color: #2a3942;
+  --danger: #d32f2f;
+}
 
-  .header {height: 64px; background: #4ade80; font-size: 18px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
 
-  .tabs {display: flex; min-width: 50px; border-bottom: 1px solid var(--border-color); font-weight: bold; overflow-x: auto; flex-shrink: 0;}
+body {
+  height: 100dvh;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  overflow: hidden;
+  font-size: 16px;
+}
 
-  .tab {flex: 1; min-width: 100px; padding: 14px; text-align: center; cursor: pointer; font-weight: bold; color: var(--text-secondary); transition: color 0.2s, border-bottom 0.2s; white-space: nowrap;}
-  .tab.active {color: var(--accent-green); border-bottom: 2px solid var(--accent-green);}
-  .tab-content {display: none; flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch;}
-  .tab-content.active {display: block;}
-  .card {background: var(--bg-panel); padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border-color);}
-  .row {display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;}
-  .row > * {flex: 1; min-width: 120px;}
-    table {width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px;}
-    th, td {border: 1px solid var(--border-color); padding: 8px; text-align: center; word-break: break-word;}
-    th {background: var(--bg-dark); font-weight: 600;}
-  .modal {position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-panel); padding: 20px; border-radius: 12px; z-index: 20; display: none; min-width: 280px; max-width: 90%; box-shadow: 0 8px 24px rgba(0,0,0,0.5);}
-  .modal.active {display: block;}
-  .toast {position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--bg-panel); padding: 12px 24px; border-radius: 8px; display: none; z-index: 30; border: 1px solid var(--border-color);}
-  .toast.show {display: block; animation: fade 3s forwards;}
-    @keyframes fade {
-      0% {opacity: 0; transform: translateX(-50%) translateY(20px);}
-      10% {opacity: 1; transform: translateX(-50%) translateY(0);}
-      90% {opacity: 1; transform: translateX(-50%) translateY(0);}
-      100% {opacity: 0; transform: translateX(-50%) translateY(20px);}
-    }
-    @media (max-width: 480px) {
-    .row > * {min-width: 100%;}
-    .login-title {font-size: 24px;}
-    .login-logo {font-size: 56px;}
-      button, input, select {font-size: 15px; padding: 10px 14px;}
-    }
+.screen {
+  display: none;
+  flex-direction: column;
+  height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
+}
 
-    /* زر خروج الادمن والموظف - مصغر */
-    #btnLogoutAdmin {
-      background: #dc2626!important;
-      color: #ffffff!important;
-      padding: 4px 10px!important;
-      font-size: 13px!important;
-      border-radius: 5px!important;
-      font-weight: bold!important;
-      border: none!important;
-      cursor: pointer;
-      transition: background 0.2s, opacity 0.2s, transform 0.1s;
-    }
-    #btnLogoutAdmin:hover {
-      background: #ef4444!important;
-    }
-    #btnLogoutAdmin:active {
-      background: #f87171!important;
-      transform: scale(0.98);
-    }
-
-    /* ===== حل الجداول بدون كسر التصميم ===== */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    tbody {
-      max-height: calc(3 * 34px);
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
-    thead {
-      width: 100%;
-      table-layout: fixed;
-      position: sticky;
-      top: 0;
-      background: var(--bg-dark);
-      z-index: 2;
-    }
-    tbody tr {
-      width: 100%;
-      table-layout: fixed;
-    }
-    th, td {
-      padding: 3px 2px;
-      font-size: 12px;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      border: 1px solid var(--border-color);
-      height: 34px;
-    }
-    tbody tr.selected {
-      background: rgba(37, 211, 102, 0.25)!important;
-    }
-
-    /* تكبير مربع النتيجة */
-    #buyResult, #sellResult {
-      font-size: 20px!important;
-      font-weight: 700!important;
-      color: var(--accent-green)!important;
-    }
-
-    /* الشريط السفلي */
-    #bottomBar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 52px;
-      background: rgba(139, 69, 19, 0.75);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      display: none;
-      justify-content: space-around;
-      align-items: center;
-      z-index: 50;
-      border-top: 1px solid rgba(93, 58, 26, 0.6);
-      box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
-    }
-    #bottomBar.active {
-      display: flex;
-    }
-    #bottomBar button {
-      background: #4ade80;
-      color: #111b21;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 15px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      min-width: 110px;
-      justify-content: center;
-      transition: opacity 0.2s, transform 0.1s;
-    }
-    #bottomBar button:active {
-      transform: scale(0.97);
-      opacity: 0.9;
-    }
-    #bottomBar button:disabled {
-      opacity: 0.6;
-    }
-   .spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid #fff;
-      border-top: 2px solid transparent;
-      border-radius: 50%;
-      display: none;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin {
-     100% { transform: rotate(360deg); }
-    }
-   .loading.spinner { display: inline-block; }
-   .loading.txt { display: none; }
-   .tab-content {
-      padding-bottom: 60px;
-    }
-    table.table-selected {
-      outline: 2px solid #8B4513;
-      outline-offset: -2px;
-    }
-
-   .buy-form,
-   .sell-form{
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-   .buy-form input,
-   .buy-form select,
-   .buy-form button,
-   .sell-form input,
-   .sell-form select,
-   .sell-form button{
-      width: 100%;
-      box-sizing: border-box;
-      height: 40px;
-      padding: 0 10px;
-      border-radius: 6px;
-      border: 1px solid #444;
-      background: #222;
-      color: #fff;
-      font-size: 14px;
-    }
-   .row-inline{
-      display: flex;
-      gap: 8px;
-    }
-   .row-inline select,
-   .row-inline input{
-      flex: 1;
-    }
-    #btnSaveBuy,
-    #btnSaveSell {
-      background: #00d26a;
-      color: #000;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-    }
-    #btnSaveBuy:active,
-    #btnSaveSell:active {
-      opacity: 0.8;
-    }
-   .select-corner{
-      cursor:pointer;
-      background:#2a2a2a;
-      font-weight:bold;
-    }
-   .select-corner.selected{
-      background:var(--accent-green);
-      color:#000;
-    }
-    @media print{
-      body *{visibility:hidden;}
-    .print-area,.print-area *{visibility:visible;}
-    .print-area{position:absolute; left:0; top:0; width:100%;}
-    }
-    
-    .subtabs {
+.screen.active {
   display: flex;
-  overflow-x: auto;          /* سكرول افقي */
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch; /* سلاسة على الايفون */
-  scrollbar-width: none;     /* اخفي شريط السكرول في فايرفوكس */
-  -ms-overflow-style: none;  /* اخفيه في ايدج */
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--border-color);
-}
-.subtabs::-webkit-scrollbar {
-  display: none;             /* اخفي شريط السكرول في كروم وسفاري */
 }
 
-.subtabs .tab {
-  flex: 0 0 auto;            /* لا ينضغط ولا يتمدد */
-  white-space: nowrap;       /* خلي النص سطر واحد */
+button {
+  background: var(--accent-green);
+  color: var(--bg-dark);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+button:active {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input, select {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 16px;
+  outline: none;
+  text-align: center;
+  width: 100%;
+}
+
+input:focus, select:focus {
+  border-color: var(--accent-green);
+  box-shadow: 0 0 0 2px rgba(37, 211, 102, 0.2);
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input[readonly], input[readOnly] {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px;
+  gap: 20px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.login-logo {
+  font-size: 64px;
+  margin-bottom: 8px;
+}
+
+.login-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  display: none;
+  z-index: 10;
+  margin-top: 4px;
+}
+
+.dropdown-list.active {
+  display: block;
+}
+
+.dropdown-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: var(--bg-dark);
+}
+
+.dropdown-search {
+  position: sticky;
+  top: 0;
+  background: var(--bg-panel);
+  padding: 8px;
+  border-bottom: 1px solid var(--border-color);
+  z-index: 1;
+}
+
+.password-box {
+  position: relative;
+  width: 100%;
+}
+
+.password-box.eye {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 20px;
+  opacity: 0.7;
+}
+
+.password-box.eye:hover {
+  opacity: 1;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  z-index: 5;
+  background: rgba(0,0,0,0.3);
+}
+
+.overlay.active {
+  display: block;
+}
+
+.header {
+  height: 64px;
+  background: #4ade80;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.tabs {
+  display: flex;
+  min-width: 50px;
+  border-bottom: 1px solid var(--border-color);
+  font-weight: bold;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.tab {
+  flex: 1;
   min-width: 100px;
+  padding: 14px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: bold;
+  color: var(--text-secondary);
+  transition: color 0.2s, border-bottom 0.2s;
+  white-space: nowrap;
+}
+
+.tab.active {
+  color: var(--accent-green);
+  border-bottom: 2px solid var(--accent-green);
+}
+
+.tab-content {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 60px;
+  touch-action: pan-y;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.card {
+  background: var(--bg-panel);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-color);
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.row > * {
+  flex: 1;
+  min-width: 120px;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-panel);
+  padding: 20px;
+  border-radius: 12px;
+  z-index: 20;
+  display: none;
+  min-width: 280px;
+  max-width: 90%;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+.modal.active {
+  display: block;
+}
+
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-panel);
+  padding: 12px 24px;
+  border-radius: 8px;
+  display: none;
+  z-index: 30;
+  border: 1px solid var(--border-color);
+}
+
+.toast.show {
+  display: block;
+  animation: fade 3s forwards;
+}
+
+@keyframes fade {
+ 0% {opacity: 0; transform: translateX(-50%) translateY(20px);}
+ 10% {opacity: 1; transform: translateX(-50%) translateY(0);}
+ 90% {opacity: 1; transform: translateX(-50%) translateY(0);}
+ 100% {opacity: 0; transform: translateX(-50%) translateY(20px);}
+}
+
+@media (max-width: 480px) {
+ .row > * {min-width: 100%;}
+ .login-title {font-size: 24px;}
+ .login-logo {font-size: 56px;}
+  button, input, select {font-size: 15px; padding: 10px 14px;}
+}
+
+/* زر خروج الادمن والموظف - مصغر */
+#btnLogoutAdmin {
+  background: #dc2626!important;
+  color: #ffffff!important;
+  padding: 4px 10px!important;
+  font-size: 13px!important;
+  border-radius: 5px!important;
+  font-weight: bold!important;
+  border: none!important;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s, transform 0.1s;
+}
+
+#btnLogoutAdmin:hover {
+  background: #ef4444!important;
+}
+
+#btnLogoutAdmin:active {
+  background: #f87171!important;
+  transform: scale(0.98);
+}
+
+/* تكبير مربع النتيجة */
+#buyResult, #sellResult {
+  font-size: 20px!important;
+  font-weight: 700!important;
+  color: var(--accent-green)!important;
+}
+
+/* الشريط السفلي */
+#bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 52px;
+  background: rgba(139, 69, 19, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: none;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 50;
+  border-top: 1px solid rgba(93, 58, 26, 0.6);
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
+}
+
+#bottomBar.active {
+  display: flex;
+}
+
+#bottomBar button {
+  background: #4ade80;
+  color: #111b21;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 110px;
+  justify-content: center;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+#bottomBar button:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+#bottomBar button:disabled {
+  opacity: 0.6;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  display: none;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+ 100% { transform: rotate(360deg); }
+}
+
+.loading.spinner { display: inline-block; }
+.loading.txt { display: none; }
+
+table.table-selected {
+  outline: 2px solid #8B4513;
+  outline-offset: -2px;
+}
+
+.buy-form,
+.sell-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.buy-form input,
+.buy-form select,
+.buy-form button,
+.sell-form input,
+.sell-form select,
+.sell-form button {
+  width: 100%;
+  box-sizing: border-box;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #222;
+  color: #fff;
+  font-size: 14px;
+}
+
+.row-inline {
+  display: flex;
+  gap: 8px;
+}
+
+.row-inline select,
+.row-inline input {
+  flex: 1;
+}
+
+#btnSaveBuy,
+#btnSaveSell {
+  background: #00d26a;
+  color: #000;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+}
+
+#btnSaveBuy:active,
+#btnSaveSell:active {
+  opacity: 0.8;
+}
+
+.select-corner {
+  cursor:pointer;
+  background:#2a2a2a;
+  font-weight:bold;
+  width: 32px;
+  min-width: 32px;
+  position: sticky;
+  left: 0;
+  z-index: 3;
+}
+
+.select-corner.selected {
+  background:var(--accent-green);
+  color:#000;
+}
+
+@media print {
+  body *{visibility:hidden;}
+ .print-area,.print-area *{visibility:visible;}
+ .print-area{position:absolute; left:0; top:0; width:100%;}
 }
 
 .subtabs {
-  touch-action: pan-x; /* خلي السحب افقي بس على الشريط */
-}
-.tab-content {
-  touch-action: pan-y; /* الكرت يسمح عمودي فقط */
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-color);
+  touch-action: pan-x;
 }
 
+.subtabs::-webkit-scrollbar {
+  display: none;
+}
 
+.subtabs.tab {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  min-width: 100px;
+}
+
+/* ===== جداول السكرول - النسخة المصححة ===== */
 .table-wrap {
   width: 100%;
-  overflow: auto;           /* سكرول راسي + افقي */
+  max-height: calc(4 * 34px + 34px); /* 4 صفوف + الهيدر */
+  overflow: auto; /* سكرول راسي + افقي */
   -webkit-overflow-scrolling: touch;
   border: 1px solid var(--border-color);
   border-radius: 8px;
+  position: relative;
 }
 
-/* ارتفاع 4 صفوف بالضبط */
-.table-wrap tbody {
-  display: block;
-  max-height: calc(4 * 34px); /* 34px = ارتفاع الصف عندك */
-  overflow-y: auto;           /* سكرول راسي داخلي */
-  overflow-x: hidden;
-}
-
-.table-wrap thead,
-.table-wrap tbody tr {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-}
-
-/* الجدول يتمدد عشان السكرول الافقي */
 .table-wrap table {
   width: max-content;
   min-width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
+/* تثبيت الهيدر */
 .table-wrap thead th {
   position: sticky;
   top: 0;
@@ -333,16 +550,22 @@
   z-index: 2;
 }
 
+/* لا تلمس display حق tbody و tr - خليهم الافتراضي */
 .table-wrap th,
 .table-wrap td {
-  white-space: nowrap;
   padding: 3px 2px;
-  height: 34px; /* نفس الارتفاع اللي حسبنا عليه 4 صفوف */
+  height: 34px;
   font-size: 12px;
-  border: 1px solid var(--border-color);
   text-align: center;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  border: 1px solid var(--border-color);
+  min-width: 80px;
+}
+
+.table-wrap tbody tr.selected {
+  background: rgba(37, 211, 102, 0.25)!important;
 }
 
 
