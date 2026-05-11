@@ -1782,111 +1782,136 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 (() => {
-  // ===== 1. سحب الكروت والتبويبات الفرعية =====
-  document.addEventListener('touchstart', (e) => {
-    const subTabContent = e.target.closest('.tab-content[data-subtab]');
-    if (!subTabContent) return;
-    subTabContent.__startX = e.touches[0].clientX;
-    subTabContent.__startY = e.touches[0].clientY;
-    subTabContent.__isSwiping = false;
-  }, {passive: true});
-
-  document.addEventListener('touchmove', (e) => {
-    const subTabContent = e.target.closest('.tab-content[data-subtab]');
-    if (!subTabContent ||!subTabContent.__startX) return;
-    const diffX = Math.abs(e.touches[0].clientX - subTabContent.__startX);
-    const diffY = Math.abs(e.touches[0].clientY - subTabContent.__startY);
-    if (diffX > diffY && diffX > 20) {
-      subTabContent.__isSwiping = true;
-      e.preventDefault();
-    }
-  }, {passive: false});
-
-  document.addEventListener('touchend', (e) => {
-    const subTabContent = e.target.closest('.tab-content[data-subtab]');
-    if (!subTabContent ||!subTabContent.__isSwiping) return;
-    const diffX = e.changedTouches[0].clientX - subTabContent.__startX;
-    if (Math.abs(diffX) < 50) return;
-
-    const parent = subTabContent.parentElement;
-    const contentList = [...parent.querySelectorAll(':scope >.tab-content[data-subtab]')];
-    const tabs = [...parent.querySelector('.subtabs')?.querySelectorAll('.tab') || []];
-    const idx = contentList.indexOf(subTabContent);
-    if (idx === -1) return;
-
-    let nextIdx = diffX > 0? idx - 1 : idx + 1;
-    if (nextIdx < 0) nextIdx = contentList.length - 1;
-    if (nextIdx >= contentList.length) nextIdx = 0;
-
-    tabs.forEach(t => t.classList.remove('active'));
-    contentList.forEach(c => c.classList.remove('active'));
-    tabs[nextIdx]?.classList.add('active');
-    contentList[nextIdx]?.classList.add('active');
-
-    subTabContent.__startX = null;
-    subTabContent.__isSwiping = false;
-  }, {passive: true});
-
-  // ===== 2. CSS الإضافي =====
+  // 1. CSS مصح يشتغل على الهيكل الحالي حقك
   const style = document.createElement('style');
   style.textContent = `
-   .patch-wrap.dateFilter {
+    /* فلترة التاريخ - صف واحد صغير */
+    #deposit.row, #withdraw.row, #buy.row, #sell.row,
+    #sendTransfers.row, #receTransfers.row, #payTransfers.row {
       display: flex!important;
-      gap: 6px!important;
       flex-wrap: nowrap!important;
-      margin: 8px 0!important;
+      gap: 6px!important;
+      align-items: center!important;
     }
-   .patch-wrap.dateFilter input,
-   .patch-wrap.dateFilter button {
-      flex: 1 1 auto!important;
+    #deposit.row input[type="date"],
+    #deposit.row input[type="text"],
+    #withdraw.row input[type="date"],
+    #withdraw.row input[type="text"],
+    #buy.row input[type="date"],
+    #sell.row input[type="date"],
+    #sendTransfers.row input[type="date"],
+    #receTransfers.row input[type="date"],
+    #payTransfers.row input[type="date"] {
+      flex: 1 1 120px!important;
       height: 34px!important;
       padding: 0 8px!important;
       font-size: 13px!important;
     }
-   .patch-wrap.table-wrap {
+    #deposit.row button,
+    #withdraw.row button,
+    #buy.row button,
+    #sell.row button,
+    #sendTransfers.row button,
+    #receTransfers.row button,
+    #payTransfers.row button {
+      flex: 0 0 auto!important;
+      height: 34px!important;
+      padding: 0 10px!important;
+      font-size: 13px!important;
+      white-space: nowrap!important;
+    }
+
+    /* سكرول الجداول - 4 صفوف فقط */
+   .table-wrap {
       overflow: auto!important;
       max-height: 240px!important;
       -webkit-overflow-scrolling: touch!important;
     }
-   .patch-wrap.table-wrap table {
+  .table-wrap table {
       width: 100%!important;
       table-layout: fixed!important;
     }
-   .patch-wrap.table-wrap thead th {
+  .table-wrap thead th {
       position: sticky!important;
       top: 0!important;
       background: var(--bg-dark)!important;
       z-index: 2!important;
       cursor: pointer!important;
-      user-select: none!important;
     }
-   .patch-wrap tbody tr.selected { background: rgba(37,211,102,0.25)!important; }
-   .patch-wrap th.select-all { width: 28px!important; text-align: center!important; cursor: pointer!important; }
+  .table-wrap tbody tr.selected { background: rgba(37,211,102,0.25)!important; }
+  .table-wrap th.select-all { width: 28px!important; text-align: center!important; cursor: pointer!important; }
+
+    /* منع سحب الكرت كامل عند سحب التبويب الفرعي */
+  .tab-content[data-subtab] {
+      touch-action: pan-y;
+    }
   `;
   document.head.appendChild(style);
 
-  // ===== 3. لف الكروت والجداول =====
-  const initPatchWrap = () => {
-    document.querySelectorAll('#buy, #sell, #deposit, #withdraw, #sendTransfers, #receTransfers, #payTransfers').forEach(card => {
-      if (!card.classList.contains('patch-wrap')) {
-        card.classList.add('patch-wrap');
-        card.querySelectorAll('table').forEach(tbl => {
-          if (!tbl.parentElement.classList.contains('table-wrap')) {
-            const wrap = document.createElement('div');
-            wrap.className = 'table-wrap';
-            tbl.parentNode.insertBefore(wrap, tbl);
-            wrap.appendChild(tbl);
-          }
-        });
-      }
-    });
-  };
-  initPatchWrap();
+  // 2. سحب التبويبات الفرعية بدون ما يسحب الكرت كامل
+  let startX = 0, startY = 0, isSwiping = false;
 
-  // ===== 4. ترتيب الجدول عند الضغط على الهيدر =====
+  document.addEventListener('touchstart', (e) => {
+    const subTab = e.target.closest('.tab-content[data-subtab]');
+    if (!subTab) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isSwiping = false;
+  }, {passive: true});
+
+  document.addEventListener('touchmove', (e) => {
+    if (!startX) return;
+    const diffX = Math.abs(e.touches[0].clientX - startX);
+    const diffY = Math.abs(e.touches[0].clientY - startY);
+    if (diffX > diffY && diffX > 30) {
+      isSwiping = true;
+      e.preventDefault();
+    }
+  }, {passive: false});
+
+  document.addEventListener('touchend', (e) => {
+    if (!isSwiping) return;
+    const diffX = e.changedTouches[0].clientX - startX;
+    if (Math.abs(diffX) < 50) return;
+
+    const activeSubTab = document.querySelector('.tab-content[data-subtab].active');
+    if (!activeSubTab) return;
+
+    const parent = activeSubTab.parentElement;
+    const tabs = [...parent.querySelector('.subtabs').querySelectorAll('.tab')];
+    const contents = [...parent.querySelectorAll(':scope >.tab-content[data-subtab]')];
+    const idx = contents.indexOf(activeSubTab);
+
+    let nextIdx = diffX > 0? idx - 1 : idx + 1;
+    if (nextIdx < 0) nextIdx = contents.length - 1;
+    if (nextIdx >= contents.length) nextIdx = 0;
+
+    tabs.forEach(t => t.classList.remove('active'));
+    contents.forEach(c => c.classList.remove('active'));
+    tabs[nextIdx].classList.add('active');
+    contents[nextIdx].classList.add('active');
+
+    startX = 0; isSwiping = false;
+  }, {passive: false});
+
+  // 3. ترتيب الجداول + تحديد الصفوف
   document.addEventListener('click', (e) => {
-    const th = e.target.closest('.patch-wrap.table-wrap th');
+    const th = e.target.closest('.table-wrap th');
     if (!th) return;
+
+    if (th.classList.contains('select-all')) {
+      const table = th.closest('table');
+      const checked =!table.querySelector('tbody tr.selected');
+      table.querySelectorAll('tbody tr').forEach(r => r.classList.toggle('selected', checked));
+      return;
+    }
+
+    const tr = e.target.closest('.table-wrap tbody tr');
+    if (tr) {
+      tr.classList.toggle('selected');
+      return;
+    }
+
     const table = th.closest('table');
     const tbody = table.querySelector('tbody');
     const rows = [...tbody.rows];
@@ -1904,81 +1929,28 @@ document.addEventListener('DOMContentLoaded', () => {
         return table.__sortDir === 'asc'? valA - valB : valB - valA;
       }
       return table.__sortDir === 'asc'
-       ? valA.localeCompare(valB, 'ar')
+      ? valA.localeCompare(valB, 'ar')
         : valB.localeCompare(valA, 'ar');
     });
 
     rows.forEach(row => tbody.appendChild(row));
   });
 
-  // ===== 5. تحديد صف / تحديد الكل =====
-  document.addEventListener('click', (e) => {
-    const th = e.target.closest('.patch-wrap th.select-all');
-    if (th) {
-      const table = th.closest('table');
-      const checked =!table.querySelector('tbody tr.selected');
-      table.querySelectorAll('tbody tr').forEach(r => r.classList.toggle('selected', checked));
-      return;
-    }
-    const tr = e.target.closest('.patch-wrap tbody tr');
-    if (tr) tr.classList.toggle('selected');
-  });
-
-  // ===== 6. فلترة التاريخ =====
-  function filterTableByDate(table, from, to) {
-    const rows = table.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-      const dateCell = row.cells[row.cells.length - 1];
-      if (!dateCell) return;
-      const rowDate = dateCell.textContent.split(' ')[0].replace(/\//g, '-');
-      const show = (!from || rowDate >= from) && (!to || rowDate <= to);
-      row.style.display = show? '' : 'none';
-    });
-  }
-
-  document.addEventListener('click', (e) => {
-    const txt = e.target.textContent.trim();
-    if (txt === 'فلترة' || txt === 'مسح') {
-      const card = e.target.closest('.patch-wrap');
-      const inputs = card.querySelectorAll('.dateFilter input[type="date"],.dateFilter input[type="text"]');
-      const table = card.querySelector('table');
-      if (txt === 'فلترة') {
-        filterTableByDate(table, inputs[0]?.value, inputs[1]?.value);
-      } else {
-        inputs.forEach(i => i.value = '');
-        card.querySelectorAll('tbody tr').forEach(r => r.style.display = '');
-      }
-    }
-  });
-
-  // ===== 7. فلترة اليوم تلقائي عند الدخول =====
-  const applyTodayFilter = () => {
+  // 4. فلترة اليوم تلقائي
+  window.addEventListener('load', () => {
     setTimeout(() => {
-      document.querySelectorAll('.patch-wrap').forEach(card => {
-        const dateInputs = card.querySelectorAll('.dateFilter input[type="date"],.dateFilter input[type="text"]');
-        const filterBtn = [...card.querySelectorAll('button')].find(b => b.textContent.trim() === 'فلترة');
-        const table = card.querySelector('table');
-        if (!dateInputs.length ||!filterBtn ||!table) return;
-
-        const today = new Date().toISOString().split('T')[0];
-        if (dateInputs[0]) dateInputs[0].value = today;
-        if (dateInputs[1]) dateInputs[1].value = today;
-        filterBtn.click();
+      document.querySelectorAll('.dateFilter').forEach(filterDiv => {
+        const inputs = filterDiv.querySelectorAll('input[type="date"], input[type="text"]');
+        const btn = [...filterDiv.parentElement.querySelectorAll('button')].find(b => b.textContent.trim() === 'فلترة');
+        if (inputs.length && btn) {
+          const today = new Date().toISOString().split('T')[0];
+          inputs[0].value = today;
+          inputs[1].value = today;
+          btn.click();
+        }
       });
-    }, 500);
-  };
-
-  window.addEventListener('load', applyTodayFilter);
-
-  // تحديث الفلترة لو جات بيانات جديدة
-  const obs = new MutationObserver(() => {
-    document.querySelectorAll('.patch-wrap').forEach(card => {
-      const dateInputs = card.querySelectorAll('.dateFilter input[type="date"],.dateFilter input[type="text"]');
-      const filterBtn = [...card.querySelectorAll('button')].find(b => b.textContent.trim() === 'فلترة');
-      if (dateInputs[0]?.value && filterBtn) filterBtn.click();
-    });
+    }, 600);
   });
-  obs.observe(document.body, { childList: true, subtree: true });
 
 })();
 </script>
