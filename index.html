@@ -64,8 +64,9 @@
   .card {background: var(--bg-panel); padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border-color);}
   .row {display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;}
   .row > * {flex: 1; min-width: 120px;}
-    
-    
+    table {width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px;}
+    th, td {border: 1px solid var(--border-color); padding: 8px; text-align: center; word-break: break-word;}
+    th {background: var(--bg-dark); font-weight: 600;}
   .modal {position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-panel); padding: 20px; border-radius: 12px; z-index: 20; display: none; min-width: 280px; max-width: 90%; box-shadow: 0 8px 24px rgba(0,0,0,0.5);}
   .modal.active {display: block;}
   .toast {position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--bg-panel); padding: 12px 24px; border-radius: 8px; display: none; z-index: 30; border: 1px solid var(--border-color);}
@@ -104,7 +105,40 @@
     }
 
     /* ===== حل الجداول بدون كسر التصميم ===== */
-    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    tbody {
+      max-height: calc(3 * 34px);
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    thead {
+      width: 100%;
+      table-layout: fixed;
+      position: sticky;
+      top: 0;
+      background: var(--bg-dark);
+      z-index: 2;
+    }
+    tbody tr {
+      width: 100%;
+      table-layout: fixed;
+    }
+    th, td {
+      padding: 3px 2px;
+      font-size: 12px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border: 1px solid var(--border-color);
+      height: 34px;
+    }
+    tbody tr.selected {
+      background: rgba(37, 211, 102, 0.25)!important;
+    }
 
     /* تكبير مربع النتيجة */
     #buyResult, #sellResult {
@@ -172,7 +206,10 @@
    .tab-content {
       padding-bottom: 60px;
     }
-    
+    table.table-selected {
+      outline: 2px solid #8B4513;
+      outline-offset: -2px;
+    }
 
    .buy-form,
    .sell-form{
@@ -230,99 +267,6 @@
     .print-area,.print-area *{visibility:visible;}
     .print-area{position:absolute; left:0; top:0; width:100%;}
     }
-    
-    
-    
-    /* 1. اقفل السحب الافقي على الصفحة والكروت نهائياً */
-html, body, .tab-content, .card {
-  overflow-x: hidden;
-  touch-action: pan-y; /* يسمح بسحب عمودي فقط */
-}
-
-/* 2. التبويبات الرئيسية والفرعية تسحب افقي بس */
-.tabs, .subtabs {
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  white-space: nowrap;
-  touch-action: pan-x; /* يسمح بسحب افقي فقط */
-  overscroll-behavior-x: contain; /* يمنع سحب الاب لما توصل للاخير */
-}
-
-/* 3. الجدول يسحب افقي داخلياً لو عريض، بدون ما يجر الكرت */
-
-    
-/* الجدول الرئيسي */
-/* الجدول */
-table {
-  display: block;
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 12px;
-  font-size: 12px;
-  overflow-x: auto;      /* سكرول افقي للجدول */
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  touch-action: pan-x;   /* سحب افقي فقط */
-  overscroll-behavior-x: contain;
-}
-
-/* الهيدر والجسم والصفوف */
-thead, tbody, tr {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-}
-
-thead {
-  position: sticky;
-  top: 0;
-  background: var(--bg-dark);
-  z-index: 2;
-}
-
-tbody {
-  max-height: calc(4 * 34px); /* 4 صفوف ظاهرة */
-  overflow-y: auto;           /* سكرول راسي للجدول */
-  overflow-x: hidden;
-  touch-action: pan-y;        /* السحب العمودي جوا الجدول */
-}
-
-/* الخلايا */
-th, td {
-  border: 1px solid var(--border-color);
-  padding: 3px 2px;
-  height: 34px;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 12px;
-}
-
-th {
-  background: var(--bg-dark);
-  font-weight: 600;
-}
-
-tbody tr.selected {
-  background: rgba(37, 211, 102, 0.25) !important;
-}
-
-table.table-selected {
-  outline: 2px solid #8B4513;
-  outline-offset: -2px;
-}
-
-/* اقفل السحب الافقي على الكرت والصفحة */
-html, body, .tab-content, .card {
-  overflow-x: hidden;
-  touch-action: pan-y; 
-  overscroll-behavior-x: none; /* يمنع المطاطية الافقية */
-}
-    
-    
-    
   </style>
 </head>
 
@@ -978,9 +922,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab');
-  setupTabs(document.getElementById('operations'), '.subtabs .tab', 'data-subtab', true);
-  setupTabs(document.getElementById('transfers'), '.subtabs .tab', 'data-subtab', true);
-  setupTabs(document.getElementById('accounts'), '.subtabs .tab', 'data-subtab', true);
+  setupTabs(document.getElementById('operations'), '.subtabs .tab', 'data-subtab', false);
+  setupTabs(document.getElementById('transfers'), '.subtabs .tab', 'data-subtab', false);
+  setupTabs(document.getElementById('accounts'), '.subtabs .tab', 'data-subtab', false);
 
   document.querySelectorAll('#adminScreen >.tabs >.tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -1829,13 +1773,6 @@ document.addEventListener('DOMContentLoaded', () => {
     observer.observe(tbody, { childList: true, subtree: true });
   });
   window.addEventListener('resize', () => setTimeout(autoSizeTableColumns, 200));
-
-
-
-document.querySelectorAll('table, tbody').forEach(el => {
-  el.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
-  el.addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
-});
 
 }); // نهاية DOMContentLoaded
 </script>
