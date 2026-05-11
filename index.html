@@ -267,6 +267,40 @@
     .print-area,.print-area *{visibility:visible;}
     .print-area{position:absolute; left:0; top:0; width:100%;}
     }
+    
+    
+    
+    
+    
+    /* 1. منع السحب الافقي للكروت والمحتوى */
+.tab-content, .card, body {
+  overflow-x: hidden; /* يوقف السحب يمين يسار */
+  overflow-y: auto;   /* يخلي السحب عمودي شغال */
+}
+
+/* 2. خلي التبويبات فقط هي اللي تسحب افقي */
+.tabs, .subtabs {
+  overflow-x: auto; 
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch; /* سحب ناعم بالجوال */
+  white-space: nowrap;
+}
+
+/* 3. خلي الجدول هو اللي يسحب افقي لو عريض، بدون ما يسحب الكرت كامل */
+table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+table thead, table tbody, table tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+    
+    
+    
   </style>
 </head>
 
@@ -1018,7 +1052,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.querySelector('#permissions.card:has(#rateLogTable)');
     if (!card || document.getElementById('rateLogFilter')) return;
     card.insertAdjacentHTML('afterbegin', `
-      <div id="rateLogFilter" class="row-inline" style="margin-bottom:8px">
+      <div id="rateLogFilter" class="row" style="margin-bottom:8px">
         <input type="date" id="rateLogFrom">
         <input type="date" id="rateLogTo">
         <button id="btnRateLogFilter">فلترة</button>
