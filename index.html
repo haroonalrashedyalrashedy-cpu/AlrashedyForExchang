@@ -975,20 +975,28 @@ table.table-selected {
         <input type="date" id="matchDate">
       </div>
       <div class="field">
-        <label>رقم</label>
+        <label>رقم المطابقة</label>
         <select id="matchSelect"><option value="">جديدة</option></select>
+      
       </div>
+      <label></label>
       <button id="btnLoadMatch">عرض</button>
+   
     </div>
 
     <div class="table-wrap">
       <table id="matchTable">
         <thead>
           <tr>
-            <th>نتيجة المطابقة</th>
-            <th>رصيد النظام</th>
-            <th>الرصيد الفعلي</th>
-            <th>العملة</th>
+          
+           
+   <th>العملة</th>
+     <th>الرصيد الفعلي</th>
+     
+ <th>رصيد النظام</th>
+       
+    <th>نتيجة المطابقة</th>
+ 
           </tr>
         </thead>
         <tbody></tbody>
@@ -2714,6 +2722,7 @@ function initMatchTab() {
 }
 
 // خليت runMatch بس، لانها الوحيدة اللي تحتاج تعديل عشان تستخدم getSystemBalance
+
 async function runMatch() {
   const date = document.getElementById('matchDate').value;
   const matchTbody = document.querySelector('#matchTable tbody');
@@ -2735,13 +2744,26 @@ async function runMatch() {
     }
 
     hasData = true;
-    const sys = await getSystemBalance(cur); // الدالة الجاهزة عندك من فوق
-    const result = actual - sys;
 
-    sysInput.value = sys;
-    resultTd.textContent = result.toFixed(2);
-    resultTd.className = 'matchResult ' + (result === 0 ? 'zero' : result > 0 ? 'pos' : 'neg');
-    rows.push({ cur, actual, sys, result });
+    try {
+      // جيب رصيد النظام من فايربيز
+      const sys = await getSystemBalance(cur);
+      
+      // لو رجع null او undefined خله 0
+      const sysVal = sys || 0;
+      const result = actual - sysVal;
+
+      sysInput.value = sysVal;
+      resultTd.textContent = result.toFixed(2);
+      resultTd.className = 'matchResult ' + (result === 0 ? 'zero' : result > 0 ? 'pos' : 'neg');
+      rows.push({ cur, actual: actual, sys: sysVal, result: result });
+      
+    } catch (e) {
+      console.error('خطأ في جلب رصيد النظام:', e);
+      sysInput.value = 0;
+      resultTd.textContent = 'خطأ';
+      resultTd.className = 'matchResult neg';
+    }
   }
 
   if (!hasData) {
@@ -2758,11 +2780,10 @@ async function runMatch() {
     createdAt: Date.now()
   });
 
-  await loadMatchList(date); // استدعاء للدالة الموجودة فوق
+  await loadMatchList(date);
   matchSelect.value = nextNum;
   alert(`تمت المطابقة والحفظ - رقم ${nextNum}`);
 }
-
 
 
 function buildMatchRows() {
