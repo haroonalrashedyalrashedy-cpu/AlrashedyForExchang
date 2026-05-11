@@ -181,7 +181,7 @@ input[readonly], input[readOnly] {
   width: 100%;
 }
 
-.password-box.eye {
+.password-box .eye {
   position: absolute;
   right: 12px;
   top: 50%;
@@ -191,7 +191,7 @@ input[readonly], input[readOnly] {
   opacity: 0.7;
 }
 
-.password-box.eye:hover {
+.password-box .eye:hover {
   opacity: 1;
 }
 
@@ -2100,6 +2100,194 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', () => setTimeout(autoSizeTableColumns, 200));
 
 }); // نهاية DOMContentLoaded
+
+
+
+
+
+
+
+
+
+
+// ===== كود إدارة الموظفين - لحاله =====
+// حط هذا الكود في آخر الملف داخل <script type="module">
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  const EMP_PATH = 'users';
+  const empSelect = document.getElementById('empSelect');
+  const permEmpSelect = document.getElementById('permEmpSelect');
+  const matchEmpSelect = document.getElementById('matchEmpSelect');
+
+  // 1. تحميل الموظفين لحظي وتحديث كل القوائم
+  function loadEmployees() {
+    onValue(ref(db, EMP_PATH), (snap) => {
+      const data = snap.val() || {};
+      const employees = Object.entries(data).filter(([_, u]) => u.role === 'employee');
+
+      // حدث كل القوائم المنسدلة
+      [empSelect, permEmpSelect, matchEmpSelect].forEach(sel => {
+        if (!sel) return;
+        const currentVal = sel.value;
+        sel.innerHTML = '<option value="">اختر الموظف</option>';
+
+        employees.forEach(([username, u]) => {
+          const status = u.active === false? ' [موقف]' : '';
+          sel.innerHTML += `<option value="${username}" data-status="${u.active}">${username}${status}</option>`;
+        });
+
+        if (data[currentVal]) sel.value = currentVal;
+      });
+
+      // تحقق لو الموظف المفتوح تم إيقافه
+      checkIfCurrentUserSuspended(data);
+    });
+  }
+
+  // 2. إضافة موظف
+  document.getElementById('btnAddEmp')?.addEventListener('click', async () => {
+    const name = document.getElementById('newEmpName').value.trim();
+    const pass = document.getElementById('newEmpPass').value.trim();
+
+    if (!name) { alert('ادخل اسم الموظف'); return; }
+    if (!pass) { alert('ادخل كلمة المرور'); return; }
+    if (!/^\d{3,8}$/.test(pass)) { alert('كلمة المرور ارقام 3-8 خانات فقط'); return; }
+
+    const snap = await get(ref(db, `users/${name}`));
+    if (snap.exists()) { alert('الموظف موجود مسبقاً'); return; }
+
+    await set(ref(db, `users/${name}`), {
+      password: pass,
+      role: 'employee',
+      name: name,
+      active: true,
+      suspendReason: '',
+      permissions: {},
+      createdAt: Date.now(),
+      createdBy: window.currentUser || 'admin'
+    });
+
+    document.getElementById('newEmpName').value = '';
+    document.getElementById('newEmpPass').value = '';
+    alert(`تم إضافة الموظف "${name}" بنجاح`);
+  });
+
+  // 3. تعديل كلمة المرور
+  document.getElementById('btnEditEmp')?.addEventListener('click', async () => {
+    const username = empSelect.value;
+    if (!username) { alert('اختر الموظف أولاً'); return; }
+
+    const snap = await get(ref(db, `users/${username}`));
+    if (!snap.exists()) { alert('الموظف غير موجود'); return; }
+
+    const userData = snap.val();
+    const newPass = prompt(
+      `تعديل كلمة مرور الموظف: ${username}\n\nكلمة المرور الحالية: ${userData.password}\n\nادخل كلمة المرور الجديدة:`,
+      userData.password
+    );
+
+    if (!newPass) return;
+    if (!/^\d{3,8}$/.test(newPass)) { alert('كلمة المرور ارقام 3-8 خانات فقط'); return; }
+
+    await update(ref(db, `users/${username}`), {
+      password: newPass,
+      updatedAt: Date.now(),
+      updatedBy: window.currentUser || 'admin'
+    });
+    alert('تم تحديث كلمة المرور بنجاح');
+  });
+
+  // 4. إيقاف موظف مع سبب
+  document.getElementById('btnSuspendEmp')?.addEventListener('click', async () => {
+    const username = empSelect.value;
+    if (!username) { alert('اختر الموظف أولاً'); return; }
+    if (username === 'هارون الراشدي') { alert('لا يمكن إيقاف المدير'); return; }
+
+    const reason = prompt(`اكتب سبب إيقاف الموظف "${username}":`);
+    if (!reason) return;
+
+    await update(ref(db, `users/${username}`), {
+      active: false,
+      suspendReason: reason,
+      suspendedAt: Date.now(),
+      suspendedBy: window.currentUser || 'admin'
+    });
+    alert(`تم إيقاف الموظف "${username}"\nالسبب: ${reason}`);
+  });
+
+  // 5. إلغاء الإيقاف
+  document.getElementById('btnStopSuspendEmp')?.addEventListener('click', async () => {
+    const username = empSelect.value;
+    if (!username) { alert('اختر الموظف أولاً'); return; }
+
+    const snap = await get(ref(db, `users/${username}`));
+    if (!snap.exists()) return;
+
+    await update(ref(db, `users/${username}`), {
+      active: true,
+      suspendReason: '',
+      suspendedAt: null,
+      suspendedBy: null,
+      reactivatedAt: Date.now(),
+      reactivatedBy: window.currentUser || 'admin'
+    });
+    alert(`تم إلغاء إيقاف الموظف "${username}" ورجعت صلاحيته`);
+  });
+
+  // 6. حذف موظف نهائياً
+  document.getElementById('btnDeleteEmp')?.addEventListener('click', async () => {
+    const username = empSelect.value;
+    if (!username) { alert('اختر الموظف أولاً'); return; }
+    if (username === 'هارون الراشدي') { alert('لا يمكن حذف المدير'); return; }
+
+    const confirm1 = confirm(`تحذير: هل أنت متأكد تبي تحذف الموظف "${username}" نهائياً؟`);
+    if (!confirm1) return;
+
+    const confirm2 = confirm('هذا الإجراء لا يمكن التراجع عنه. متأكد 100%؟');
+    if (!confirm2) return;
+
+    await remove(ref(db, `users/${username}`));
+    alert(`تم حذف الموظف "${username}" من النظام`);
+  });
+
+  // 7. تحقق لو الموظف المفتوح تم إيقافه - يطرده على طول
+  function checkIfCurrentUserSuspended(allUsers) {
+    if (!window.currentUser || window.currentRole === 'admin') return;
+
+    const userData = allUsers[window.currentUser];
+    if (!userData) {
+      // الموظف اتحذف
+      alert('تم حذف حسابك من النظام');
+      document.getElementById('btnLogoutAdmin')?.click();
+      return;
+    }
+
+    if (userData.active === false) {
+      const reason = userData.suspendReason || 'بدون سبب';
+      alert(`تم إيقاف حسابك\nالسبب: ${reason}`);
+      document.getElementById('btnLogoutAdmin')?.click();
+    }
+  }
+
+  // 8. فحص دوري كل 10 ثواني لو الموظف اتوقف وهو فاتح
+  setInterval(() => {
+    if (window.currentUser && window.currentRole === 'employee') {
+      get(ref(db, `users/${window.currentUser}`)).then(snap => {
+        if (snap.exists() && snap.val().active === false) {
+          const reason = snap.val().suspendReason || 'بدون سبب';
+          alert(`تم إيقاف حسابك\nالسبب: ${reason}`);
+          document.getElementById('btnLogoutAdmin')?.click();
+        }
+      });
+    }
+  }, 10000);
+
+  // شغل التحميل اول ما يفتح
+  loadEmployees();
+});
+
+
 </script>
 
 
