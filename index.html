@@ -943,11 +943,47 @@ table.table-selected {
     
     
      
-    <div id="matchs" class="tab-content ">
-      <div class="card">
-        <h3>مطابقة الموظف</h3>
-   </div>
+   <div id="matchs" class="tab-content">
+  <div class="card">
+    <h3>مطابقة الموظف</h3>
+    
+    <!-- الصف الاول: تاريخ + قائمة المطابقات -->
+    <div class="row" style="gap:12px; align-items:end; margin-bottom:12px;">
+      <div>
+        <label>تاريخ المطابقة</label>
+        <input type="date" id="matchDate">
       </div>
+      <div>
+        <label>رقم المطابقة</label>
+        <select id="matchSelect" style="min-width:140px;">
+          <option value="">جديدة</option>
+        </select>
+      </div>
+      <button id="btnLoadMatch">عرض</button>
+    </div>
+
+    <!-- الصف الثاني: الجدول -->
+    <table id="matchTable" class="table">
+      <thead>
+        <tr>
+          <th>العملة</th>
+          <th>الرصيد الفعلي</th>
+          <th>رصيد النظام</th>
+          <th>النتيجة</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 5 صفوف بتتعبى بالـ JS -->
+      </tbody>
+    </table>
+
+    <!-- هنا تحط الزر -->
+    <div style="margin-top:12px;">
+      <button id="btnRunMatch">مطابقة</button>
+    </div>
+
+  </div>
+</div>
 
     
     
@@ -2625,6 +2661,74 @@ const obs = new MutationObserver(() => {
   });
 });
 obs.observe(document.body, { childList: true, subtree: true });
+
+
+
+
+
+
+
+
+
+async function runMatch() {
+  const date = matchDate.value;
+  const rows = [];
+  let hasData = false;
+
+  for (let tr of matchTbody.children) {
+    const curSelect = tr.querySelector('.matchCur');
+    const actualInput = tr.querySelector('.matchActual');
+    const sysInput = tr.querySelector('.matchSys');
+    const resultTd = tr.querySelector('.matchResult');
+    const cur = curSelect.value;
+
+    // 1. لو ما اختار عملة، فرّغ الخانتين وكمّل
+    if (!cur) {
+      sysInput.value = '';
+      resultTd.textContent = '';
+      resultTd.style.background = '';
+      continue;
+    }
+
+    hasData = true;
+
+    // 2. جيب الفعلي: لو فاضي اعتبره 0
+    const actual = parseFloat(actualInput.value) || 0;
+
+    // 3. جيب رصيد النظام
+    const sysSnap = await get(ref(db, `balances/${cur}`));
+    const sys = sysSnap.val() || 0;
+
+    // 4. احسب النتيجة = فعلي - نظام
+    const result = actual - sys;
+
+    // 5. عبّي الخانات
+    sysInput.value = sys;
+    resultTd.textContent = result.toFixed(2);
+    colorResult(resultTd, result);
+
+    rows.push({cur, actual, sys, result});
+  }
+  
+  if (!hasData) {
+    alert('اختار عملة واحدة على الاقل');
+    return;
+  }
+
+  // 6. احفظ تلقائي
+  const snap = await get(ref(db, `${MATCH_PATH}/${date}`));
+  const existing = snap.val() || {};
+  const nextNum = Object.keys(existing).length + 1;
+  
+  await set(ref(db, `${MATCH_PATH}/${date}/${nextNum}`), {
+    rows,
+    createdAt: Date.now()
+  });
+  
+  await loadMatchList(date);
+  matchSelect.value = nextNum;
+  alert(`تمت المطابقة والحفظ - رقم ${nextNum}`);
+}
 
 
 
