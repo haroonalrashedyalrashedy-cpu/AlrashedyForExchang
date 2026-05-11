@@ -1018,7 +1018,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.querySelector('#permissions.card:has(#rateLogTable)');
     if (!card || document.getElementById('rateLogFilter')) return;
     card.insertAdjacentHTML('afterbegin', `
-      <div id="rateLogFilter" class="row" style="margin-bottom:8px">
+      <div id="rateLogFilter" class="row-inline" style="margin-bottom:8px">
         <input type="date" id="rateLogFrom">
         <input type="date" id="rateLogTo">
         <button id="btnRateLogFilter">فلترة</button>
