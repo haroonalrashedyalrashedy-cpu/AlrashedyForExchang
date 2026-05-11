@@ -646,7 +646,10 @@ table.table-selected {
             <input type="number" id="buyAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
             <div class="row-inline">
               <input type="text" id="buyRate" placeholder="السعر" readonly>
-              <select id="buyCurrency"></select>
+             
+             <select id="buyCurrency" data-role="currency"></select>
+             
+             
             </div>
             <input type="text" id="buyResult" placeholder="النتيجة" readonly>
             <button id="btnSaveBuy">حفظ</button>
@@ -677,7 +680,7 @@ table.table-selected {
             <input type="number" id="sellAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
             <div class="row-inline">
               <input type="text" id="sellRate" placeholder="السعر" readonly>
-              <select id="sellCurrency"></select>
+              <select id="sellCurrency" data-role="currency"></select>
             </div>
             <input type="text" id="sellResult" placeholder="النتيجة" readonly>
             <button id="btnSaveSell">حفظ</button>
@@ -707,7 +710,7 @@ table.table-selected {
             <select id="depositAccount" class="searchable"></select>
             <div class="row-inline">
               <input type="number" id="depositAmount" placeholder="المبلغ" inputmode="numeric">
-              <select id="depositCurrency"></select>
+              <select id="depositCurrency" data-role="currency"></select>
             </div>
             <input type="text" id="nameMod" placeholder="إسم المودع" inputmode="text">
             <button id="btnSaveDeposit">حفظ</button>
@@ -737,7 +740,7 @@ table.table-selected {
             <select id="withdrawAccount" class="searchable"></select>
             <div class="row-inline">
               <input type="number" id="withdrawAmount" placeholder="المبلغ" inputmode="numeric">
-              <select id="withdrawCurrency"></select>
+              <select id="withdrawCurrency" data-role="currency"></select>
             </div>
             <input type="text" id="nameWithd" placeholder="إسم المستلم" inputmode="text">
             <button id="btnSaveWithdraw">حفظ</button>
@@ -777,7 +780,7 @@ table.table-selected {
             <input type="text" id="sendNam" placeholder="إدخل إسم المرسل" inputmode="text">
             <div class="row-inline">
               <input type="number" id="sendRat" placeholder="إدخل المبلغ" inputmode="numeric">
-              <select id="transCurr"></select>
+              <select id="transCurr" data-role="currency"></select>
             </div>
             <button id="sendbtn">إرسال</button>
           </div>
@@ -841,7 +844,7 @@ table.table-selected {
             <input type="text" id="payNum" placeholder="إدخل رقم الحوالة" inputmode="numeric">
             <div class="row-inline">
               <input type="number" id="payRat" placeholder="إدخل المبلغ" inputmode="numeric">
-              <select id="payCurr"></select>
+<select id="payCurr" data-role="currency"></select>
             </div>
             <input type="text" id="payName" placeholder="إدخل إسم المستلم" inputmode="text">
             <button id="paybtn">دفع</button>
@@ -956,7 +959,7 @@ table.table-selected {
       <div class="card">
         <h3>تعديل الاسعار</h3>
         <div class="row">
-          <select id="rateCurrency"></select>
+<select id="rateCurrency" data-role="currency"></select>
           <input type="number" id="buyRateInput" placeholder="سعر الشراء" inputmode="decimal">
           <button id="btnSaveBuyRate">حفظ شراء</button>
         </div>
@@ -2547,6 +2550,81 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+
+const CURRENCY_PATH = 'settings/activeCurrencies';
+
+// 1. يعبّي اي select عنده data-role="currency"
+function fillCurrencySelect(sel, activeCurrencies) {
+  const oldVal = sel.value;
+  sel.innerHTML = '<option value="">اختر العملة</option>';
+  activeCurrencies.forEach(cur => {
+    sel.insertAdjacentHTML('beforeend', `<option value="${cur}">${cur}</option>`);
+  });
+  if (activeCurrencies.includes(oldVal)) sel.value = oldVal;
+}
+
+// 2. يحدث كل الـ selects في النظام
+async function broadcastCurrencies() {
+  const snap = await get(ref(db, CURRENCY_PATH));
+  const active = snap.val() || [];
+  
+  document.querySelectorAll('select[data-role="currency"]').forEach(sel => {
+    fillCurrencySelect(sel, active);
+  });
+
+  window.dispatchEvent(new CustomEvent('currenciesUpdated', { detail: active }));
+}
+
+// 3. يجيب العملات المحفوظة ويعلم التشيكات
+async function initCurrencySettings() {
+  const snap = await get(ref(db, CURRENCY_PATH));
+  const active = snap.val() || ['يمني', 'دولار']; // افتراضي اول مرة
+
+  document.querySelectorAll('.activeCurrency').forEach(chk => {
+    chk.checked = active.includes(chk.value);
+  });
+
+  // حدث الـ selects اول مرة
+  broadcastCurrencies();
+}
+
+// 4. زر الحفظ
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('btnSaveCurrencies');
+  if (!btn) return;
+
+  btn.onclick = async () => {
+    const selected = [...document.querySelectorAll('.activeCurrency:checked')].map(c => c.value);
+    
+    if (selected.length === 0) {
+      alert('لازم تختار عملة واحدة على الاقل');
+      return;
+    }
+
+    await set(ref(db, CURRENCY_PATH), selected);
+    await broadcastCurrencies();
+    alert('تم حفظ العملات وتحديث النظام كامل');
+  };
+
+  // شغلها على طول اول ما يفتح
+  initCurrencySettings();
+});
+
+// 5. يعبّي اي select جديد ينضاف للصفحة تلقائي
+const obs = new MutationObserver(() => {
+  get(ref(db, CURRENCY_PATH)).then(snap => {
+    const active = snap.val() || [];
+    document.querySelectorAll('select[data-role="currency"]:not([data-filled])').forEach(sel => {
+      fillCurrencySelect(sel, active);
+      sel.dataset.filled = "1";
+    });
+  });
+});
+obs.observe(document.body, { childList: true, subtree: true });
 
 
 
