@@ -1782,167 +1782,182 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 (() => {
-  // 1. CSS مصح يشتغل على الهيكل الحالي حقك
+  // 1. CSS يصلح التخطيط
   const style = document.createElement('style');
   style.textContent = `
-    /* فلترة التاريخ - صف واحد صغير */
-    #deposit.row, #withdraw.row, #buy.row, #sell.row,
-    #sendTransfers.row, #receTransfers.row, #payTransfers.row {
+    /* مربعات التاريخ + الأزرار صف واحد */
+  .row.date-row {
       display: flex!important;
-      flex-wrap: nowrap!important;
       gap: 6px!important;
+      flex-wrap: nowrap!important;
       align-items: center!important;
+      margin: 8px 0!important;
     }
-    #deposit.row input[type="date"],
-    #deposit.row input[type="text"],
-    #withdraw.row input[type="date"],
-    #withdraw.row input[type="text"],
-    #buy.row input[type="date"],
-    #sell.row input[type="date"],
-    #sendTransfers.row input[type="date"],
-    #receTransfers.row input[type="date"],
-    #payTransfers.row input[type="date"] {
-      flex: 1 1 120px!important;
-      height: 34px!important;
+  .row.date-row input,
+  .row.date-row button {
+      flex: 1 1 0!important;
+      min-width: 0!important;
+      height: 36px!important;
+      font-size: 13px!important;
       padding: 0 8px!important;
-      font-size: 13px!important;
-    }
-    #deposit.row button,
-    #withdraw.row button,
-    #buy.row button,
-    #sell.row button,
-    #sendTransfers.row button,
-    #receTransfers.row button,
-    #payTransfers.row button {
-      flex: 0 0 auto!important;
-      height: 34px!important;
-      padding: 0 10px!important;
-      font-size: 13px!important;
-      white-space: nowrap!important;
     }
 
-    /* سكرول الجداول - 4 صفوف فقط */
-   .table-wrap {
+    /* سكرول الجدول */
+  .table-scroll {
       overflow: auto!important;
       max-height: 240px!important;
       -webkit-overflow-scrolling: touch!important;
+      width: 100%!important;
     }
-  .table-wrap table {
+  .table-scroll table {
       width: 100%!important;
       table-layout: fixed!important;
+      min-width: 500px!important;
     }
-  .table-wrap thead th {
+  .table-scroll thead th {
       position: sticky!important;
       top: 0!important;
-      background: var(--bg-dark)!important;
+      background: var(--bg-dark, #1a1a1a)!important;
       z-index: 2!important;
       cursor: pointer!important;
+      user-select: none!important;
     }
-  .table-wrap tbody tr.selected { background: rgba(37,211,102,0.25)!important; }
-  .table-wrap th.select-all { width: 28px!important; text-align: center!important; cursor: pointer!important; }
+  .table-scroll tbody tr.selected {
+      background: rgba(37,211,102,0.25)!important;
+    }
+  .table-scroll th.select-all {
+      width: 28px!important;
+      text-align: center!important;
+      cursor: pointer!important;
+    }
 
-    /* منع سحب الكرت كامل عند سحب التبويب الفرعي */
+    /* منع سحب الكرت كامل */
   .tab-content[data-subtab] {
-      touch-action: pan-y;
+      touch-action: pan-y!important;
     }
   `;
   document.head.appendChild(style);
 
-  // 2. سحب التبويبات الفرعية بدون ما يسحب الكرت كامل
-  let startX = 0, startY = 0, isSwiping = false;
+  // 2. لف الجداول تلقائي بـ div للسكرول + أضف خانة تحديد الكل
+  document.querySelectorAll('table').forEach(tbl => {
+    if (!tbl.closest('.table-scroll') && tbl.closest('.tab-content')) {
+      const wrap = document.createElement('div');
+      wrap.className = 'table-scroll';
+      tbl.parentNode.insertBefore(wrap, tbl);
+      wrap.appendChild(tbl);
 
-  document.addEventListener('touchstart', (e) => {
-    const subTab = e.target.closest('.tab-content[data-subtab]');
-    if (!subTab) return;
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    isSwiping = false;
+      // أضف خانة تحديد الكل في أول th لو ما موجودة
+      const firstTh = tbl.querySelector('thead tr th');
+      if (firstTh &&!firstTh.classList.contains('select-all')) {
+        firstTh.classList.add('select-all');
+        firstTh.textContent = '☐';
+      }
+    }
+  });
+
+  // 3. سحب التبويبات الفرعية بدون ما يسحب الكرت
+  let startX = 0, isSwiping = false;
+  document.addEventListener('touchstart', e => {
+    const sub = e.target.closest('.tab-content[data-subtab]');
+    if (sub) { startX = e.touches[0].clientX; isSwiping = false; }
   }, {passive: true});
 
-  document.addEventListener('touchmove', (e) => {
+  document.addEventListener('touchmove', e => {
     if (!startX) return;
     const diffX = Math.abs(e.touches[0].clientX - startX);
-    const diffY = Math.abs(e.touches[0].clientY - startY);
-    if (diffX > diffY && diffX > 30) {
+    if (diffX > 20) {
       isSwiping = true;
       e.preventDefault();
     }
   }, {passive: false});
 
-  document.addEventListener('touchend', (e) => {
+  document.addEventListener('touchend', e => {
     if (!isSwiping) return;
     const diffX = e.changedTouches[0].clientX - startX;
     if (Math.abs(diffX) < 50) return;
 
-    const activeSubTab = document.querySelector('.tab-content[data-subtab].active');
-    if (!activeSubTab) return;
-
-    const parent = activeSubTab.parentElement;
+    const active = document.querySelector('.tab-content[data-subtab].active');
+    if (!active) return;
+    const parent = active.parentElement;
     const tabs = [...parent.querySelector('.subtabs').querySelectorAll('.tab')];
     const contents = [...parent.querySelectorAll(':scope >.tab-content[data-subtab]')];
-    const idx = contents.indexOf(activeSubTab);
+    const idx = contents.indexOf(active);
 
-    let nextIdx = diffX > 0? idx - 1 : idx + 1;
-    if (nextIdx < 0) nextIdx = contents.length - 1;
-    if (nextIdx >= contents.length) nextIdx = 0;
+    let next = diffX > 0? idx - 1 : idx + 1;
+    if (next < 0) next = contents.length - 1;
+    if (next >= contents.length) next = 0;
 
     tabs.forEach(t => t.classList.remove('active'));
     contents.forEach(c => c.classList.remove('active'));
-    tabs[nextIdx].classList.add('active');
-    contents[nextIdx].classList.add('active');
+    tabs[next].classList.add('active');
+    contents[next].classList.add('active');
 
     startX = 0; isSwiping = false;
   }, {passive: false});
 
-  // 3. ترتيب الجداول + تحديد الصفوف
-  document.addEventListener('click', (e) => {
-    const th = e.target.closest('.table-wrap th');
-    if (!th) return;
+  // 4. ترتيب الجدول + تحديد الصفوف + تحديد الكل
+  document.addEventListener('click', e => {
+    const th = e.target.closest('.table-scroll th');
+    const tr = e.target.closest('.table-scroll tbody tr');
 
-    if (th.classList.contains('select-all')) {
+    if (th && th.classList.contains('select-all')) {
+      // تحديد الكل / إلغاء الكل
       const table = th.closest('table');
       const checked =!table.querySelector('tbody tr.selected');
-      table.querySelectorAll('tbody tr').forEach(r => r.classList.toggle('selected', checked));
+      table.querySelectorAll('tbody tr').forEach(r => {
+        r.classList.toggle('selected', checked);
+      });
+      th.textContent = checked? '☑' : '☐';
       return;
     }
 
-    const tr = e.target.closest('.table-wrap tbody tr');
     if (tr) {
+      // تحديد صف فردي
       tr.classList.toggle('selected');
       return;
     }
 
-    const table = th.closest('table');
-    const tbody = table.querySelector('tbody');
-    const rows = [...tbody.rows];
-    const colIndex = [...th.parentElement.cells].indexOf(th);
-    const isNumeric =!isNaN(parseFloat(rows[0]?.cells[colIndex]?.textContent));
+    if (th) {
+      // ترتيب الجدول
+      const table = th.closest('table');
+      const tbody = table.querySelector('tbody');
+      const rows = [...tbody.rows];
+      const col = [...th.parentElement.cells].indexOf(th);
+      const isNum =!isNaN(parseFloat(rows[0]?.cells[col]?.textContent.replace(/,/g, '')));
 
-    table.__sortDir = table.__sortDir === 'asc'? 'desc' : 'asc';
+      table.__dir = table.__dir === 'asc'? 'desc' : 'asc';
 
-    rows.sort((a, b) => {
-      let valA = a.cells[colIndex].textContent.trim();
-      let valB = b.cells[colIndex].textContent.trim();
-      if (isNumeric) {
-        valA = parseFloat(valA) || 0;
-        valB = parseFloat(valB) || 0;
-        return table.__sortDir === 'asc'? valA - valB : valB - valA;
-      }
-      return table.__sortDir === 'asc'
-      ? valA.localeCompare(valB, 'ar')
-        : valB.localeCompare(valA, 'ar');
-    });
+      rows.sort((a, b) => {
+        let A = a.cells[col].textContent.trim().replace(/,/g, '');
+        let B = b.cells[col].textContent.trim().replace(/,/g, '');
+        if (isNum) {
+          A = parseFloat(A) || 0;
+          B = parseFloat(B) || 0;
+          return table.__dir === 'asc'? A - B : B - A;
+        }
+        return table.__dir === 'asc'? A.localeCompare(B, 'ar') : B.localeCompare(A, 'ar');
+      });
 
-    rows.forEach(row => tbody.appendChild(row));
+      rows.forEach(r => tbody.appendChild(r));
+    }
   });
 
-  // 4. فلترة اليوم تلقائي
+  // 5. خلي row حق التاريخ والازرار صف واحد
+  document.querySelectorAll('.row').forEach(r => {
+    const inputs = r.querySelectorAll('input[type="date"], input[type="text"]');
+    const btns = r.querySelectorAll('button');
+    if (inputs.length >= 2 && btns.length >= 1) {
+      r.classList.add('date-row');
+    }
+  });
+
+  // 6. فلترة اليوم تلقائي
   window.addEventListener('load', () => {
     setTimeout(() => {
-      document.querySelectorAll('.dateFilter').forEach(filterDiv => {
-        const inputs = filterDiv.querySelectorAll('input[type="date"], input[type="text"]');
-        const btn = [...filterDiv.parentElement.querySelectorAll('button')].find(b => b.textContent.trim() === 'فلترة');
-        if (inputs.length && btn) {
+      document.querySelectorAll('.row.date-row').forEach(r => {
+        const inputs = r.querySelectorAll('input');
+        const btn = [...r.querySelectorAll('button')].find(b => b.textContent.trim() === 'فلترة');
+        if (inputs.length >= 2 && btn) {
           const today = new Date().toISOString().split('T')[0];
           inputs[0].value = today;
           inputs[1].value = today;
@@ -1954,7 +1969,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 })();
 </script>
-
 
 
 
