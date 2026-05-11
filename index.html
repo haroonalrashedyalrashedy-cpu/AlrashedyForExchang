@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+  <!-- 📌 القسم 1: الميتا والمعلومات الأساسية للموقع -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#111b21">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.png">
+
   <title>الراشدي للصرافة والتحويلات</title>
 
   <style>
+    /* 📌 القسم 2: ستايل الواجهة + Responsive */
     :root {
       --bg-dark: #111b21;
       --bg-panel: #202c33;
@@ -44,110 +48,35 @@
   .dropdown-item:hover {background: var(--bg-dark);}
   .dropdown-search {position: sticky; top: 0; background: var(--bg-panel); padding: 8px; border-bottom: 1px solid var(--border-color); z-index: 1;}
   .password-box {position: relative; width: 100%;}
-  .password-box.eye {position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; opacity: 0.7;}
-  .password-box.eye:hover {opacity: 1;}
+  .password-box .eye {position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; opacity: 0.7;}
+  .password-box .eye:hover {opacity: 1;}
   .overlay {position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 5; background: rgba(0,0,0,0.3);}
   .overlay.active {display: block;}
+
   .header {height: 64px; background: #4ade80; font-size: 18px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;}
+
   .tabs {display: flex; min-width: 50px; border-bottom: 1px solid var(--border-color); font-weight: bold; overflow-x: auto; flex-shrink: 0;}
+
   .tab {flex: 1; min-width: 100px; padding: 14px; text-align: center; cursor: pointer; font-weight: bold; color: var(--text-secondary); transition: color 0.2s, border-bottom 0.2s; white-space: nowrap;}
   .tab.active {color: var(--accent-green); border-bottom: 2px solid var(--accent-green);}
-
-  .tab-content {
-      display: none;
-      flex: 1;
-      overflow: hidden;
-      padding: 16px;
-      position: relative;
-      flex-direction: column;
-    }
-  .tab-content.active {display: flex;}
-
+  .tab-content {display: none; flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch;}
+  .tab-content.active {display: block;}
   .card {background: var(--bg-panel); padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border-color);}
   .row {display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;}
   .row > * {flex: 1; min-width: 120px;}
-
-  .table-wrap {
-      overflow: auto;
-      max-height: 240px;
-      border-radius: 8px;
-      margin-top: 8px;
-      -webkit-overflow-scrolling: touch;
-    }
-  .table-wrap table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-    }
-  .table-wrap thead th {
-      position: sticky;
-      top: 0;
-      background: var(--bg-dark);
-      z-index: 2;
-      cursor: pointer;
-      user-select: none;
-    }
-    th, td {
-      border: 1px solid var(--border-color);
-      padding: 8px;
-      text-align: center;
-      word-break: break-word;
-      font-size: 14px;
-    }
+    table {width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px;}
+    th, td {border: 1px solid var(--border-color); padding: 8px; text-align: center; word-break: break-word;}
     th {background: var(--bg-dark); font-weight: 600;}
-
-  .dateFilter {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      margin: 8px 0;
-      flex-wrap: nowrap;
-    }
-  .dateFilter input[type="date"],
-  .dateFilter input[type="text"] {
-      flex: 1 1 120px;
-      height: 34px;
-      padding: 0 8px;
-      font-size: 13px;
-    }
-  .dateFilter button {
-      flex: 0 0 auto;
-      height: 34px;
-      padding: 0 10px;
-      font-size: 13px;
-      white-space: nowrap;
-    }
-
   .modal {position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-panel); padding: 20px; border-radius: 12px; z-index: 20; display: none; min-width: 280px; max-width: 90%; box-shadow: 0 8px 24px rgba(0,0,0,0.5);}
   .modal.active {display: block;}
-
-    #toast {
-      position: fixed;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: var(--bg-panel);
-      color: var(--text-primary);
-      padding: 12px 20px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      opacity: 0;
-      pointer-events: none;
-      transition: all 0.25s ease;
-      z-index: 9999;
-      font-size: 14px;
-      max-width: 90%;
-      text-align: center;
+  .toast {position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--bg-panel); padding: 12px 24px; border-radius: 8px; display: none; z-index: 30; border: 1px solid var(--border-color);}
+  .toast.show {display: block; animation: fade 3s forwards;}
+    @keyframes fade {
+      0% {opacity: 0; transform: translateX(-50%) translateY(20px);}
+      10% {opacity: 1; transform: translateX(-50%) translateY(0);}
+      90% {opacity: 1; transform: translateX(-50%) translateY(0);}
+      100% {opacity: 0; transform: translateX(-50%) translateY(20px);}
     }
-    #toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-    #toast.error {border-color: var(--danger);}
-
-    tbody tr.selected {background: rgba(37, 211, 102, 0.25)!important;}
-    th.select-all {width: 28px; text-align: center; cursor: pointer;}
-
     @media (max-width: 480px) {
     .row > * {min-width: 100%;}
     .login-title {font-size: 24px;}
@@ -155,6 +84,7 @@
       button, input, select {font-size: 15px; padding: 10px 14px;}
     }
 
+    /* زر خروج الادمن والموظف - مصغر */
     #btnLogoutAdmin {
       background: #dc2626!important;
       color: #ffffff!important;
@@ -166,22 +96,133 @@
       cursor: pointer;
       transition: background 0.2s, opacity 0.2s, transform 0.1s;
     }
-    #btnLogoutAdmin:hover {background: #ef4444!important;}
-    #btnLogoutAdmin:active {background: #f87171!important; transform: scale(0.98);}
+    #btnLogoutAdmin:hover {
+      background: #ef4444!important;
+    }
+    #btnLogoutAdmin:active {
+      background: #f87171!important;
+      transform: scale(0.98);
+    }
 
+    /* ===== حل الجداول بدون كسر التصميم ===== */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    tbody {
+      max-height: calc(3 * 34px);
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    thead {
+      width: 100%;
+      table-layout: fixed;
+      position: sticky;
+      top: 0;
+      background: var(--bg-dark);
+      z-index: 2;
+    }
+    tbody tr {
+      width: 100%;
+      table-layout: fixed;
+    }
+    th, td {
+      padding: 3px 2px;
+      font-size: 12px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border: 1px solid var(--border-color);
+      height: 34px;
+    }
+    tbody tr.selected {
+      background: rgba(37, 211, 102, 0.25)!important;
+    }
+
+    /* تكبير مربع النتيجة */
     #buyResult, #sellResult {
       font-size: 20px!important;
       font-weight: 700!important;
       color: var(--accent-green)!important;
     }
 
-  .buy-form,.sell-form{
+    /* الشريط السفلي */
+    #bottomBar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
+      background: rgba(139, 69, 19, 0.75);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: none;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 50;
+      border-top: 1px solid rgba(93, 58, 26, 0.6);
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
+    }
+    #bottomBar.active {
+      display: flex;
+    }
+    #bottomBar button {
+      background: #4ade80;
+      color: #111b21;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 110px;
+      justify-content: center;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    #bottomBar button:active {
+      transform: scale(0.97);
+      opacity: 0.9;
+    }
+    #bottomBar button:disabled {
+      opacity: 0.6;
+    }
+   .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fff;
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      display: none;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+     100% { transform: rotate(360deg); }
+    }
+   .loading.spinner { display: inline-block; }
+   .loading.txt { display: none; }
+   .tab-content {
+      padding-bottom: 60px;
+    }
+    table.table-selected {
+      outline: 2px solid #8B4513;
+      outline-offset: -2px;
+    }
+
+   .buy-form,
+   .sell-form{
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
-  .buy-form input,.buy-form select,.buy-form button,
-  .sell-form input,.sell-form select,.sell-form button{
+   .buy-form input,
+   .buy-form select,
+   .buy-form button,
+   .sell-form input,
+   .sell-form select,
+   .sell-form button{
       width: 100%;
       box-sizing: border-box;
       height: 40px;
@@ -192,24 +233,45 @@
       color: #fff;
       font-size: 14px;
     }
-  .row-inline{
+   .row-inline{
       display: flex;
       gap: 8px;
     }
-  .row-inline select,.row-inline input{flex: 1;}
-    #btnSaveBuy, #btnSaveSell {
+   .row-inline select,
+   .row-inline input{
+      flex: 1;
+    }
+    #btnSaveBuy,
+    #btnSaveSell {
       background: #00d26a;
       color: #000;
       font-weight: bold;
       border: none;
       cursor: pointer;
     }
+    #btnSaveBuy:active,
+    #btnSaveSell:active {
+      opacity: 0.8;
+    }
+   .select-corner{
+      cursor:pointer;
+      background:#2a2a2a;
+      font-weight:bold;
+    }
+   .select-corner.selected{
+      background:var(--accent-green);
+      color:#000;
+    }
+    @media print{
+      body *{visibility:hidden;}
+    .print-area,.print-area *{visibility:visible;}
+    .print-area{position:absolute; left:0; top:0; width:100%;}
+    }
   </style>
 </head>
 
 <body>
-  <div id="toast"></div>
-
+  <!-- 📌 القسم 3: شاشات الـ HTML -->
   <div id="loginScreen" class="screen active">
     <div class="login-container">
       <div class="login-logo">💰</div>
@@ -241,6 +303,10 @@
       <div class="tab" data-tab="accounts">الحسابات</div>
       <div class="tab" data-tab="permissions">الصلاحيات</div>
     </div>
+
+
+
+
 
     <div id="employees" class="tab-content active">
       <div class="card">
@@ -282,23 +348,20 @@
             <input type="text" id="buyResult" placeholder="النتيجة" readonly>
             <button id="btnSaveBuy">حفظ</button>
           </div>
-          <div class="table-wrap">
-            <table id="buyTable">
-              <thead>
-                <tr>
-                  <th class="select-all">☑</th>
-                  <th>المبلغ</th>
-                  <th>السعر</th>
-                  <th>العملة</th>
-                  <th>النتيجة</th>
-                  <th>العملية</th>
-                  <th>الموظف</th>
-                  <th>الوقت</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
+          <table id="buyTable">
+            <thead>
+              <tr>
+                <th>المبلغ</th>
+                <th>السعر</th>
+                <th>العملة</th>
+                <th>النتيجة</th>
+                <th>العملية</th>
+                <th>الموظف</th>
+                <th>الوقت</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </div>
 
@@ -313,23 +376,20 @@
             <input type="text" id="sellResult" placeholder="النتيجة" readonly>
             <button id="btnSaveSell">حفظ</button>
           </div>
-          <div class="table-wrap">
-            <table id="sellTable">
-              <thead>
-                <tr>
-                  <th class="select-all">☑</th>
-                  <th>المبلغ</th>
-                  <th>السعر</th>
-                  <th>العملة</th>
-                  <th>النتيجة</th>
-                  <th>العملية</th>
-                  <th>الموظف</th>
-                  <th>الوقت</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
+          <table id="sellTable">
+            <thead>
+              <tr>
+                <th>المبلغ</th>
+                <th>السعر</th>
+                <th>العملة</th>
+                <th>النتيجة</th>
+                <th>العملية</th>
+                <th>الموظف</th>
+                <th>الوقت</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </div>
 
@@ -344,23 +404,20 @@
             <input type="text" id="nameMod" placeholder="إسم المودع" inputmode="text">
             <button id="btnSaveDeposit">حفظ</button>
           </div>
-          <div class="table-wrap">
-            <table id="depositTable">
-              <thead>
-                <tr>
-                  <th class="select-all">☑</th>
-                  <th>الحساب</th>
-                  <th>المبلغ</th>
-                  <th>العملة</th>
-                  <th>العملية</th>
-                  <th>المودع</th>
-                  <th>الموظف</th>
-                  <th>الوقت</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
+          <table id="depositTable">
+            <thead>
+              <tr>
+                <th>الحساب</th>
+                <th>المبلغ</th>
+                <th>العملة</th>
+                <th>العملية</th>
+                <th>المودع</th>
+                <th>الموظف</th>
+                <th>الوقت</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </div>
 
@@ -375,28 +432,26 @@
             <input type="text" id="nameWithd" placeholder="إسم المستلم" inputmode="text">
             <button id="btnSaveWithdraw">حفظ</button>
           </div>
-          <div class="table-wrap">
-            <table id="withdrawTable">
-              <thead>
-                <tr>
-                  <th class="select-all">☑</th>
-                  <th>الحساب</th>
-                  <th>المبلغ</th>
-                  <th>العملة</th>
-                  <th>العملية</th>
-                  <th>المستلم</th>
-                  <th>الموظف</th>
-                  <th>الوقت</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
+          <table id="withdrawTable">
+            <thead>
+              <tr>
+                <th>الحساب</th>
+                <th>المبلغ</th>
+                <th>العملة</th>
+                <th>العملية</th>
+                <th>المستلم</th>
+                <th>الموظف</th>
+                <th>الوقت</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </div>
     </div>
 
-    <div id="transfers" class="tab-content">
+    <!-- تبويب الحوالات -->
+    <div id="transfers" class="tab-content ">
       <div class="subtabs">
         <div class="tab active" data-subtab="sendTransfers">ارسال الحوالات</div>
         <div class="tab" data-subtab="receTransfers">استلام الحوالات</div>
@@ -414,27 +469,26 @@
             </div>
             <button id="sendbtn">إرسال</button>
           </div>
-          <div class="table-wrap">
-            <table id="sendTable">
-              <thead>
-                <tr>
-                  <th class="select-all">☑</th>
-                  <th>رقم الحوالة</th>
-                  <th>المبلغ</th>
-                  <th>العملة</th>
-                  <th>إسم المستلم</th>
-                  <th>إسم المرسل</th>
-                  <th>العملية</th>
-                  <th>الوقت</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
+          <table id="sendTable">
+            <thead>
+              <tr>
+                <th>رقم الحوالة</th>
+                <th>المبلغ</th>
+                <th>العملة</th>
+                <th>إسم المستلم</th>
+                <th>إسم المرسل</th>
+          
+ <th>العملية</th>
+
+                <th>الوقت</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </div>
 
-      <div id="receTransfers" class="tab-content">
+      <div id="receTransfers" class="tab-content ">
         <div class="card">
           <div class="recev-form">
             <div class="row-inline">
@@ -445,27 +499,26 @@
             <input type="text" id="nameSend" placeholder="اسم المرسل" readonly>
             <button id="Recbtn">إستلام</button>
           </div>
-          <div class="table-wrap">
-            <table id="RecTable">
-              <thead>
-                <tr>
-                  <th class="select-all">☑</th>
-                  <th>رقم الحوالة</th>
-                  <th>المبلغ</th>
-                  <th>العملة</th>
-                  <th>إسم المستلم</th>
-                  <th>إسم المرسل</th>
-                  <th>العملية</th>
-                  <th>الوقت</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
+          <table id="RecTable">
+            <thead>
+              <tr>
+                <th>رقم الحوالة</th>
+                <th>المبلغ</th>
+                <th>العملة</th>
+                <th>إسم المستلم</th>
+                <th>إسم المرسل</th>
+      
+ <th>العملية</th>
+
+                <th>الوقت</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </div>
 
-      <div id="payTransfers" class="tab-content">
+      <div id="payTransfers" class="tab-content ">
         <div class="card">
           <div class="pay-form">
             <input type="text" id="payNum" placeholder="إدخل رقم الحوالة" inputmode="numeric">
@@ -476,22 +529,21 @@
             <input type="text" id="payName" placeholder="إدخل إسم المستلم" inputmode="text">
             <button id="paybtn">دفع</button>
           </div>
-          <div class="table-wrap">
-            <table id="payTable">
-              <thead>
-                <tr>
-                  <th class="select-all">☑</th>
-                  <th>رقم الحوالة</th>
-                  <th>المبلغ</th>
-                  <th>العملة</th>
-                  <th>إسم المستلم</th>
-                  <th>العملية</th>
-                  <th>الوقت</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
+          <table id="payTable">
+            <thead>
+              <tr>
+                <th>رقم الحوالة</th>
+                <th>المبلغ</th>
+                <th>العملة</th>
+                <th>إسم المستلم</th>
+         
+ <th>العملية</th>
+
+                <th>الوقت</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -526,12 +578,10 @@
             <button id="btnViewAcc">عرض</button>
             <button id="btnClearAcc">تصفية</button>
           </div>
-          <div class="table-wrap">
-            <table id="accBalanceTable">
-              <thead><tr><th class="select-all">☑</th><th>العملة</th><th>الرصيد</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
+          <table id="accBalanceTable">
+            <thead><tr><th>العملة</th><th>الرصيد</th></tr></thead>
+            <tbody></tbody>
+          </table>
         </div>
       </div>
       <div id="editAcc" class="tab-content">
@@ -562,12 +612,23 @@
         </div>
       </div>
     </div>
-
-    <div id="matchs" class="tab-content">
+    
+    
+    
+    
+    
+     
+    <div id="matchs" class="tab-content ">
       <div class="card">
         <h3>مطابقة الموظف</h3>
+   </div>
       </div>
-    </div>
+
+    
+    
+    
+    
+    
 
     <div id="permissions" class="tab-content">
       <div class="card">
@@ -581,12 +642,10 @@
           <input type="number" id="sellRateInput" placeholder="سعر البيع" inputmode="decimal">
           <button id="btnSaveSellRate">حفظ بيع</button>
         </div>
-        <div class="table-wrap">
-          <table id="rateLogTable">
-            <thead><tr><th class="select-all">☑</th><th>العملة</th><th>النوع</th><th>السعر</th><th>الوقت</th><th>بواسطة</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
+        <table id="rateLogTable">
+          <thead><tr><th>العملة</th><th>النوع</th><th>السعر</th><th>الوقت</th><th>بواسطة</th></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
 
       <div class="card">
@@ -624,12 +683,10 @@
           <button id="btnViewBalance">عرض الرصيد</button>
           <button id="btnViewMatch">عرض المطابقة</button>
         </div>
-        <div class="table-wrap">
-          <table id="matchTable">
-            <thead><tr><th class="select-all">☑</th><th>العملة</th><th>رصيد النظام</th><th>رصيد الواقع</th><th>النتيجة</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
+        <table id="matchTable">
+          <thead><tr><th>العملة</th><th>رصيد النظام</th><th>رصيد الواقع</th><th>النتيجة</th></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
 
       <div class="card">
@@ -652,6 +709,18 @@
     </div>
   </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set, get, update, onValue, remove }
@@ -670,9 +739,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// المتغيرات
 window.currentUser = null;
 window.currentRole = null;
 
+// عناصر الصفحة
 const loginScreen = document.getElementById('loginScreen');
 const adminScreen = document.getElementById('adminScreen');
 const userSelect = document.getElementById('userSelect');
@@ -683,15 +754,7 @@ const btnLogin = document.getElementById('btnLogin');
 const togglePass = document.getElementById('togglePass');
 const btnLogoutAdmin = document.getElementById('btnLogoutAdmin');
 
-// دالة Toast
-function showToast(msg, type = 'info') {
-  const t = document.getElementById('toast');
-  if (!t) return;
-  t.textContent = msg;
-  t.className = type === 'error'? 'show error' : 'show';
-  setTimeout(() => t.classList.remove('show', 'error'), 2500);
-}
-
+// 1. انشاء الادمن مرة وحدة عند التحميل
 async function createAdminIfMissing() {
   const adminRef = ref(db, 'users/هارون الراشدي');
   const snap = await get(adminRef);
@@ -706,6 +769,7 @@ async function createAdminIfMissing() {
 }
 createAdminIfMissing();
 
+// 2. تحميل المستخدمين لحظي للدروب داون
 function loadUsers() {
   const usersRef = ref(db, 'users');
   onValue(usersRef, (snap) => {
@@ -732,6 +796,7 @@ function loadUsers() {
 }
 loadUsers();
 
+// 2. فتح واغلاق قائمة المستخدمين
 userSelect?.addEventListener('click', () => {
   userList.classList.toggle('active');
   dropdownOverlay.classList.toggle('active');
@@ -741,430 +806,1208 @@ dropdownOverlay?.addEventListener('click', () => {
   dropdownOverlay.classList.remove('active');
 });
 
+// 3. اظهار واخفاء كلمة المرور
 togglePass?.addEventListener('click', () => {
   passwordInput.type = passwordInput.type === 'password'? 'text' : 'password';
 });
 
+// 4. تسجيل الدخول
 btnLogin?.addEventListener('click', async () => {
   const username = userSelect.value.trim();
   const password = passwordInput.value.trim();
-  if (!username ||!password) { showToast('ادخل المستخدم وكلمة المرور', 'error'); return; }
+  if (!username ||!password) { alert('ادخل اسم المستخدم وكلمة المرور'); return; }
 
-  const userRef = ref(db, `users/${username}`);
-  const snap = await get(userRef);
-  if (!snap.exists()) { showToast('المستخدم غير موجود', 'error'); return; }
+  const snap = await get(ref(db, `users/${username}`));
+  if (!snap.exists()) { alert('المستخدم غير موجود'); return; }
 
   const user = snap.val();
-  if (user.password!== password) { showToast('كلمة المرور خطأ', 'error'); return; }
-  if (user.active === false) { showToast('حسابك موقف', 'error'); return; }
+  if (user.active === false) { alert('الحساب موقف'); return; }
+  if (user.password!== password) { alert('كلمة المرور خطأ'); return; }
 
   window.currentUser = username;
   window.currentRole = user.role;
-
   loginScreen.classList.remove('active');
-  adminScreen.classList.add('active');
 
-  document.getElementById('adminName').textContent = username;
-  document.getElementById('adminRole').textContent = user.role === 'admin'? 'مدير' : 'موظف';
-
-  applyPermissions(user);
-  showToast(`مرحباً ${username}`);
+  if (currentRole === 'admin') {
+    adminScreen.classList.add('active');
+    document.getElementById('adminName').textContent = user.name;
+    document.getElementById('adminRole').textContent = 'مدير';
+    closeAllTabsOnLogin();
+  } else {
+    alert('واجهة الموظف لسه ما جهزت');
+  }
+  passwordInput.value = '';
 });
 
-function applyPermissions(user) {
-  const isAdmin = user.role === 'admin';
-  const perms = user.permissions || {};
-
-  const tabs = {
-    employees: isAdmin,
-    operations: isAdmin || perms.operations,
-    transfers: isAdmin || perms.transfers,
-    matchs: isAdmin || perms.matchs,
-    accounts: isAdmin || perms.accounts,
-    permissions: isAdmin
-  };
-
-  document.querySelectorAll('.tabs.tab').forEach(tab => {
-    const name = tab.dataset.tab;
-    tab.style.display = tabs[name]? '' : 'none';
-  });
-
-  const activeTab = document.querySelector('.tabs.tab.active');
-  if (activeTab &&!tabs[activeTab.dataset.tab]) {
-    document.querySelector('.tabs.tab').click();
-  }
-}
-
+// 5. خروج
 btnLogoutAdmin?.addEventListener('click', () => {
   window.currentUser = null;
   window.currentRole = null;
   adminScreen.classList.remove('active');
   loginScreen.classList.add('active');
   userSelect.value = '';
-  passwordInput.value = '';
-  showToast('تم تسجيل الخروج');
 });
 
-function setupTabs() {
-  document.querySelectorAll('.tabs').forEach(tabs => {
-    tabs.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        const parent = tab.parentElement.parentElement;
-        const contentAttr = tab.dataset.tab? 'data-tab' : 'data-subtab';
-
-        parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        parent.parentElement.querySelectorAll(':scope >.tab-content').forEach(c => c.classList.remove('active'));
-
-        tab.classList.add('active');
-        const content = parent.parentElement.querySelector(`#${tab.getAttribute(contentAttr)}`);
-        if (content) content.classList.add('active');
-
-        const isSub = tab.hasAttribute('data-subtab');
-        if (isSub) {
-          let startX = 0, startY = 0;
-          const contentEl = document.getElementById(tab.getAttribute(contentAttr));
-          if (!contentEl) return;
-
-          contentEl.addEventListener('touchstart', e => {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-          }, { passive: true });
-
-          contentEl.addEventListener('touchend', e => {
-            const diffX = e.changedTouches[0].clientX - startX;
-            const diffY = e.changedTouches[0].clientY - startY;
-
-            if (Math.abs(diffY) > Math.abs(diffX) || Math.abs(diffX) < 50) return;
-
-            const parent = contentEl.parentElement;
-            const contentList = [...parent.querySelectorAll(':scope >.tab-content')];
-            const tabs = [...parent.querySelector('.subtabs').querySelectorAll('.tab')];
-            const idx = contentList.findIndex(c => c.classList.contains('active'));
-            if (idx === -1) return;
-
-            let nextIdx = diffX > 0? idx - 1 : idx + 1;
-            if (nextIdx < 0) nextIdx = contentList.length - 1;
-            if (nextIdx >= contentList.length) nextIdx = 0;
-
-            tabs.forEach(t => t.classList.remove('active'));
-            contentList.forEach(c => c.classList.remove('active'));
-            tabs[nextIdx].classList.add('active');
-            contentList[nextIdx].classList.add('active');
-            e.preventDefault();
-          }, { passive: false });
-        }
-      });
-    });
-  });
-}
-setupTabs();
-
-const USERS_PATH = 'users';
-const RATES_PATH = 'rates';
-const RATE_LOGS_PATH = 'rateLogs';
-const OPS_PATH = 'operations';
-const ACCOUNTS_PATH = 'accounts';
-const TRANSFERS_PENDING = 'transfers/pending';
-const TRANSFERS_RECEIVED = 'transfers/received';
-const SYSTEM_BALANCE_PATH = 'systemBalance';
-const ACTIVE_CURRENCIES_PATH = 'settings/activeCurrencies';
-
-function getToday() {
-  return new Date().toISOString().split('T')[0];
-}
-
-async function initCurrenciesDropdowns() {
-  const snap = await get(ref(db, ACTIVE_CURRENCIES_PATH));
-  const currencies = snap.val() || ['يمني', 'سعودي شبكة', 'سعودي نقد', 'دولار', 'يورو'];
-
-  ['buyCurrency','sellCurrency','depositCurrency','withdrawCurrency','transCurr','payCurr','rateCurrency','matchCurrencySelect']
-  .forEach(id => {
-      const sel = document.getElementById(id);
-      if (!sel) return;
-      sel.innerHTML = '<option value="">اختر العملة</option>';
-      currencies.forEach(c => {
-        sel.innerHTML += `<option value="${c}">${c}</option>`;
-      });
-    });
-
-  document.querySelectorAll('.activeCurrency').forEach(cb => {
-    cb.checked = currencies.includes(cb.value);
-  });
-}
-
-document.getElementById('btnSaveCurrencies')?.addEventListener('click', async () => {
-  const selected = [...document.querySelectorAll('.activeCurrency:checked')].map(cb => cb.value);
-  if (selected.length === 0) { showToast('اختر عملة واحدة على الاقل', 'error'); return; }
-  await set(ref(db, ACTIVE_CURRENCIES_PATH), selected);
-  initCurrenciesDropdowns();
-  showToast('تم حفظ العملات');
-});
-
-async function getSystemBalance(currency) {
-  const snap = await get(ref(db, `${SYSTEM_BALANCE_PATH}/${currency}`));
-  return snap.val() || 0;
-}
-
-async function updateSystemBalance(changes) {
-  const updates = {};
-  for (let [cur, val] of Object.entries(changes)) {
-    const current = await getSystemBalance(cur);
-    updates[`${SYSTEM_BALANCE_PATH}/${cur}`] = current + val;
-  }
-  await update(ref(db), updates);
-}
-
-async function getAccountBalance(accId, currency) {
-  const snap = await get(ref(db, `${ACCOUNTS_PATH}/${accId}/balances/${currency}`));
-  return snap.val() || 0;
-}
-
-async function updateAccountBalance(accId, currency, amount) {
-  const current = await getAccountBalance(accId, currency);
-  await set(ref(db, `${ACCOUNTS_PATH}/${accId}/balances/${currency}`), current + amount);
-}
-
-document.getElementById('btnAddEmp')?.addEventListener('click', async () => {
-  const name = document.getElementById('newEmpName').value.trim();
-  const pass = document.getElementById('newEmpPass').value.trim();
-  if (!name ||!pass) { showToast('ادخل الاسم وكلمة المرور', 'error'); return; }
-
-  const snap = await get(ref(db, `${USERS_PATH}/${name}`));
-  if (snap.exists()) { showToast('الموظف موجود مسبقاً', 'error'); return; }
-
-  await set(ref(db, `${USERS_PATH}/${name}`), {
-    password: pass,
-    role: 'employee',
-    name: name,
-    active: true,
-    permissions: {}
-  });
-  document.getElementById('newEmpName').value = '';
-  document.getElementById('newEmpPass').value = '';
-  showToast('تمت اضافة الموظف');
-});
-
-function loadEmployees() {
-  onValue(ref(db, USERS_PATH), (snap) => {
-    const sel = document.getElementById('empSelect');
-    const permSel = document.getElementById('permEmpSelect');
-    const matchSel = document.getElementById('matchEmpSelect');
-    if (!snap.exists()) return;
-    const users = snap.val();
-
-    [sel, permSel, matchSel].forEach(s => {
-      if (!s) return;
-      s.innerHTML = '<option value="">اختر الموظف</option>';
-      Object.keys(users).forEach(u => {
-        if (users[u].role === 'employee') {
-          s.innerHTML += `<option value="${u}">${u}</option>`;
-        }
-      });
-    });
-  });
-}
-loadEmployees();
-
-document.getElementById('btnSuspendEmp')?.addEventListener('click', async () => {
-  const name = document.getElementById('empSelect').value;
-  if (!name) { showToast('اختر الموظف', 'error'); return; }
-  await update(ref(db, `${USERS_PATH}/${name}`), {active: false});
-  showToast('تم ايقاف الموظف');
-});
-
-document.getElementById('btnStopSuspendEmp')?.addEventListener('click', async () => {
-  const name = document.getElementById('empSelect').value;
-  if (!name) { showToast('اختر الموظف', 'error'); return; }
-  await update(ref(db, `${USERS_PATH}/${name}`), {active: true});
-  showToast('تم تفعيل الموظف');
-});
-
-document.getElementById('btnDeleteEmp')?.addEventListener('click', async () => {
-  const name = document.getElementById('empSelect').value;
-  if (!name) { showToast('اختر الموظف', 'error'); return; }
-  if (!confirm(`هل انت متأكد من حذف ${name}?`)) return;
-  await remove(ref(db, `${USERS_PATH}/${name}`));
-  showToast('تم حذف الموظف');
-});
-
-document.getElementById('permEmpSelect')?.addEventListener('change', async (e) => {
-  const name = e.target.value;
-  if (!name) return;
-  const snap = await get(ref(db, `${USERS_PATH}/${name}`));
-  const perms = snap.val()?.permissions || {};
-  document.getElementById('permOperat').checked =!!perms.operations;
-  document.getElementById('permTrans').checked =!!perms.transfers;
-  document.getElementById('permAcc').checked =!!perms.accounts;
-  document.getElementById('permMach').checked =!!perms.matchs;
-  document.getElementById('permPerms').checked =!!perms.permissions;
-  document.getElementById('permEditRate').checked =!!perms.editRate;
-  document.getElementById('permEditpass').checked =!!perms.editPass;
-});
-
-document.getElementById('btnSavePerm')?.addEventListener('click', async () => {
-  const name = document.getElementById('permEmpSelect').value;
-  if (!name) { showToast('اختر الموظف', 'error'); return; }
-
-  const perms = {
-    operations: document.getElementById('permOperat').checked,
-    transfers: document.getElementById('permTrans').checked,
-    accounts: document.getElementById('permAcc').checked,
-    matchs: document.getElementById('permMach').checked,
-    permissions: document.getElementById('permPerms').checked,
-    editRate: document.getElementById('permEditRate').checked,
-    editPass: document.getElementById('permEditpass').checked
-  };
-
-  await update(ref(db, `${USERS_PATH}/${name}`), {permissions: perms});
-  showToast('تم حفظ الصلاحيات');
-});
-
+// 6. تغيير كلمة مرور الادمن
 document.getElementById('btnChangeAdminPass')?.addEventListener('click', async () => {
   const newPass = document.getElementById('adminNewPass').value.trim();
-  if (!newPass) { showToast('ادخل كلمة المرور الجديدة', 'error'); return; }
-  await update(ref(db, `${USERS_PATH}/هارون الراشدي`), {password: newPass});
+  if (!newPass) { alert('ادخل كلمة المرور الجديدة'); return; }
+  if (!/^\d{3,8}$/.test(newPass)) { alert('كلمة المرور لازم تكون ارقام 3-8 خانات'); return; }
+  await update(ref(db, `users/${window.currentUser}`), { password: newPass });
+  alert('تم تغيير كلمة المرور بنجاح');
   document.getElementById('adminNewPass').value = '';
-  showToast('تم تغيير كلمة المرور');
 });
 
-document.getElementById('btnSaveColors')?.addEventListener('click', () => {
-  document.documentElement.style.setProperty('--accent-green', document.getElementById('colorAccent').value);
-  document.documentElement.style.setProperty('--bg-dark', document.getElementById('colorBg').value);
-  showToast('تم حفظ الالوان');
-});
-
-document.getElementById('btnCreateAcc')?.addEventListener('click', async () => {
-  const name = document.getElementById('accName').value.trim();
-  const phone = document.getElementById('accPhone').value.trim();
-  const currencies = [...document.querySelectorAll('.accCurrency:checked')].map(cb => cb.value);
-
-  if (!name) { showToast('ادخل اسم العميل', 'error'); return; }
-
-  const accId = `acc_${Date.now()}`;
-  const balances = {};
-  currencies.forEach(c => balances[c] = 0);
-
-  await set(ref(db, `${ACCOUNTS_PATH}/${accId}`), {
-    name, phone, balances, active: true, createdAt: Date.now()
-  });
-
-  document.getElementById('accName').value = '';
-  document.getElementById('accPhone').value = '';
-  document.querySelectorAll('.accCurrency').forEach(cb => cb.checked = false);
-  showToast('تم انشاء الحساب');
-});
-
-document.getElementById('btnViewAcc')?.addEventListener('click', async () => {
-  const accId = document.getElementById('viewAccSelect').value;
-  if (!accId) { showToast('اختر الحساب', 'error'); return; }
-
-  const snap = await get(ref(db, `${ACCOUNTS_PATH}/${accId}/balances`));
-  const tbody = document.querySelector('#accBalanceTable tbody');
-  tbody.innerHTML = '';
-
-  if (snap.exists()) {
-    const balances = snap.val();
-    Object.entries(balances).forEach(([cur, bal]) => {
-      tbody.innerHTML += `<tr><td>${cur}</td><td>${bal}</td></tr>`;
-    });
-  }
-});
-
-document.getElementById('btnClearAcc')?.addEventListener('click', () => {
-  document.querySelector('#accBalanceTable tbody').innerHTML = '';
-  document.getElementById('viewAccSelect').value = '';
-});
-
-document.getElementById('editAccSelect')?.addEventListener('change', async (e) => {
-  const accId = e.target.value;
-  if (!accId) return;
-  const snap = await get(ref(db, `${ACCOUNTS_PATH}/${accId}`));
-  const acc = snap.val();
-  if (!acc) return;
-
-  document.getElementById('editAccName').value = acc.name || '';
-  document.getElementById('editAccPhone').value = acc.phone || '';
-  document.querySelectorAll('.editAccCurrency').forEach(cb => {
-    cb.checked = acc.balances && acc.balances[cb.value]!== undefined;
-  });
-});
-
-document.getElementById('btnSaveEditAcc')?.addEventListener('click', async () => {
-  const accId = document.getElementById('editAccSelect').value;
-  if (!accId) { showToast('اختر الحساب', 'error'); return; }
-
-  const name = document.getElementById('editAccName').value.trim();
-  const phone = document.getElementById('editAccPhone').value.trim();
-  const currencies = [...document.querySelectorAll('.editAccCurrency:checked')].map(cb => cb.value);
-
-  const balances = {};
-  for (const c of currencies) {
-    balances[c] = await getAccountBalance(accId, c);
-  }
-
-  await update(ref(db, `${ACCOUNTS_PATH}/${accId}`), {name, phone, balances});
-  showToast('تم حفظ التعديل');
-});
-
-document.getElementById('btnSuspendAcc')?.addEventListener('click', async () => {
-  const accId = document.getElementById('deleteAccSelect').value;
-  if (!accId) { showToast('اختر الحساب', 'error'); return; }
-  await update(ref(db, `${ACCOUNTS_PATH}/${accId}`), {active: false});
-  showToast('تم ايقاف الحساب');
-});
-
-document.getElementById('btnActivateAcc')?.addEventListener('click', async () => {
-  const accId = document.getElementById('deleteAccSelect').value;
-  if (!accId) { showToast('اختر الحساب', 'error'); return; }
-  await update(ref(db, `${ACCOUNTS_PATH}/${accId}`), {active: true});
-  showToast('تم تفعيل الحساب');
-});
-
-document.getElementById('btnDeleteAcc')?.addEventListener('click', async () => {
-  const accId = document.getElementById('deleteAccSelect').value;
-  if (!accId) { showToast('اختر الحساب', 'error'); return; }
-  if (!confirm('هل انت متأكد من حذف الحساب؟')) return;
-  await remove(ref(db, `${ACCOUNTS_PATH}/${accId}`));
-  showToast('تم حذف الحساب');
-});
-
-function listenRates() {
-  onValue(ref(db, RATES_PATH), (snap) => {
-    const rates = snap.val() || {};
-  });
-}
-
-function loadRateLogs() {
-  const today = getToday();
-  const tbody = document.querySelector('#rateLogTable tbody');
-  if (!tbody) return;
-  onValue(ref(db, `${RATE_LOGS_PATH}/${today}`), (snap) => {
-    tbody.innerHTML = '';
-    const data = snap.val();
-    if (!data) return;
-    Object.values(data).reverse().forEach(log => {
-      tbody.innerHTML += `<tr>
-        <td>${log.currency}</td>
-        <td>${log.type}</td>
-        <td>${log.rate}</td>
-        <td>${new Date(log.time).toLocaleTimeString('ar-EG')}</td>
-        <td>${log.by}</td>
-      </tr>`;
-    });
-  });
-}
-
-function initRateLogFilter() {
-}
-
+// ===== كل كود التبويبات والعمليات داخل DOMContentLoaded =====
 document.addEventListener('DOMContentLoaded', () => {
-  setupTabs();
+  let hideTimer = null;
+
+  function resetHideTimer() {
+    if (hideTimer) clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+      document.querySelectorAll('.subtabs').forEach(sub => {
+        sub.style.display = 'none';
+        sub.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      });
+      document.querySelectorAll('#operations >.tab-content, #transfers >.tab-content, #accounts >.tab-content')
+       .forEach(c => c.classList.remove('active'));
+    }, 15000);
+  }
+
+  function setupTabs(container, tabSelector, contentAttr, isSub = false) {
+    if (!container) return;
+    const tabs = container.querySelectorAll(tabSelector);
+    const contents = container.querySelectorAll(':scope >.tab-content');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const targetId = tab.getAttribute(contentAttr);
+        const target = document.getElementById(targetId);
+        if (!target) return;
+        const isActive = tab.classList.contains('active');
+        tabs.forEach(t => t.classList.remove('active'));
+        contents.forEach(c => c.classList.remove('active'));
+        if (!isActive) {
+          tab.classList.add('active');
+          target.classList.add('active');
+        }
+        if (isSub) resetHideTimer();
+      });
+
+      if (isSub) {
+        let startX = 0, startY = 0;
+        const contentEl = document.getElementById(tab.getAttribute(contentAttr));
+        if (!contentEl) return;
+        contentEl.addEventListener('touchstart', e => {
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+        }, {passive: true});
+        contentEl.addEventListener('touchend', e => {
+          const diffX = e.changedTouches[0].clientX - startX;
+          const diffY = e.changedTouches[0].clientY - startY;
+          if (Math.abs(diffY) > Math.abs(diffX) || Math.abs(diffX) < 50) return;
+          const parent = contentEl.parentElement;
+          const contentList = [...parent.querySelectorAll(':scope >.tab-content')];
+          const idx = contentList.findIndex(c => c.classList.contains('active'));
+          if (idx === -1) return;
+          let nextIdx = diffX > 0? idx - 1 : idx + 1;
+          if (nextIdx < 0) nextIdx = contentList.length - 1;
+          if (nextIdx >= contentList.length) nextIdx = 0;
+          const nextTab = [...tabs].find(t => t.getAttribute(contentAttr) === contentList[nextIdx].id);
+          if (nextTab) nextTab.click();
+        });
+      }
+    });
+  }
+
+  setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab');
+  setupTabs(document.getElementById('operations'), '.subtabs .tab', 'data-subtab', true);
+  setupTabs(document.getElementById('transfers'), '.subtabs .tab', 'data-subtab', true);
+  setupTabs(document.getElementById('accounts'), '.subtabs .tab', 'data-subtab', true);
+
+  document.querySelectorAll('#adminScreen >.tabs >.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetSection = document.getElementById(tab.getAttribute('data-tab'));
+      if (!targetSection) return;
+      const subtabs = targetSection.querySelector('.subtabs');
+      if (subtabs) {
+        subtabs.style.display = 'flex';
+        const firstSub = subtabs.querySelector('.tab');
+        if (firstSub) firstSub.click();
+        resetHideTimer();
+      }
+    });
+  });
+
+  ['click', 'touchstart', 'scroll', 'keydown'].forEach(evt => {
+    document.addEventListener(evt, resetHideTimer, {passive: true});
+  });
+
+  window.closeAllTabsOnLogin = () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('.subtabs').forEach(sub => sub.style.display = 'none');
+  };
+
+  // ===== الثوابت والمسارات =====
+  const SYSTEM_BAL_PATH = 'systemBalance';
+  const ACCOUNTS_PATH = 'accounts';
+  const TRANSFERS_PENDING = 'transfers/pending';
+  const TRANSFERS_RECEIVED = 'transfers/received';
+  const OPS_PATH = 'ops';
+  const RATES_PATH = 'rates';
+  const RATE_LOGS_PATH = 'rateLogs';
+  const CURRENCIES_AR = ["يمني", "سعودي شبكة", "سعودي نقد", "دولار", "يورو"];
+  const getToday = () => new Date().toISOString().split('T')[0];
+
+  // ===== دوال الرصيد =====
+  async function getSystemBalance(currency) {
+    const snap = await get(ref(db, `${SYSTEM_BAL_PATH}/${currency}`));
+    return snap.val() || 0;
+  }
+  async function getAccountBalance(accId, currency) {
+    const snap = await get(ref(db, `${ACCOUNTS_PATH}/${accId}/currencies/${currency}`));
+    return snap.val() || 0;
+  }
+  async function updateSystemBalance(updates) {
+    const updatesObj = {};
+    for (const [cur, val] of Object.entries(updates)) {
+      const current = await getSystemBalance(cur);
+      const newVal = current + val;
+      if (newVal < 0) throw new Error(`رصيد النظام ${cur} لا يسمح`);
+      updatesObj[`${SYSTEM_BAL_PATH}/${cur}`] = newVal;
+    }
+    await update(ref(db), updatesObj);
+  }
+  async function updateAccountBalance(accId, currency, amount) {
+    const current = await getAccountBalance(accId, currency);
+    const newVal = current + amount;
+    if (newVal < 0) throw new Error(`رصيد الحساب ${currency} غير كافي`);
+    await update(ref(db, `${ACCOUNTS_PATH}/${accId}/currencies`), { [currency]: newVal });
+  }
+
+  // ===== إدارة الاسعار =====
+  function fillCurrencySelect(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">اختر العملة</option>';
+    CURRENCIES_AR.forEach(cur => {
+      const opt = document.createElement('option');
+      opt.value = cur;
+      opt.textContent = cur;
+      select.appendChild(opt);
+    });
+    if (CURRENCIES_AR.includes(currentVal)) select.value = currentVal;
+  }
+  function initCurrenciesDropdowns() {
+    ['buyCurrency', 'sellCurrency','depositCurrency', 'withdrawCurrency',
+     'transCurr', 'payCurr','rateCurrency', 'matchCurrencySelect'].forEach(fillCurrencySelect);
+  }
+  function listenRates() {
+    onValue(ref(db, RATES_PATH), (snap) => {
+      const rates = snap.val() || {};
+      const buyCur = document.getElementById('buyCurrency')?.value;
+      if (buyCur && rates[buyCur]) document.getElementById('buyRate').value = rates[buyCur].buy || '';
+      const sellCur = document.getElementById('sellCurrency')?.value;
+      if (sellCur && rates[sellCur]) document.getElementById('sellRate').value = rates[sellCur].sell || '';
+    });
+  }
+  function initRateLogFilter() {
+    const card = document.querySelector('#permissions.card:has(#rateLogTable)');
+    if (!card || document.getElementById('rateLogFilter')) return;
+    card.insertAdjacentHTML('afterbegin', `
+      <div id="rateLogFilter" class="row" style="margin-bottom:8px">
+        <input type="date" id="rateLogFrom">
+        <input type="date" id="rateLogTo">
+        <button id="btnRateLogFilter">فلترة</button>
+        <button id="btnRateLogClear">مسح</button>
+      </div>
+    `);
+    document.getElementById('rateLogFrom').value = getToday();
+    document.getElementById('rateLogTo').value = getToday();
+    document.getElementById('btnRateLogFilter').onclick = () => loadRateLogs();
+    document.getElementById('btnRateLogClear').onclick = () => {
+      document.getElementById('rateLogFrom').value = getToday();
+      document.getElementById('rateLogTo').value = getToday();
+      loadRateLogs();
+    };
+    loadRateLogs();
+  }
+  async function loadRateLogs() {
+    const from = document.getElementById('rateLogFrom')?.value || getToday();
+    const to = document.getElementById('rateLogTo')?.value || getToday();
+    const tbody = document.querySelector('#rateLogTable tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    for (let d = new Date(from); d <= new Date(to); d.setDate(d.getDate() + 1)) {
+      const day = d.toISOString().split('T')[0];
+      const snap = await get(ref(db, `${RATE_LOGS_PATH}/${day}`));
+      const data = snap.val();
+      if (!data) continue;
+      Object.values(data).forEach(log => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${log.currency}</td><td>${log.type}</td><td>${log.rate}</td>
+          <td>${new Date(log.time).toLocaleString('ar-EG')}</td><td>${log.by}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+  }
+
+  document.getElementById('btnSaveBuyRate')?.addEventListener('click', async () => {
+    const cur = document.getElementById('rateCurrency').value;
+    const buy = parseFloat(document.getElementById('buyRateInput').value);
+    const btn = document.getElementById('btnSaveBuyRate');
+    if (!cur) { alert('اختر العملة'); return; }
+    if (isNaN(buy) || buy <= 0) { alert('ادخل سعر شراء صحيح'); return; }
+    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (btn.disabled) return;
+    btn.disabled = true;
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
+    try {
+      const today = getToday();
+      const logId = `rl_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      await Promise.race([
+        Promise.all([
+          update(ref(db, `${RATES_PATH}/${cur}`), {buy, updatedAt: Date.now(), by: window.currentUser || 'مجهول'}),
+          set(ref(db, `${RATE_LOGS_PATH}/${today}/${logId}`), {currency: cur, type: 'شراء', rate: buy, time: Date.now(), by: window.currentUser || 'مجهول'})
+        ]),
+        timeoutPromise
+      ]);
+      document.getElementById('buyRateInput').value = '';
+      alert('تم حفظ سعر الشراء بنجاح');
+      loadRateLogs();
+    } catch (e) {
+      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل الحفظ: ' + e.message);
+    } finally {
+      setTimeout(() => btn.disabled = false, 500);
+    }
+  });
+
+  document.getElementById('btnSaveSellRate')?.addEventListener('click', async () => {
+    const cur = document.getElementById('rateCurrency').value;
+    const sell = parseFloat(document.getElementById('sellRateInput').value);
+    const btn = document.getElementById('btnSaveSellRate');
+    if (!cur) { alert('اختر العملة'); return; }
+    if (isNaN(sell) || sell <= 0) { alert('ادخل سعر بيع صحيح'); return; }
+    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (btn.disabled) return;
+    btn.disabled = true;
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
+    try {
+      const today = getToday();
+      const logId = `rl_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      await Promise.race([
+        Promise.all([
+          update(ref(db, `${RATES_PATH}/${cur}`), {sell, updatedAt: Date.now(), by: window.currentUser || 'مجهول'}),
+          set(ref(db, `${RATE_LOGS_PATH}/${today}/${logId}`), {currency: cur, type: 'بيع', rate: sell, time: Date.now(), by: window.currentUser || 'مجهول'})
+        ]),
+        timeoutPromise
+      ]);
+      document.getElementById('sellRateInput').value = '';
+      alert('تم حفظ سعر البيع بنجاح');
+      loadRateLogs();
+    } catch (e) {
+      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل الحفظ: ' + e.message);
+    } finally {
+      setTimeout(() => btn.disabled = false, 500);
+    }
+  });
+
+  document.getElementById('buyCurrency')?.addEventListener('change', (e) => {
+    get(ref(db, `${RATES_PATH}/${e.target.value}`)).then(snap => {
+      document.getElementById('buyRate').value = snap.val()?.buy || '';
+      calcBuyResult();
+    });
+  });
+  document.getElementById('sellCurrency')?.addEventListener('change', (e) => {
+    get(ref(db, `${RATES_PATH}/${e.target.value}`)).then(snap => {
+      document.getElementById('sellRate').value = snap.val()?.sell || '';
+      calcSellResult();
+    });
+  });
+
+  function calcBuyResult() {
+    const amt = parseFloat(document.getElementById('buyAmount').value) || 0;
+    const rate = parseFloat(document.getElementById('buyRate').value) || 0;
+    document.getElementById('buyResult').value = (amt * rate).toFixed(2);
+  }
+  function calcSellResult() {
+    const amt = parseFloat(document.getElementById('sellAmount').value) || 0;
+    const rate = parseFloat(document.getElementById('sellRate').value) || 0;
+    document.getElementById('sellResult').value = (amt * rate).toFixed(2);
+  }
+  document.getElementById('buyAmount')?.addEventListener('input', calcBuyResult);
+  document.getElementById('sellAmount')?.addEventListener('input', calcSellResult);
+
   initCurrenciesDropdowns();
   listenRates();
   initRateLogFilter();
-  loadRateLogs();
-});
+
+  // ===== عمليات الشراء =====
+  document.getElementById('btnSaveBuy')?.addEventListener('click', async () => {
+    const amount = parseFloat(document.getElementById('buyAmount').value);
+    const currency = document.getElementById('buyCurrency').value;
+    const rate = parseFloat(document.getElementById('buyRate').value);
+    const result = parseFloat(document.getElementById('buyResult').value);
+    const btn = document.getElementById('btnSaveBuy');
+    if (!amount ||!currency ||!rate ||!result) { alert('عبئ كل الحقول أولاً'); return; }
+    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (btn.disabled) return;
+    btn.disabled = true;
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
+    try {
+      const yemenBalance = await getSystemBalance('يمني');
+      if (yemenBalance < result) { alert('رصيد اليمني لا يسمح'); return; }
+      await Promise.race([updateSystemBalance({ 'يمني': -result, [currency]: amount }), timeoutPromise]);
+      const today = getToday();
+      const buyId = `buy_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      await set(ref(db, `${OPS_PATH}/${today}/buy/${buyId}`), {
+        amount, rate, currency, result, type: 'شراء', emp: window.currentUser || 'مجهول', time: Date.now()
+      });
+      document.getElementById('buyAmount').value = '';
+      document.getElementById('buyRate').value = '';
+      document.getElementById('buyCurrency').value = '';
+      document.getElementById('buyResult').value = '';
+      alert('تمت العملية بنجاح');
+    } catch (e) {
+      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+    } finally {
+      setTimeout(() => btn.disabled = false, 500);
+    }
+  });
+
+  function listenBuyOps() {
+    const today = getToday();
+    const tbody = document.querySelector('#buyTable tbody');
+    if (!tbody) return;
+    onValue(ref(db, `${OPS_PATH}/${today}/buy`), (snap) => {
+      tbody.innerHTML = '';
+      const data = snap.val();
+      if (!data) return;
+      Object.values(data).reverse().forEach(op => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td>
+          <td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+        tbody.appendChild(tr);
+      });
+    });
+  }
+  listenBuyOps();
+
+  // ===== عمليات البيع =====
+  document.getElementById('btnSaveSell')?.addEventListener('click', async () => {
+    const amount = parseFloat(document.getElementById('sellAmount').value);
+    const currency = document.getElementById('sellCurrency').value;
+    const rate = parseFloat(document.getElementById('sellRate').value);
+    const result = parseFloat(document.getElementById('sellResult').value);
+    const btn = document.getElementById('btnSaveSell');
+    if (!amount ||!currency ||!rate ||!result) { alert('عبئ كل الحقول أولاً'); return; }
+    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (btn.disabled) return;
+    btn.disabled = true;
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
+    try {
+      const curBalance = await getSystemBalance(currency);
+      if (curBalance < amount) { alert(`رصيد ${currency} لا يسمح`); return; }
+      await Promise.race([updateSystemBalance({ [currency]: -amount, 'يمني': result }), timeoutPromise]);
+      const today = getToday();
+      const sellId = `sell_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      await set(ref(db, `${OPS_PATH}/${today}/sell/${sellId}`), {
+        amount, rate, currency, result, type: 'بيع', emp: window.currentUser || 'مجهول', time: Date.now()
+      });
+      document.getElementById('sellAmount').value = '';
+      document.getElementById('sellRate').value = '';
+      document.getElementById('sellCurrency').value = '';
+      document.getElementById('sellResult').value = '';
+      alert('تمت العملية بنجاح');
+    } catch (e) {
+      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+    } finally {
+      setTimeout(() => btn.disabled = false, 500);
+    }
+  });
+
+  function listenSellOps() {
+    const today = getToday();
+    const tbody = document.querySelector('#sellTable tbody');
+    if (!tbody) return;
+    onValue(ref(db, `${OPS_PATH}/${today}/sell`), (snap) => {
+      tbody.innerHTML = '';
+      const data = snap.val();
+      if (!data) return;
+      Object.values(data).reverse().forEach(op => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td>
+          <td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+        tbody.appendChild(tr);
+      });
+    });
+  }
+  listenSellOps();
+
+  // ===== القبض والصرف =====
+  function listenAccounts() {
+    const selects = ['depositAccount', 'withdrawAccount', 'viewAccSelect', 'editAccSelect', 'deleteAccSelect'];
+    onValue(ref(db, ACCOUNTS_PATH), (snap) => {
+      const accounts = snap.val() || {};
+      selects.forEach(selId => {
+        const select = document.getElementById(selId);
+        if (!select) return;
+        const currentVal = select.value;
+        select.innerHTML = '<option value="">اختر الحساب</option>';
+        Object.entries(accounts).forEach(([id, acc]) => {
+          if (acc.active === false) return;
+          select.innerHTML += `<option value="${id}">${acc.name} - ${acc.phone || ''}</option>`;
+        });
+        if (accounts[currentVal]) select.value = currentVal;
+      });
+    });
+  }
+
+  document.getElementById('btnSaveDeposit')?.addEventListener('click', async () => {
+    const accId = document.getElementById('depositAccount').value;
+    const amount = parseFloat(document.getElementById('depositAmount').value);
+    const currency = document.getElementById('depositCurrency').value;
+    const depositor = document.getElementById('nameMod').value.trim();
+    const btn = document.getElementById('btnSaveDeposit');
+    if (!accId ||!amount ||!currency ||!depositor) { alert('عبئ كل الحقول أولاً'); return; }
+    if (amount <= 0) { alert('المبلغ لازم يكون أكبر من صفر'); return; }
+    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (btn.disabled) return;
+    btn.disabled = true;
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
+    try {
+      await Promise.race([
+        Promise.all([updateSystemBalance({ [currency]: amount }), updateAccountBalance(accId, currency, amount)]),
+        timeoutPromise
+      ]);
+      const today = getToday();
+      const depId = `dep_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      await set(ref(db, `${OPS_PATH}/${today}/deposit/${depId}`), {
+        accountId: accId, amount, currency, depositor, type: 'قبض', emp: window.currentUser || 'مجهول', time: Date.now()
+      });
+      document.getElementById('depositAmount').value = '';
+      document.getElementById('depositCurrency').value = '';
+      document.getElementById('nameMod').value = '';
+      alert('تمت العملية بنجاح');
+    } catch (e) {
+      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+    } finally {
+      setTimeout(() => btn.disabled = false, 500);
+    }
+  });
+
+  function listenDepositOps() {
+    const today = getToday();
+    const tbody = document.querySelector('#depositTable tbody');
+    if (!tbody) return;
+    onValue(ref(db, `${OPS_PATH}/${today}/deposit`), (snap) => {
+      tbody.innerHTML = '';
+      const data = snap.val();
+      if (!data) return;
+      onValue(ref(db, ACCOUNTS_PATH), (accSnap) => {
+        const accounts = accSnap.val() || {};
+        tbody.innerHTML = '';
+        Object.values(data).reverse().forEach(op => {
+          const accName = accounts[op.accountId]?.name || 'محذوف';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${accName}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td>
+            <td>${op.depositor}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+          tbody.appendChild(tr);
+        });
+      }, {onlyOnce: true});
+    });
+  }
+
+  document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () => {
+    const accId = document.getElementById('withdrawAccount').value;
+    const amount = parseFloat(document.getElementById('withdrawAmount').value);
+    const currency = document.getElementById('withdrawCurrency').value;
+    const receiver = document.getElementById('nameWithd').value.trim();
+    const btn = document.getElementById('btnSaveWithdraw');
+    if (!accId ||!amount ||!currency ||!receiver) { alert('عبئ كل الحقول أولاً'); return; }
+    if (amount <= 0) { alert('المبلغ لازم يكون أكبر من صفر'); return; }
+    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (btn.disabled) return;
+    btn.disabled = true;
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
+    try {
+      const sysBal = await getSystemBalance(currency);
+      const accBal = await getAccountBalance(accId, currency);
+      if (sysBal < amount) { alert('رصيد النظام غير كافي'); return; }
+      if (accBal < amount) { alert('رصيد الحساب غير كافي'); return; }
+      await Promise.race([
+        Promise.all([updateSystemBalance({ [currency]: -amount }), updateAccountBalance(accId, currency, -amount)]),
+        timeoutPromise
+      ]);
+      const today = getToday();
+      const withId = `with_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      await set(ref(db, `${OPS_PATH}/${today}/withdraw/${withId}`), {
+        accountId: accId, amount, currency, receiver, type: 'صرف', emp: window.currentUser || 'مجهول', time: Date.now()
+      });
+      document.getElementById('withdrawAmount').value = '';
+      document.getElementById('withdrawCurrency').value = '';
+      document.getElementById('nameWithd').value = '';
+      alert('تمت العملية بنجاح');
+    } catch (e) {
+      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+    } finally {
+      setTimeout(() => btn.disabled = false, 500);
+    }
+  });
+
+  function listenWithdrawOps() {
+    const today = getToday();
+    const tbody = document.querySelector('#withdrawTable tbody');
+    if (!tbody) return;
+    onValue(ref(db, `${OPS_PATH}/${today}/withdraw`), (snap) => {
+      tbody.innerHTML = '';
+      const data = snap.val();
+      if (!data) return;
+      onValue(ref(db, ACCOUNTS_PATH), (accSnap) => {
+        const accounts = accSnap.val() || {};
+        tbody.innerHTML = '';
+        Object.values(data).reverse().forEach(op => {
+          const accName = accounts[op.accountId]?.name || 'محذوف';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${accName}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td>
+            <td>${op.receiver}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+          tbody.appendChild(tr);
+        });
+      }, {onlyOnce: true});
+    });
+  }
+  listenAccounts();
+  listenDepositOps();
+  listenWithdrawOps();
+
+  // ===== الحوالات =====
+  async function generateTransferNumber() {
+    let number, exists = true, attempts = 0;
+    while (exists && attempts < 100) {
+      const random = Math.floor(10000 + Math.random() * 90000);
+      number = `77${random}`;
+      const snap = await get(ref(db, `${TRANSFERS_PENDING}/${number}`));
+      exists = snap.exists();
+      attempts++;
+    }
+    if (exists) throw new Error('تعذر توليد رقم حوالة فريد');
+    return number;
+  }
+
+  document.getElementById('sendbtn')?.addEventListener('click', async () => {
+    const amount = parseFloat(document.getElementById('sendRat').value);
+    const currency = document.getElementById('transCurr').value;
+    const receiver = document.getElementById('recNam').value.trim();
+    const sender = document.getElementById('sendNam').value.trim();
+    const btn = document.getElementById('sendbtn');
+    if (!amount ||!currency ||!receiver ||!sender) { alert('عبئ كل الحقول أولاً'); return; }
+    if (amount <= 0) { alert('المبلغ لازم يكون أكبر من صفر'); return; }
+    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (btn.disabled) return;
+    btn.disabled = true;
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
+    try {
+      const transferNumber = await generateTransferNumber();
+      await Promise.race([updateSystemBalance({ [currency]: amount }), timeoutPromise]);
+      const transferData = {number: transferNumber, amount, currency, receiver, sender, status: 'متاحة', emp: window.currentUser || 'مجهول', time: Date.now()};
+      await Promise.race([set(ref(db, `${TRANSFERS_PENDING}/${transferNumber}`), transferData), timeoutPromise]);
+      const today = getToday();
+      const sendId = `send_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      await set(ref(db, `${OPS_PATH}/${today}/sendTransfer/${sendId}`), {...transferData, type: 'إرسال'});
+      document.getElementById('sendRat').value = '';
+      document.getElementById('transCurr').value = '';
+      document.getElementById('recNam').value = '';
+      document.getElementById('sendNam').value = '';
+      alert(`تمت العملية بنجاح\nرقم الحوالة: ${transferNumber}`);
+    } catch (e) {
+      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+    } finally {
+      setTimeout(() => btn.disabled = false, 500);
+    }
+  });
+
+  // عرض حوالات الارسال لحظي
+  function listenSendTransfers() {
+    const today = getToday();
+    const tbody = document.querySelector('#sendTable tbody');
+    if (!tbody) return;
+    onValue(ref(db, `${OPS_PATH}/${today}/sendTransfer`), (snap) => {
+      tbody.innerHTML = '';
+      const data = snap.val();
+      if (!data) return;
+      Object.values(data).reverse().forEach(op => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${op.number}</td>
+          <td>${op.amount}</td>
+          <td>${op.currency}</td>
+          <td>${op.receiver}</td>
+          <td>${op.sender}</td>
+          <td>${op.type}</td>
+          <td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    });
+  }
+  listenSendTransfers();
+
+  // استلام الحوالة
+  let currentTransfer = null;
+  document.getElementById('searshbtn')?.addEventListener('click', async () => {
+    const number = document.getElementById('numRec').value.trim();
+    const recInput = document.getElementById('nameRec');
+    const sendInput = document.getElementById('nameSend');
+    if (!number) { alert('ادخل رقم الحوالة'); return; }
+
+    currentTransfer = null;
+    recInput.value = '';
+    sendInput.value = '';
+    const snap = await get(ref(db, `${TRANSFERS_PENDING}/${number}`));
+    if (!snap.exists()) { alert('لا يوجد حوالة بهذا الرقم'); return; }
+
+    currentTransfer = snap.val();
+    if (currentTransfer.status === 'مستلمة') { alert('الحوالة مستلمة مسبقاً'); return; }
+    recInput.value = currentTransfer.receiver;
+    sendInput.value = currentTransfer.sender;
+    recInput.readOnly = true;
+    sendInput.readOnly = true;
+  });
+
+  document.getElementById('Recbtn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('Recbtn');
+    if (!currentTransfer) { alert('ابحث عن الحوالة أولاً'); return; }
+    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (btn.disabled) return;
+    btn.disabled = true;
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('العملية تأخرت')), 3000)
+    );
+
+    try {
+      const { number, amount, currency } = currentTransfer;
+      const sysBal = await getSystemBalance(currency);
+      if (sysBal < amount) { alert('رصيد النظام غير كافي'); return; }
+
+      await Promise.race([
+        Promise.all([
+          updateSystemBalance({ [currency]: -amount }),
+          set(ref(db, `${TRANSFERS_RECEIVED}/${number}`), {...currentTransfer, status: 'مستلمة', receiveTime: Date.now(), receivedBy: window.currentUser || 'مجهول'}),
+          remove(ref(db, `${TRANSFERS_PENDING}/${number}`))
+        ]),
+        timeoutPromise
+      ]);
+
+      const today = getToday();
+      const recId = `rec_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      await set(ref(db, `${OPS_PATH}/${today}/receiveTransfer/${recId}`), {
+      ...currentTransfer, type: 'استلام', emp: window.currentUser || 'مجهول', time: Date.now()
+      });
+
+      document.getElementById('numRec').value = '';
+      document.getElementById('nameRec').value = '';
+      document.getElementById('nameSend').value = '';
+      currentTransfer = null;
+      alert('تم استلام الحوالة بنجاح');
+    } catch (e) {
+      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+    } finally {
+      setTimeout(() => btn.disabled = false, 500);
+    }
+  });
+
+  // عرض جدول الاستلام لحظي
+  function listenReceiveTransfers() {
+    const today = getToday();
+    const tbody = document.querySelector('#RecTable tbody');
+    if (!tbody) return;
+    onValue(ref(db, `${OPS_PATH}/${today}/receiveTransfer`), (snap) => {
+      tbody.innerHTML = '';
+      const data = snap.val();
+      if (!data) return;
+      Object.values(data).reverse().forEach(op => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${op.number}</td>
+          <td>${op.amount}</td>
+          <td>${op.currency}</td>
+          <td>${op.receiver}</td>
+          <td>${op.sender}</td>
+          <td>${op.type}</td>
+          <td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    });
+  }
+  listenReceiveTransfers();
+
+  // دفع الحوالات يدوي
+  document.getElementById('paybtn')?.addEventListener('click', async () => {
+    const number = document.getElementById('payNum').value.trim();
+    const amount = parseFloat(document.getElementById('payRat').value);
+    const currency = document.getElementById('payCurr').value;
+    const receiver = document.getElementById('payName').value.trim();
+    const btn = document.getElementById('paybtn');
+
+    if (!number ||!amount ||!currency ||!receiver) { alert('عبئ كل الحقول أولاً'); return; }
+    if (amount <= 0) { alert('المبلغ لازم يكون أكبر من صفر'); return; }
+    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (btn.disabled) return;
+    btn.disabled = true;
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('العملية تأخرت')), 3000)
+    );
+
+    try {
+      const sysBal = await getSystemBalance(currency);
+      if (sysBal < amount) { alert('رصيد النظام غير كافي'); return; }
+
+      await Promise.race([updateSystemBalance({ [currency]: -amount }), timeoutPromise]);
+
+      const today = getToday();
+      const payId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      await set(ref(db, `${OPS_PATH}/${today}/payTransfer/${payId}`), {
+        number, amount, currency, receiver, type: 'دفع يدوي',
+        emp: window.currentUser || 'مجهول', time: Date.now()
+      });
+
+      document.getElementById('payNum').value = '';
+      document.getElementById('payRat').value = '';
+      document.getElementById('payCurr').value = '';
+      document.getElementById('payName').value = '';
+      alert('تم دفع الحوالة بنجاح');
+    } catch (e) {
+      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+    } finally {
+      setTimeout(() => btn.disabled = false, 500);
+    }
+  });
+
+  // عرض جدول الدفع اليدوي لحظي
+  function listenPayTransfers() {
+    const today = getToday();
+    const tbody = document.querySelector('#payTable tbody');
+    if (!tbody) return;
+    onValue(ref(db, `${OPS_PATH}/${today}/payTransfer`), (snap) => {
+      tbody.innerHTML = '';
+      const data = snap.val();
+      if (!data) return;
+      Object.values(data).reverse().forEach(op => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${op.number}</td>
+          <td>${op.amount}</td>
+          <td>${op.currency}</td>
+          <td>${op.receiver}</td>
+          <td>${op.type}</td>
+          <td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    });
+  }
+  listenPayTransfers();
+
+  // ===== الفلترة والتواريخ والترتيب =====
+  function addDateFiltersToTables() {
+    const tables = ['buyTable', 'sellTable', 'depositTable', 'withdrawTable', 'sendTable', 'RecTable', 'payTable', 'accBalanceTable', 'rateLogTable', 'matchTable'];
+    tables.forEach(id => {
+      const table = document.getElementById(id);
+      if (!table) return;
+      const card = table.closest('.card');
+      if (!card || card.querySelector('.dateFilter')) return;
+
+      const filterDiv = document.createElement('div');
+      filterDiv.className = 'dateFilter row';
+      filterDiv.innerHTML = `
+        <input type="date" id="${id}From" placeholder="من">
+        <input type="date" id="${id}To" placeholder="الى">
+        <button id="${id}Filter">فلترة</button>
+        <button id="${id}Clear">مسح</button>
+      `;
+      card.insertBefore(filterDiv, table);
+
+      const today = getToday();
+      document.getElementById(`${id}From`).value = today;
+      document.getElementById(`${id}To`).value = today;
+      document.getElementById(`${id}Filter`).onclick = () => filterTable(id);
+      document.getElementById(`${id}Clear`).onclick = () => {
+        document.getElementById(`${id}From`).value = today;
+        document.getElementById(`${id}To`).value = today;
+        filterTable(id);
+      };
+    });
+  }
+  addDateFiltersToTables();
+
+  async function filterTable(tableId) {
+    const from = document.getElementById(`${tableId}From`).value;
+    const to = document.getElementById(`${tableId}To`).value;
+    const tbody = document.querySelector(`#${tableId} tbody`);
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    for (let d = new Date(from); d <= new Date(to); d.setDate(d.getDate() + 1)) {
+      const day = d.toISOString().split('T')[0];
+      const path = getPathForTable(tableId, day);
+      if (!path) continue;
+      const snap = await get(ref(db, path));
+      const data = snap.val();
+      if (data) {
+        Object.values(data).reverse().forEach(op => appendRow(tableId, op));
+      }
+    }
+    autoSizeTableColumns();
+  }
+
+  function getPathForTable(tableId, day) {
+    const map = {
+      buyTable: `${OPS_PATH}/${day}/buy`,
+      sellTable: `${OPS_PATH}/${day}/sell`,
+      depositTable: `${OPS_PATH}/${day}/deposit`,
+      withdrawTable: `${OPS_PATH}/${day}/withdraw`,
+      sendTable: `${OPS_PATH}/${day}/sendTransfer`,
+      RecTable: `${OPS_PATH}/${day}/receiveTransfer`,
+      payTable: `${OPS_PATH}/${day}/payTransfer`,
+      rateLogTable: RATE_LOGS_PATH
+    };
+    return map[tableId];
+  }
+
+  // دالة واحدة فقط لاضافة الصفوف
+  function appendRow(tableId, op) {
+    const tbody = document.querySelector(`#${tableId} tbody`);
+    if (!tbody) return;
+    const tr = document.createElement('tr');
+
+    if (tableId === 'payTable') {
+      tr.innerHTML = `<td>${op.number}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.receiver}</td><td>${op.type}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+    } else if (tableId === 'buyTable' || tableId === 'sellTable') {
+      tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td><td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+    } else if (tableId === 'depositTable' || tableId === 'withdrawTable') {
+      tr.innerHTML = `<td>${op.accountId}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td><td>${op.depositor || op.receiver}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+    } else if (tableId === 'sendTable' || tableId === 'RecTable') {
+      tr.innerHTML = `<td>${op.number}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.receiver}</td><td>${op.sender}</td><td>${op.type}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+    }
+    tbody.appendChild(tr);
+  }
+
+  // ترتيب الجدول
+  document.querySelectorAll('th').forEach((th, i) => {
+    th.style.cursor = 'pointer';
+    th.onclick = () => sortTable(th.closest('table'), i);
+  });
+
+  function sortTable(table, colIndex) {
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const isAsc = table.getAttribute('data-sort')!== 'asc';
+
+    rows.sort((a, b) => {
+      const A = a.cells[colIndex]?.textContent.trim() || '';
+      const B = b.cells[colIndex]?.textContent.trim() || '';
+      return isAsc? A.localeCompare(B, 'ar') : B.localeCompare(A, 'ar');
+    });
+
+    tbody.innerHTML = '';
+    rows.forEach(row => tbody.appendChild(row));
+    table.setAttribute('data-sort', isAsc? 'asc' : 'desc');
+  }
+
+  // تحديد الصف
+  document.addEventListener('click', (e) => {
+    if (e.target.tagName === 'TD') {
+      e.target.parentElement.classList.toggle('selected');
+    }
+  });
+
+  // ضبط عرض الاعمدة
+  function autoSizeTableColumns() {
+    document.querySelectorAll('table').forEach(table => {
+      const thead = table.querySelector('thead tr');
+      const tbody = table.querySelector('tbody');
+      if (!thead) return;
+
+      const headers = thead.querySelectorAll('th');
+      const rows = tbody? tbody.querySelectorAll('tr') : [];
+
+      headers.forEach((th, colIndex) => {
+        let maxWidth = getTextWidth(th.textContent, getComputedStyle(th).font);
+        rows.forEach(row => {
+          const cell = row.cells[colIndex];
+          if (cell) {
+            const w = getTextWidth(cell.textContent, getComputedStyle(cell).font);
+            if (w > maxWidth) maxWidth = w;
+          }
+        });
+        maxWidth = Math.min(maxWidth + 20, 250);
+        maxWidth = Math.max(maxWidth, 60);
+        th.style.minWidth = maxWidth + 'px';
+        th.style.width = maxWidth + 'px';
+        rows.forEach(row => {
+          if (row.cells[colIndex]) {
+            row.cells[colIndex].style.minWidth = maxWidth + 'px';
+            row.cells[colIndex].style.width = maxWidth + 'px';
+          }
+        });
+      });
+    });
+  }
+
+  function getTextWidth(text, font) {
+    const canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement('canvas'));
+    const ctx = canvas.getContext('2d');
+    ctx.font = font;
+    return ctx.measureText(text).width;
+  }
+
+  autoSizeTableColumns();
+  const observer = new MutationObserver(() => autoSizeTableColumns());
+  document.querySelectorAll('table tbody').forEach(tbody => {
+    observer.observe(tbody, { childList: true, subtree: true });
+  });
+  window.addEventListener('resize', () => setTimeout(autoSizeTableColumns, 200));
+
+}); // نهاية DOMContentLoaded
 </script>
+
+
+
+
+<script>
+(() => {
+  // ===== إصلاح سحب الكروت والتبويبات الفرعية =====
+  document.addEventListener('touchstart', (e) => {
+    const subTabContent = e.target.closest('.tab-content[data-subtab]');
+    if (!subTabContent) return;
+
+    subTabContent.__startX = e.touches[0].clientX;
+    subTabContent.__startY = e.touches[0].clientY;
+    subTabContent.__isSwiping = false;
+  }, {passive: true});
+
+  document.addEventListener('touchmove', (e) => {
+    const subTabContent = e.target.closest('.tab-content[data-subtab]');
+    if (!subTabContent ||!subTabContent.__startX) return;
+
+    const diffX = Math.abs(e.touches[0].clientX - subTabContent.__startX);
+    const diffY = Math.abs(e.touches[0].clientY - subTabContent.__startY);
+
+    if (diffX > diffY && diffX > 20) {
+      subTabContent.__isSwiping = true;
+      e.preventDefault(); // يمنع سحب الكرت كامل
+    }
+  }, {passive: false});
+
+  document.addEventListener('touchend', (e) => {
+    const subTabContent = e.target.closest('.tab-content[data-subtab]');
+    if (!subTabContent ||!subTabContent.__isSwiping) return;
+
+    const diffX = e.changedTouches[0].clientX - subTabContent.__startX;
+    if (Math.abs(diffX) < 50) return;
+
+    const parent = subTabContent.parentElement;
+    const contentList = [...parent.querySelectorAll(':scope >.tab-content[data-subtab]')];
+    const tabs = [...parent.querySelector('.subtabs')?.querySelectorAll('.tab') || []];
+    const idx = contentList.indexOf(subTabContent);
+    if (idx === -1) return;
+
+    let nextIdx = diffX > 0? idx - 1 : idx + 1;
+    if (nextIdx < 0) nextIdx = contentList.length - 1;
+    if (nextIdx >= contentList.length) nextIdx = 0;
+
+    tabs.forEach(t => t.classList.remove('active'));
+    contentList.forEach(c => c.classList.remove('active'));
+    tabs[nextIdx]?.classList.add('active');
+    contentList[nextIdx]?.classList.add('active');
+
+    subTabContent.__startX = null;
+    subTabContent.__isSwiping = false;
+  }, {passive: true});
+
+  // ===== CSS إضافي ملفوف =====
+  const style = document.createElement('style');
+  style.textContent = `
+   .patch-wrap.dateFilter {
+      display: flex!important;
+      gap: 6px!important;
+      flex-wrap: nowrap!important;
+      margin: 8px 0!important;
+    }
+   .patch-wrap.dateFilter input,
+   .patch-wrap.dateFilter button {
+      flex: 1 1 auto!important;
+      height: 34px!important;
+      padding: 0 8px!important;
+      font-size: 13px!important;
+    }
+   .patch-wrap.table-wrap {
+      overflow: auto!important;
+      max-height: 240px!important; /* 4 صفوف تقريباً */
+      -webkit-overflow-scrolling: touch!important;
+    }
+   .patch-wrap.table-wrap table {
+      width: 100%!important;
+      table-layout: fixed!important;
+    }
+   .patch-wrap.table-wrap thead th {
+      position: sticky!important;
+      top: 0!important;
+      background: var(--bg-dark)!important;
+      z-index: 2!important;
+      cursor: pointer!important;
+      user-select: none!important;
+    }
+   .patch-wrap tbody tr.selected { background: rgba(37,211,102,0.25)!important; }
+   .patch-wrap th.select-all { width: 28px!important; text-align: center!important; cursor: pointer!important; }
+  `;
+  document.head.appendChild(style);
+
+  // ===== لف الكروت والجداول بدون لمس HTML الأصلي =====
+  document.querySelectorAll('#buy, #sell, #deposit, #withdraw, #sendTransfers, #receTransfers, #payTransfers').forEach(card => {
+    if (!card.classList.contains('patch-wrap')) {
+      card.classList.add('patch-wrap');
+      card.querySelectorAll('table').forEach(tbl => {
+        if (!tbl.parentElement.classList.contains('table-wrap')) {
+          const wrap = document.createElement('div');
+          wrap.className = 'table-wrap';
+          tbl.parentNode.insertBefore(wrap, tbl);
+          wrap.appendChild(tbl);
+        }
+      });
+    }
+  });
+
+  // ===== ترتيب الجدول عند الضغط على الهيدر =====
+  document.addEventListener('click', (e) => {
+    const th = e.target.closest('.patch-wrap.table-wrap th');
+    if (!th) return;
+
+    const table = th.closest('table');
+    const tbody = table.querySelector('tbody');
+    const rows = [...tbody.rows];
+    const colIndex = [...th.parentElement.cells].indexOf(th);
+    const isNumeric =!isNaN(parseFloat(rows[0]?.cells[colIndex]?.textContent));
+
+    table.__sortDir = table.__sortDir === 'asc'? 'desc' : 'asc';
+
+    rows.sort((a, b) => {
+      let valA = a.cells[colIndex].textContent.trim();
+      let valB = b.cells[colIndex].textContent.trim();
+      if (isNumeric) {
+        valA = parseFloat(valA) || 0;
+        valB = parseFloat(valB) || 0;
+        return table.__sortDir === 'asc'? valA - valB : valB - valA;
+      }
+      return table.__sortDir === 'asc'
+       ? valA.localeCompare(valB, 'ar')
+        : valB.localeCompare(valA, 'ar');
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+  });
+
+  // ===== تحديد صف / تحديد الكل =====
+  document.addEventListener('click', (e) => {
+    const th = e.target.closest('.patch-wrap th.select-all');
+    if (th) {
+      const table = th.closest('table');
+      const checked =!table.querySelector('tbody tr.selected');
+      table.querySelectorAll('tbody tr').forEach(r => r.classList.toggle('selected', checked));
+      return;
+    }
+
+    const tr = e.target.closest('.patch-wrap tbody tr');
+    if (tr) tr.classList.toggle('selected');
+  });
+
+  // ===== فلترة التاريخ =====
+  function filterTableByDate(table, from, to) {
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+      const dateCell = row.cells[row.cells.length - 1]; // آخر عمود = الوقت
+      if (!dateCell) return;
+      const rowDate = dateCell.textContent.split(' ')[0].replace(/\//g, '-');
+      const show = (!from || rowDate >= from) && (!to || rowDate <= to);
+      row.style.display = show? '' : 'none';
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (e.target.textContent.trim() === 'فلترة') {
+      const card = e.target.closest('.patch-wrap');
+      const inputs = card.querySelectorAll('.dateFilter input[type="date"],.dateFilter input[type="text"]');
+      const from = inputs[0]?.value;
+      const to = inputs[1]?.value;
+      const table = card.querySelector('table');
+      filterTableByDate(table, from, to);
+    }
+    if (e.target.textContent.trim() === 'مسح') {
+      const card = e.target.closest('.patch-wrap');
+      const inputs = card.querySelectorAll('.dateFilter input');
+      inputs.forEach(i => i.value = '');
+      card.querySelectorAll('tbody tr').forEach(r => r.style.display = '');
+    }
+  });
+
+})();
+</script>
+<script>
+(() => {
+  // يشتغل بعد ما يخلص تحميل الصفحة
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.querySelectorAll('.patch-wrap').forEach(card => {
+        const dateInputs = card.querySelectorAll('.dateFilter input[type="date"],.dateFilter input[type="text"]');
+        const filterBtn = [...card.querySelectorAll('button')].find(b => b.textContent.trim() === 'فلترة');
+        const table = card.querySelector('table');
+
+        if (!dateInputs.length ||!filterBtn ||!table) return;
+
+        // جيب تاريخ اليوم بصيغة yyyy-mm-dd
+        const today = new Date().toISOString().split('T')[0];
+
+        // حط تاريخ اليوم في الخانتين من - الى
+        if (dateInputs[0]) dateInputs[0].value = today;
+        if (dateInputs[1]) dateInputs[1].value = today;
+
+        // شغل الفلترة تلقائي
+        filterBtn.click();
+      });
+    }, 500); // نص ثانية عشان ينتظر Firebase يحمل البيانات
+  });
+
+  // لو تبغى يحدث الفلترة كل ما يجي داتا جديدة
+  const obs = new MutationObserver(() => {
+    document.querySelectorAll('.patch-wrap').forEach(card => {
+      const dateInputs = card.querySelectorAll('.dateFilter input[type="date"],.dateFilter input[type="text"]');
+      const filterBtn = [...card.querySelectorAll('button')].find(b => b.textContent.trim() === 'فلترة');
+
+      if (!dateInputs[0]?.value ||!filterBtn) return;
+
+      // بس لو التاريخ موجود، اعد الفلترة
+      filterBtn.click();
+    });
+  });
+
+  obs.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+
+
+
+
+
+
+
+
+
 
 </body>
 </html>
