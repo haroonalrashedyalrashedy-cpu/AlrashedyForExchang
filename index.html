@@ -875,55 +875,59 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setupTabs(container, tabSelector, contentAttr, isSub = false) {
-    if (!container) return;
-    const tabs = container.querySelectorAll(tabSelector);
-    const contents = container.querySelectorAll(':scope >.tab-content');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        const targetId = tab.getAttribute(contentAttr);
-        const target = document.getElementById(targetId);
-        if (!target) return;
-        const isActive = tab.classList.contains('active');
-        tabs.forEach(t => t.classList.remove('active'));
-        contents.forEach(c => c.classList.remove('active'));
-        if (!isActive) {
-          tab.classList.add('active');
-          target.classList.add('active');
-        }
-        if (isSub) resetHideTimer();
-      });
+  if (!container) return;
+  const tabs = container.querySelectorAll(tabSelector);
+  const contents = container.querySelectorAll(':scope >.tab-content');
 
-     /*
-      if (isSub) {
-        let startX = 0, startY = 0;
-        const contentEl = document.getElementById(tab.getAttribute(contentAttr));
-        if (!contentEl) return;
-        contentEl.addEventListener('touchstart', e => {
-          startX = e.touches[0].clientX;
-          startY = e.touches[0].clientY;
-        }, {passive: true});
-        contentEl.addEventListener('touchend', e => {
-          const diffX = e.changedTouches[0].clientX - startX;
-          const diffY = e.changedTouches[0].clientY - startY;
-          if (Math.abs(diffY) > Math.abs(diffX) || Math.abs(diffX) < 50) return;
-          const parent = contentEl.parentElement;
-          const contentList = [...parent.querySelectorAll(':scope >.tab-content')];
-          const idx = contentList.findIndex(c => c.classList.contains('active'));
-          if (idx === -1) return;
-          let nextIdx = diffX > 0? idx - 1 : idx + 1;
-          if (nextIdx < 0) nextIdx = contentList.length - 1;
-          if (nextIdx >= contentList.length) nextIdx = 0;
-          const nextTab = [...tabs].find(t => t.getAttribute(contentAttr) === contentList[nextIdx].id);
-          if (nextTab) nextTab.click();
-        });
-      } */
-    
-        
-        
+  tabs.forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const targetId = tab.getAttribute(contentAttr);
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      const isActive = tab.classList.contains('active');
+      tabs.forEach(t => t.classList.remove('active'));
+      contents.forEach(c => c.classList.remove('active'));
+      if (!isActive) {
+        tab.classList.add('active');
+        target.classList.add('active');
+      }
+      if (isSub) resetHideTimer();
     });
-  }
+
+    // السحب شغال للتبويبات الفرعية فقط
+    if (isSub) {
+      let startX = 0, startY = 0;
+      const contentEl = document.getElementById(tab.getAttribute(contentAttr));
+      if (!contentEl) return;
+
+      contentEl.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      }, {passive: true});
+
+      contentEl.addEventListener('touchend', e => {
+        const diffX = e.changedTouches[0].clientX - startX;
+        const diffY = e.changedTouches[0].clientY - startY;
+        if (Math.abs(diffY) > Math.abs(diffX) || Math.abs(diffX) < 50) return;
+
+        const parent = contentEl.parentElement;
+        const contentList = [...parent.querySelectorAll(':scope >.tab-content')];
+        const idx = contentList.findIndex(c => c.classList.contains('active'));
+        if (idx === -1) return;
+
+        let nextIdx = diffX > 0? idx - 1 : idx + 1;
+        if (nextIdx < 0) nextIdx = contentList.length - 1;
+        if (nextIdx >= contentList.length) nextIdx = 0;
+
+        const nextTab = [...tabs].find(t => t.getAttribute(contentAttr) === contentList[nextIdx].id);
+        if (nextTab) nextTab.click();
+      });
+    }
+  });
+}
 
   setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab');
   setupTabs(document.getElementById('operations'), '.subtabs .tab', 'data-subtab', true);
@@ -1788,7 +1792,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 (() => {
-  // ===== 1. ستايل صف الفلاتر + اسكرول الجداول فقط =====
+  // ===== 1. ستايل الفلاتر + الاسكرول + الاسهم =====
   const style = document.createElement('style');
   style.textContent = `
     /* الفلاتر صف واحد */
@@ -1798,6 +1802,7 @@ document.addEventListener('DOMContentLoaded', () => {
       flex-wrap: nowrap!important;
       align-items: center!important;
       margin-bottom: 8px!important;
+      width: 100%!important;
     }
    .dateFilter input,.dateFilter button,
    .row.filter-row input,.row.filter-row button {
@@ -1807,12 +1812,12 @@ document.addEventListener('DOMContentLoaded', () => {
       font-size: 13px!important;
     }
 
-    /* لف الجداول باسكرول افقي ورأسي */
+    /* اسكرول الجدول فقط */
    .table-scroll {
       width: 100%;
       overflow-x: auto;
       overflow-y: auto;
-      max-height: 400px; /* غيرها لو تبغاها اكبر */
+      max-height: 400px;
       -webkit-overflow-scrolling: touch;
       border: 1px solid var(--border-color);
       border-radius: 8px;
@@ -1821,7 +1826,7 @@ document.addEventListener('DOMContentLoaded', () => {
       width: max-content;
       min-width: 100%;
       border-collapse: collapse;
-      table-layout: fixed;
+      table-layout: auto;
     }
    .table-scroll th {
       position: sticky;
@@ -1830,6 +1835,8 @@ document.addEventListener('DOMContentLoaded', () => {
       z-index: 2;
       cursor: pointer;
       user-select: none;
+      position: relative;
+      padding-right: 20px; /* مساحة للسهم */
     }
    .table-scroll td,.table-scroll th {
       white-space: nowrap;
@@ -1839,9 +1846,22 @@ document.addEventListener('DOMContentLoaded', () => {
    .table-scroll tr.selected {
       background: rgba(37, 211, 102, 0.25)!important;
     }
-   .table-scroll th.select-all {
-      width: 30px;
-      cursor: pointer;
+
+    /* اسهم الترتيب */
+   .table-scroll th.sortable::after {
+      content: '⇅';
+      position: absolute;
+      right: 6px;
+      opacity: 0.4;
+      font-size: 12px;
+    }
+   .table-scroll th.asc::after {
+      content: '▲';
+      opacity: 1;
+    }
+   .table-scroll th.desc::after {
+      content: '▼';
+      opacity: 1;
     }
 
     /* منع سحب الكرت مع الجدول */
@@ -1849,33 +1869,37 @@ document.addEventListener('DOMContentLoaded', () => {
   `;
   document.head.appendChild(style);
 
-  // ===== 2. لف الجداول داخل.table-scroll تلقائي =====
+  // ===== 2. لف الجداول + تحديد الكل من اول خانة هيدر =====
   document.querySelectorAll('table[id$="Table"]').forEach(tbl => {
     if (tbl.closest('.table-scroll')) return;
+
     const wrap = document.createElement('div');
     wrap.className = 'table-scroll';
     tbl.parentNode.insertBefore(wrap, tbl);
     wrap.appendChild(tbl);
 
-    // اضافة مربع تحديد الكل في الركن
-    const th = document.createElement('th');
-    th.className = 'select-all';
-    th.innerHTML = '☐';
-    th.onclick = () => {
-      const rows = tbl.querySelectorAll('tbody tr');
-      const allSel = [...rows].every(r => r.classList.contains('selected'));
-      rows.forEach(r => r.classList.toggle('selected',!allSel));
-      th.innerHTML = allSel? '☐' : '☑';
-    };
-    tbl.querySelector('thead tr')?.prepend(th);
+    // خلي اول خانة هيدر قابلة لتحديد الكل
+    const firstTh = tbl.querySelector('thead tr th');
+    if (firstTh) {
+      firstTh.classList.add('select-all');
+      firstTh.style.cursor = 'pointer';
+    }
+
+    // خلي باقي الهيدر قابل للترتيب
+    tbl.querySelectorAll('thead tr th').forEach((th, i) => {
+      if (i === 0) return; // اول خانة للتحديد
+      th.classList.add('sortable');
+    });
   });
 
-  // ===== 3. فلترة اليوم تلقائي عند فتح التاب =====
+  // ===== 3. فلترة اليوم تلقائي + صف واحد =====
   window.addEventListener('load', () => {
     setTimeout(() => {
       document.querySelectorAll('.dateFilter,.row.filter-row').forEach(r => {
         const inputs = r.querySelectorAll('input[type="date"]');
-        const btn = [...r.querySelectorAll('button')].find(b => b.textContent.trim() === 'فلترة' || b.textContent.trim() === 'Filter');
+        const btn = [...r.querySelectorAll('button')].find(b =>
+          b.textContent.trim() === 'فلترة' || b.textContent.trim() === 'Filter' || b.id.includes('Filter')
+        );
         if (inputs.length >= 2 && btn) {
           const today = new Date().toISOString().split('T')[0];
           inputs[0].value = today;
@@ -1886,28 +1910,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 600);
   });
 
-  // ===== 4. ترتيب الجدول عند الضغط على الهيدر =====
+  // ===== 4. ترتيب الجدول + الاسهم =====
   document.addEventListener('click', e => {
-    const th = e.target.closest('.table-scroll th');
-    if (!th || th.classList.contains('select-all')) return;
+    const th = e.target.closest('.table-scroll th.sortable');
+    if (!th) return;
+
     const table = th.closest('table');
     const tbody = table.querySelector('tbody');
     const rows = [...tbody.querySelectorAll('tr')];
     const idx = [...th.parentNode.children].indexOf(th);
-    const asc = th.classList.toggle('asc');
+
+    // شل الكلاس من الباقي
+    table.querySelectorAll('th').forEach(h => {
+      if (h!== th) h.classList.remove('asc', 'desc');
+    });
+
+    const isAsc = th.classList.contains('asc');
+    th.classList.remove('asc', 'desc');
+    th.classList.add(isAsc? 'desc' : 'asc');
 
     rows.sort((a, b) => {
       const va = a.children[idx]?.textContent.trim() || '';
       const vb = b.children[idx]?.textContent.trim() || '';
-      const na = parseFloat(va), nb = parseFloat(vb);
-      if (!isNaN(na) &&!isNaN(nb)) return asc? na - nb : nb - na;
-      return asc? va.localeCompare(vb, 'ar') : vb.localeCompare(va, 'ar');
+      const na = parseFloat(va.replace(/,/g, '')), nb = parseFloat(vb.replace(/,/g, ''));
+      if (!isNaN(na) &&!isNaN(nb)) return isAsc? nb - na : na - nb;
+      return isAsc? vb.localeCompare(va, 'ar') : va.localeCompare(vb, 'ar');
     });
 
     rows.forEach(r => tbody.appendChild(r));
   });
 
-  // ===== 5. تحديد صف واحد عند الضغط =====
+  // ===== 5. تحديد الكل من اول خانة هيدر =====
+  document.addEventListener('click', e => {
+    const th = e.target.closest('.table-scroll th.select-all');
+    if (!th) return;
+    e.stopPropagation();
+
+    const table = th.closest('table');
+    const rows = [...table.querySelectorAll('tbody tr')];
+    const allSel = rows.every(r => r.classList.contains('selected'));
+    rows.forEach(r => r.classList.toggle('selected',!allSel));
+  });
+
+  // ===== 6. تحديد صف واحد =====
   document.addEventListener('click', e => {
     const tr = e.target.closest('.table-scroll tbody tr');
     if (!tr) return;
