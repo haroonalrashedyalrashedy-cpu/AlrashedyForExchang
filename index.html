@@ -1782,17 +1782,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 (() => {
-  // 1. CSS: يضبط الفلاتر والسكرول ويعزل السحب
+  // 1. خلي الفلاتر صف واحد - يستهدف الـ HTML حقك الحالي
   const style = document.createElement('style');
   style.textContent = `
-    /* الفلاتر صف واحد */
     #deposit.row, #withdraw.row, #buy.row, #sell.row,
     #sendTransfers.row, #receTransfers.row, #payTransfers.row {
       display: flex!important;
       gap: 6px!important;
       flex-wrap: nowrap!important;
       align-items: center!important;
-      margin: 8px 0!important;
     }
     #deposit.row input, #deposit.row button,
     #withdraw.row input, #withdraw.row button,
@@ -1805,175 +1803,54 @@ document.addEventListener('DOMContentLoaded', () => {
       min-width: 0!important;
       height: 36px!important;
       font-size: 13px!important;
-      padding: 0 8px!important;
     }
-
-    /* سكرول الجدول منفصل عن الكرت */
-  .table-scroll {
-      overflow: auto!important;
-      max-height: 240px!important;
-      -webkit-overflow-scrolling: touch!important;
-      width: 100%!important;
-      touch-action: pan-y!important; /* يمنع سحب الكرت مع الجدول */
-    }
-  .table-scroll table {
-      width: 100%!important;
-      table-layout: auto!important;
-      border-collapse: collapse!important;
-      min-width: 500px!important; /* عشان يطلع سكرول افقي */
-    }
-  .table-scroll thead th {
-      position: sticky!important;
-      top: 0!important;
-      background: var(--bg-dark, #1a1a1a)!important;
-      z-index: 2!important;
-      cursor: pointer!important;
-      white-space: nowrap!important;
-    }
-
-    /* عزل سحب التاب الفرعي */
-  .tab-content[data-subtab],.subtabs,.subtabs * {
-      touch-action: pan-y!important;
-    }
+    /* منع سحب الكرت مع التاب الفرعي */
+   .tab-content[data-subtab] { touch-action: pan-y!important; }
   `;
   document.head.appendChild(style);
 
-  // 2. لف كل جدول بـ div.table-scroll عشان السكرول يكون منفصل
-  document.querySelectorAll('.tab-content table').forEach(tbl => {
-    if (!tbl.closest('.table-scroll')) {
-      const wrap = document.createElement('div');
-      wrap.className = 'table-scroll';
-      tbl.parentNode.insertBefore(wrap, tbl);
-      wrap.appendChild(tbl);
-    }
-  });
-
-  // 3. سحب الكرت الرئيسي = يغير الكرت الرئيسي فقط
-  let startX = 0, startY = 0, isSwiping = false, mainCard = null;
-
+  // 2. سحب التبويب الرئيسي يغير الكرت
+  let startX = 0, isSwiping = false;
   document.addEventListener('touchstart', e => {
-    mainCard = e.target.closest('#buy, #sell, #deposit, #withdraw, #sendTransfers, #receTransfers, #payTransfers');
-    if (!mainCard) return;
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    isSwiping = false;
+    if (e.target.closest('#buy, #sell, #deposit, #withdraw, #sendTransfers, #receTransfers, #payTransfers')) {
+      startX = e.touches[0].clientX;
+      isSwiping = false;
+    }
   }, {passive: true});
 
   document.addEventListener('touchmove', e => {
-    if (!mainCard ||!startX) return;
-    const diffX = Math.abs(e.touches[0].clientX - startX);
-    const diffY = Math.abs(e.touches[0].clientY - startY);
-    if (diffX > diffY && diffX > 30) {
+    if (!startX) return;
+    if (Math.abs(e.touches[0].clientX - startX) > 30) {
       isSwiping = true;
       e.preventDefault();
     }
   }, {passive: false});
 
   document.addEventListener('touchend', e => {
-    if (!isSwiping ||!mainCard) return;
-    const diffX = e.changedTouches[0].clientX - startX;
-    if (Math.abs(diffX) < 60) return;
+    if (!isSwiping || Math.abs(e.changedTouches[0].clientX - startX) < 60) return;
+    
+    const tabs = [...document.querySelector('.tabs')?.querySelectorAll('.tab') || []];
+    const contents = [...document.querySelectorAll('#buy, #sell, #deposit, #withdraw, #sendTransfers, #receTransfers, #payTransfers')];
+    const activeIdx = contents.findIndex(c => c.classList.contains('active'));
+    if (activeIdx === -1) return;
 
-    const mainTabs = [...document.querySelector('.tabs')?.querySelectorAll('.tab') || []];
-    const mainContents = [...document.querySelectorAll('#buy, #sell, #deposit, #withdraw, #sendTransfers, #receTransfers, #payTransfers')];
-    const idx = mainContents.indexOf(mainCard);
-    if (idx === -1) return;
+    let nextIdx = e.changedTouches[0].clientX - startX > 0? activeIdx - 1 : activeIdx + 1;
+    if (nextIdx < 0) nextIdx = contents.length - 1;
+    if (nextIdx >= contents.length) nextIdx = 0;
 
-    let nextIdx = diffX > 0? idx - 1 : idx + 1;
-    if (nextIdx < 0) nextIdx = mainContents.length - 1;
-    if (nextIdx >= mainContents.length) nextIdx = 0;
+    tabs.forEach(t => t.classList.remove('active'));
+    contents.forEach(c => c.classList.remove('active'));
+    tabs[nextIdx]?.classList.add('active');
+    contents[nextIdx]?.classList.add('active');
 
-    mainTabs.forEach(t => t.classList.remove('active'));
-    mainContents.forEach(c => c.classList.remove('active'));
-    mainTabs[nextIdx]?.classList.add('active');
-    mainContents[nextIdx]?.classList.add('active');
-
-    // رجع الشريط الفرعي لأول تبويب
-    const newCard = mainContents[nextIdx];
-    const subTabs = newCard?.querySelector('.subtabs');
-    if (subTabs) {
-      subTabs.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === 0));
-      newCard.querySelectorAll('.tab-content[data-subtab]').forEach((c, i) => c.classList.toggle('active', i === 0));
-    }
-
-    startX = startY = 0; isSwiping = false; mainCard = null;
+    startX = 0; isSwiping = false;
   }, {passive: false});
 
-  // 4. سحب الشريط الفرعي = يغير التاب الفرعي فقط
-  let subStartX = 0, subIsSwiping = false, subCard = null;
-
-  document.addEventListener('touchstart', e => {
-    subCard = e.target.closest('.tab-content[data-subtab]');
-    if (!subCard) return;
-    subStartX = e.touches[0].clientX;
-    subIsSwiping = false;
-  }, {passive: true});
-
-  document.addEventListener('touchmove', e => {
-    if (!subCard ||!subStartX) return;
-    const diffX = Math.abs(e.touches[0].clientX - subStartX);
-    if (diffX > 20) {
-      subIsSwiping = true;
-      e.preventDefault();
-    }
-  }, {passive: false});
-
-  document.addEventListener('touchend', e => {
-    if (!subIsSwiping ||!subCard) return;
-    const diffX = e.changedTouches[0].clientX - subStartX;
-    if (Math.abs(diffX) < 50) return;
-
-    const parent = subCard.parentElement;
-    const subTabs = [...parent.querySelector('.subtabs')?.querySelectorAll('.tab') || []];
-    const subContents = [...parent.querySelectorAll(':scope >.tab-content[data-subtab]')];
-    const idx = subContents.indexOf(subCard);
-    if (idx === -1) return;
-
-    let nextIdx = diffX > 0? idx - 1 : idx + 1;
-    if (nextIdx < 0) nextIdx = subContents.length - 1;
-    if (nextIdx >= subContents.length) nextIdx = 0;
-
-    subTabs.forEach(t => t.classList.remove('active'));
-    subContents.forEach(c => c.classList.remove('active'));
-    subTabs[nextIdx]?.classList.add('active');
-    subContents[nextIdx]?.classList.add('active');
-
-    subStartX = 0; subIsSwiping = false; subCard = null;
-  }, {passive: false});
-
-  // 5. ترتيب الجدول عند الضغط على الهيدر
-  document.addEventListener('click', e => {
-    const th = e.target.closest('.table-scroll th');
-    if (!th) return;
-    const table = th.closest('table');
-    const tbody = table.querySelector('tbody');
-    if (!tbody) return;
-
-    const rows = [...tbody.rows];
-    const col = [...th.parentElement.cells].indexOf(th);
-    const isNum =!isNaN(parseFloat(rows[0]?.cells[col]?.textContent.replace(/,/g, '')));
-
-    table.__dir = table.__dir === 'asc'? 'desc' : 'asc';
-
-    rows.sort((a, b) => {
-      let A = a.cells[col].textContent.trim().replace(/,/g, '');
-      let B = b.cells[col].textContent.trim().replace(/,/g, '');
-      if (isNum) {
-        A = parseFloat(A) || 0;
-        B = parseFloat(B) || 0;
-        return table.__dir === 'asc'? A - B : B - A;
-      }
-      return table.__dir === 'asc'? A.localeCompare(B, 'ar') : B.localeCompare(A, 'ar');
-    });
-
-    rows.forEach(r => tbody.appendChild(r));
-  });
-
-  // 6. فلترة اليوم تلقائي عند التحميل
+  // 3. فلترة اليوم تلقائي
   window.addEventListener('load', () => {
     setTimeout(() => {
       document.querySelectorAll('#deposit.row, #withdraw.row, #buy.row, #sell.row, #sendTransfers.row, #receTransfers.row, #payTransfers.row').forEach(r => {
-        const inputs = r.querySelectorAll('input[type="date"], input[type="text"]');
+        const inputs = r.querySelectorAll('input[type="date"]');
         const btn = [...r.querySelectorAll('button')].find(b => b.textContent.trim() === 'فلترة');
         if (inputs.length >= 2 && btn) {
           const today = new Date().toISOString().split('T')[0];
@@ -1982,12 +1859,10 @@ document.addEventListener('DOMContentLoaded', () => {
           btn.click();
         }
       });
-    }, 600);
+    }, 500);
   });
-
 })();
 </script>
-
 
 
 
