@@ -267,6 +267,34 @@
     .print-area,.print-area *{visibility:visible;}
     .print-area{position:absolute; left:0; top:0; width:100%;}
     }
+    
+    .subtabs {
+  display: flex;
+  overflow-x: auto;          /* سكرول افقي */
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch; /* سلاسة على الايفون */
+  scrollbar-width: none;     /* اخفي شريط السكرول في فايرفوكس */
+  -ms-overflow-style: none;  /* اخفيه في ايدج */
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-color);
+}
+.subtabs::-webkit-scrollbar {
+  display: none;             /* اخفي شريط السكرول في كروم وسفاري */
+}
+
+.subtabs .tab {
+  flex: 0 0 auto;            /* لا ينضغط ولا يتمدد */
+  white-space: nowrap;       /* خلي النص سطر واحد */
+  min-width: 100px;
+}
+
+.subtabs {
+  touch-action: pan-x; /* خلي السحب افقي بس على الشريط */
+}
+.tab-content {
+  touch-action: pan-y; /* الكرت يسمح عمودي فقط */
+}
+
   </style>
 </head>
 
@@ -922,9 +950,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab');
-  setupTabs(document.getElementById('operations'), '.subtabs .tab', 'data-subtab', true);
-  setupTabs(document.getElementById('transfers'), '.subtabs .tab', 'data-subtab', true);
-  setupTabs(document.getElementById('accounts'), '.subtabs .tab', 'data-subtab', true);
+  setupTabs(document.getElementById('operations'), '.subtabs .tab', 'data-subtab', false);
+  setupTabs(document.getElementById('transfers'), '.subtabs .tab', 'data-subtab', false);
+  setupTabs(document.getElementById('accounts'), '.subtabs .tab', 'data-subtab', false);
 
   document.querySelectorAll('#adminScreen >.tabs >.tab').forEach(tab => {
     tab.addEventListener('click', () => {
