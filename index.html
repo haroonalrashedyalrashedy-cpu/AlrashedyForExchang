@@ -1832,20 +1832,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-document.querySelectorAll('.subtabs').forEach(sub => {
-  sub.addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
-});
-
-
-
-
-
-
-// يمنع الجدول يجر الكرت معه لما تسحب افقي
 document.querySelectorAll('table, tbody').forEach(el => {
   el.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
   el.addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
 });
+
 }); // نهاية DOMContentLoaded
 </script>
 
