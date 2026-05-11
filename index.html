@@ -922,9 +922,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab');
-  setupTabs(document.getElementById('operations'), '.subtabs.tab', 'data-subtab', true);
-  setupTabs(document.getElementById('transfers'), '.subtabs.tab', 'data-subtab', true);
-  setupTabs(document.getElementById('accounts'), '.subtabs.tab', 'data-subtab', true);
+  setupTabs(document.getElementById('operations'), '.subtabs .tab', 'data-subtab', true);
+  setupTabs(document.getElementById('transfers'), '.subtabs .tab', 'data-subtab', true);
+  setupTabs(document.getElementById('accounts'), '.subtabs .tab', 'data-subtab', true);
 
   document.querySelectorAll('#adminScreen >.tabs >.tab').forEach(tab => {
     tab.addEventListener('click', () => {
