@@ -1797,74 +1797,83 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== نظام فلترة وترتيب وتحديد للجداول - لحاله 100% =====
 // ===== نظام فلترة وترتيب وتحديد للجداول - لحاله 100% =====
+// ===== Table Enhancer - بدون ما يزحزح الأعمدة =====
 (function() {
   const getToday = () => new Date().toISOString().split('T')[0];
 
-  document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(enhanceTables, 1200);
-  });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 
-  function enhanceTables() {
-    const tables = ['buyTable','sellTable','depositTable','withdrawTable','sendTable','RecTable','payTable','rateLogTable','matchTable'];
+  function init() {
+    setTimeout(enhance, 1500);
+  }
 
-    tables.forEach(id => {
+  function enhance() {
+    const ids = ['buyTable','sellTable','depositTable','withdrawTable','sendTable','RecTable','payTable','rateLogTable','matchTable'];
+
+    ids.forEach(id => {
       const table = document.getElementById(id);
-      if (!table || table.dataset.enhanced === 'yes') return;
-      table.dataset.enhanced = 'yes';
+      if (!table || table.dataset.done === '1') return;
+      table.dataset.done = '1';
 
-      addDateFilter(table);
+      addFilterBar(table);
       wrapScroll(table);
       enableSort(table);
       enableSelect(table);
     });
   }
 
-  function addDateFilter(table) {
+  function addFilterBar(table) {
     const id = table.id;
     const card = table.closest('.card');
-    if (!card || card.querySelector(`#${id}_filter`)) return;
+    if (!card || card.querySelector('.table-filter-bar')) return;
 
-    const filter = document.createElement('div');
-    filter.id = `${id}_filter`;
-    filter.style.display = 'flex';
-    filter.style.gap = '8px';
-    filter.style.marginBottom = '8px';
-    filter.style.flexWrap = 'wrap';
+    const bar = document.createElement('div');
+    bar.className = 'table-filter-bar';
+    bar.style.display = 'flex';
+    bar.style.gap = '8px';
+    bar.style.marginBottom = '8px';
+    bar.style.flexWrap = 'wrap';
+    bar.style.alignItems = 'center';
 
-    filter.innerHTML = `
-      <input type="date" id="${id}_from">
-      <input type="date" id="${id}_to">
+    bar.innerHTML = `
+      <input type="date" id="${id}_from" style="max-width:140px">
+      <input type="date" id="${id}_to" style="max-width:140px">
       <button type="button" id="${id}_btn">فلترة</button>
       <button type="button" id="${id}_clear">مسح</button>
     `;
-    card.insertBefore(filter, table);
+
+    card.insertBefore(bar, table);
 
     const today = getToday();
-    document.getElementById(`${id}_from`).value = today;
-    document.getElementById(`${id}_to`).value = today;
+    bar.querySelector(`#${id}_from`).value = today;
+    bar.querySelector(`#${id}_to`).value = today;
 
-    document.getElementById(`${id}_btn`).onclick = () => filterTableByDate(table);
-    document.getElementById(`${id}_clear`).onclick = () => {
-      document.getElementById(`${id}_from`).value = today;
-      document.getElementById(`${id}_to`).value = today;
+    bar.querySelector(`#${id}_btn`).onclick = () => filterRows(table);
+    bar.querySelector(`#${id}_clear`).onclick = () => {
+      bar.querySelector(`#${id}_from`).value = today;
+      bar.querySelector(`#${id}_to`).value = today;
       showAllRows(table);
     };
   }
 
-  function filterTableByDate(table) {
+  function filterRows(table) {
     const id = table.id;
-    const from = document.getElementById(`${id}_from`).value;
-    const to = document.getElementById(`${id}_to`).value;
-    if (!from ||!to) return;
+    const fromVal = document.getElementById(`${id}_from`).value;
+    const toVal = document.getElementById(`${id}_to`).value;
+    if (!fromVal ||!toVal) return;
 
-    const fromTime = new Date(from + 'T00:00:00').getTime();
-    const toTime = new Date(to + 'T23:59:59').getTime();
+    const fromT = new Date(fromVal + 'T00:00:00').getTime();
+    const toT = new Date(toVal + 'T23:59:59').getTime();
 
-    const rows = table.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-      const timeText = row.cells[row.cells.length - 1]?.textContent || '';
-      const rowTime = parseTimeText(timeText);
-      row.style.display = (rowTime >= fromTime && rowTime <= toTime)? '' : 'none';
+    table.querySelectorAll('tbody tr').forEach(row => {
+      const timeCell = row.cells[row.cells.length - 1];
+      const txt = timeCell? timeCell.textContent.trim() : '';
+      const rowT = parseRowTime(txt);
+      row.style.display = (rowT >= fromT && rowT <= toT)? '' : 'none';
     });
   }
 
@@ -1872,42 +1881,42 @@ document.addEventListener('DOMContentLoaded', () => {
     table.querySelectorAll('tbody tr').forEach(r => r.style.display = '');
   }
 
-  // مصح: كان فيه غلط في الكوتس
-  function parseTimeText(txt) {
+  function parseRowTime(txt) {
     if (!txt) return 0;
-    const todayStr = new Date().toDateString();
-    const d = new Date(todayStr + ' + txt);
-    return isNaN(d.getTime())? 0 : d.getTime();
+    try {
+      const today = new Date().toDateString();
+      const d = new Date(today + ' + txt);
+      return isNaN(d.getTime())? 0 : d.getTime();
+    } catch { return 0; }
   }
 
   function wrapScroll(table) {
-    if (table.parentElement.classList.contains('scroll-box')) return;
-    const box = document.createElement('div');
-    box.className = 'scroll-box';
-    box.style.overflow = 'auto';
-    box.style.maxHeight = '60vh';
-    box.style.width = '100%';
-    table.parentNode.insertBefore(box, table);
-    box.appendChild(table);
+    if (table.parentElement.classList.contains('table-scroll')) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'table-scroll';
+    wrap.style.overflow = 'auto';
+    wrap.style.maxHeight = '60vh';
+    wrap.style.width = '100%';
+    table.parentNode.insertBefore(wrap, table);
+    wrap.appendChild(table);
   }
 
   function enableSort(table) {
-    const ths = table.querySelectorAll('thead th');
-    ths.forEach((th, i) => {
+    table.querySelectorAll('thead th').forEach((th, idx) => {
       th.style.cursor = 'pointer';
-      th.onclick = () => sortTable(table, i, th);
+      th.onclick = () => sortByCol(table, idx);
     });
   }
 
-  function sortTable(table, col, th) {
+  function sortByCol(table, colIdx) {
     const tbody = table.querySelector('tbody');
     const rows = Array.from(tbody.querySelectorAll('tr'));
     const dir = table.dataset.sortDir === 'asc'? 'desc' : 'asc';
     table.dataset.sortDir = dir;
 
     rows.sort((a, b) => {
-      const A = a.cells[col]?.textContent.trim() || '';
-      const B = b.cells[col]?.textContent.trim() || '';
+      const A = a.cells[colIdx]?.textContent.trim() || '';
+      const B = b.cells[colIdx]?.textContent.trim() || '';
       const nA = parseFloat(A.replace(/,/g, ''));
       const nB = parseFloat(B.replace(/,/g, ''));
       if (!isNaN(nA) &&!isNaN(nB)) {
@@ -1918,44 +1927,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tbody.innerHTML = '';
     rows.forEach(r => tbody.appendChild(r));
-    updateArrow(table, col, dir);
+    updateArrow(table, colIdx, dir);
   }
 
-  function updateArrow(table, col, dir) {
+  function updateArrow(table, colIdx, dir) {
     table.querySelectorAll('thead th').forEach((th, i) => {
       th.textContent = th.textContent.replace(/ [▲▼]$/, '');
-      if (i === col) th.textContent += dir === 'asc'? ' ▲' : ' ▼';
+      if (i === colIdx) th.textContent += dir === 'asc'? ' ▲' : ' ▼';
     });
   }
 
+  // تعديل هنا: تحديد صف فقط، بدون إضافة عمود في الهيدر
   function enableSelect(table) {
-    const headRow = table.querySelector('thead tr');
-    if (headRow &&!headRow.querySelector('.select-all')) {
-      const th = document.createElement('th');
-      th.className = 'select-all';
-      th.style.width = '32px';
-      th.style.cursor = 'pointer';
-      th.innerHTML = '☐';
-      headRow.insertBefore(th, headRow.firstChild);
-
-      th.onclick = () => {
-        const rows = table.querySelectorAll('tbody tr');
-        const allSel = Array.from(rows).every(r => r.classList.contains('selected'));
-        rows.forEach(r => r.classList.toggle('selected',!allSel));
-        th.innerHTML =!allSel? '☑' : '☐';
-      };
-    }
-
     table.addEventListener('click', e => {
-      if (e.target.tagName === 'TD') {
-        e.target.parentElement.classList.toggle('selected');
+      const tr = e.target.closest('tr');
+      if (tr && tr.parentElement.tagName === 'TBODY') {
+        tr.classList.toggle('selected');
       }
     });
 
     if (!document.getElementById('sel-style')) {
       const s = document.createElement('style');
       s.id = 'sel-style';
-      s.textContent = 'tr.selected{background:rgba(37,211,102,0.25)!important}';
+      s.textContent = 'tr.selected{background:rgba(37,211,102,0.25)!important; cursor:pointer}';
       document.head.appendChild(s);
     }
   }
