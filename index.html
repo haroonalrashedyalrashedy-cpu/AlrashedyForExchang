@@ -875,59 +875,51 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setupTabs(container, tabSelector, contentAttr, isSub = false) {
-  if (!container) return;
-  const tabs = container.querySelectorAll(tabSelector);
-  const contents = container.querySelectorAll(':scope >.tab-content');
-
-  tabs.forEach(tab => {
-    tab.addEventListener('click', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      const targetId = tab.getAttribute(contentAttr);
-      const target = document.getElementById(targetId);
-      if (!target) return;
-
-      const isActive = tab.classList.contains('active');
-      tabs.forEach(t => t.classList.remove('active'));
-      contents.forEach(c => c.classList.remove('active'));
-      if (!isActive) {
-        tab.classList.add('active');
-        target.classList.add('active');
-      }
-      if (isSub) resetHideTimer();
-    });
-
-    // السحب شغال للتبويبات الفرعية فقط
-    if (isSub) {
-      let startX = 0, startY = 0;
-      const contentEl = document.getElementById(tab.getAttribute(contentAttr));
-      if (!contentEl) return;
-
-      contentEl.addEventListener('touchstart', e => {
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-      }, {passive: true});
-
-      contentEl.addEventListener('touchend', e => {
-        const diffX = e.changedTouches[0].clientX - startX;
-        const diffY = e.changedTouches[0].clientY - startY;
-        if (Math.abs(diffY) > Math.abs(diffX) || Math.abs(diffX) < 50) return;
-
-        const parent = contentEl.parentElement;
-        const contentList = [...parent.querySelectorAll(':scope >.tab-content')];
-        const idx = contentList.findIndex(c => c.classList.contains('active'));
-        if (idx === -1) return;
-
-        let nextIdx = diffX > 0? idx - 1 : idx + 1;
-        if (nextIdx < 0) nextIdx = contentList.length - 1;
-        if (nextIdx >= contentList.length) nextIdx = 0;
-
-        const nextTab = [...tabs].find(t => t.getAttribute(contentAttr) === contentList[nextIdx].id);
-        if (nextTab) nextTab.click();
+    if (!container) return;
+    const tabs = container.querySelectorAll(tabSelector);
+    const contents = container.querySelectorAll(':scope >.tab-content');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const targetId = tab.getAttribute(contentAttr);
+        const target = document.getElementById(targetId);
+        if (!target) return;
+        const isActive = tab.classList.contains('active');
+        tabs.forEach(t => t.classList.remove('active'));
+        contents.forEach(c => c.classList.remove('active'));
+        if (!isActive) {
+          tab.classList.add('active');
+          target.classList.add('active');
+        }
+        if (isSub) resetHideTimer();
       });
-    }
-  });
-}
+
+      if (isSub) {
+        let startX = 0, startY = 0;
+        const contentEl = document.getElementById(tab.getAttribute(contentAttr));
+        if (!contentEl) return;
+        contentEl.addEventListener('touchstart', e => {
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+        }, {passive: true});
+        contentEl.addEventListener('touchend', e => {
+          const diffX = e.changedTouches[0].clientX - startX;
+          const diffY = e.changedTouches[0].clientY - startY;
+          if (Math.abs(diffY) > Math.abs(diffX) || Math.abs(diffX) < 50) return;
+          const parent = contentEl.parentElement;
+          const contentList = [...parent.querySelectorAll(':scope >.tab-content')];
+          const idx = contentList.findIndex(c => c.classList.contains('active'));
+          if (idx === -1) return;
+          let nextIdx = diffX > 0? idx - 1 : idx + 1;
+          if (nextIdx < 0) nextIdx = contentList.length - 1;
+          if (nextIdx >= contentList.length) nextIdx = 0;
+          const nextTab = [...tabs].find(t => t.getAttribute(contentAttr) === contentList[nextIdx].id);
+          if (nextTab) nextTab.click();
+        });
+      }
+    });
+  }
 
   setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab');
   setupTabs(document.getElementById('operations'), '.subtabs .tab', 'data-subtab', true);
@@ -1783,184 +1775,220 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', () => setTimeout(autoSizeTableColumns, 200));
 
 }); // نهاية DOMContentLoaded
-</script>
 
 
 
 
 
 
-<script>
-(() => {
-  // ===== 1. ستايل الفلاتر + الاسكرول + الاسهم =====
-  const style = document.createElement('style');
-  style.textContent = `
-    /* الفلاتر صف واحد */
-   .dateFilter,.row.filter-row {
-      display: flex!important;
-      gap: 6px!important;
-      flex-wrap: nowrap!important;
-      align-items: center!important;
-      margin-bottom: 8px!important;
-      width: 100%!important;
-    }
-   .dateFilter input,.dateFilter button,
-   .row.filter-row input,.row.filter-row button {
-      flex: 1 1 0!important;
-      min-width: 0!important;
-      height: 36px!important;
-      font-size: 13px!important;
-    }
 
-    /* اسكرول الجدول فقط */
-   .table-scroll {
-      width: 100%;
-      overflow-x: auto;
-      overflow-y: auto;
-      max-height: 400px;
-      -webkit-overflow-scrolling: touch;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-    }
-   .table-scroll table {
-      width: max-content;
-      min-width: 100%;
-      border-collapse: collapse;
-      table-layout: auto;
-    }
-   .table-scroll th {
-      position: sticky;
-      top: 0;
-      background: var(--bg-dark);
-      z-index: 2;
-      cursor: pointer;
-      user-select: none;
-      position: relative;
-      padding-right: 20px; /* مساحة للسهم */
-    }
-   .table-scroll td,.table-scroll th {
-      white-space: nowrap;
-      padding: 6px 8px;
-      font-size: 13px;
-    }
-   .table-scroll tr.selected {
-      background: rgba(37, 211, 102, 0.25)!important;
-    }
 
-    /* اسهم الترتيب */
-   .table-scroll th.sortable::after {
-      content: '⇅';
-      position: absolute;
-      right: 6px;
-      opacity: 0.4;
-      font-size: 12px;
-    }
-   .table-scroll th.asc::after {
-      content: '▲';
-      opacity: 1;
-    }
-   .table-scroll th.desc::after {
-      content: '▼';
-      opacity: 1;
-    }
 
-    /* منع سحب الكرت مع الجدول */
-   .tab-content,.card { touch-action: pan-y!important; }
-  `;
-  document.head.appendChild(style);
 
-  // ===== 2. لف الجداول + تحديد الكل من اول خانة هيدر =====
-  document.querySelectorAll('table[id$="Table"]').forEach(tbl => {
-    if (tbl.closest('.table-scroll')) return;
 
-    const wrap = document.createElement('div');
-    wrap.className = 'table-scroll';
-    tbl.parentNode.insertBefore(wrap, tbl);
-    wrap.appendChild(tbl);
 
-    // خلي اول خانة هيدر قابلة لتحديد الكل
-    const firstTh = tbl.querySelector('thead tr th');
-    if (firstTh) {
-      firstTh.classList.add('select-all');
-      firstTh.style.cursor = 'pointer';
-    }
 
-    // خلي باقي الهيدر قابل للترتيب
-    tbl.querySelectorAll('thead tr th').forEach((th, i) => {
-      if (i === 0) return; // اول خانة للتحديد
-      th.classList.add('sortable');
+
+
+
+
+
+
+
+// ===== نظام فلترة وترتيب وتحديد للجداول - لحاله 100% =====
+(function() {
+  const getToday = () => new Date().toISOString().split('T')[0];
+
+  // شغل بعد تحميل الصفحة وبعد ما دوالك القديمة تطبع البيانات
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(enhanceTables, 1000); // 1 ثانية عشان تتأكد ان كل listenXOps خلصت
+  });
+
+  function enhanceTables() {
+    const tables = ['buyTable','sellTable','depositTable','withdrawTable','sendTable','RecTable','payTable','rateLogTable','matchTable'];
+
+    tables.forEach(id => {
+      const table = document.getElementById(id);
+      if (!table || table.dataset.enhanced === 'yes') return;
+      table.dataset.enhanced = 'yes';
+
+      addDateFilter(table);
+      wrapScroll(table);
+      enableSort(table);
+      enableSelect(table);
     });
-  });
+  }
 
-  // ===== 3. فلترة اليوم تلقائي + صف واحد =====
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      document.querySelectorAll('.dateFilter,.row.filter-row').forEach(r => {
-        const inputs = r.querySelectorAll('input[type="date"]');
-        const btn = [...r.querySelectorAll('button')].find(b =>
-          b.textContent.trim() === 'فلترة' || b.textContent.trim() === 'Filter' || b.id.includes('Filter')
-        );
-        if (inputs.length >= 2 && btn) {
-          const today = new Date().toISOString().split('T')[0];
-          inputs[0].value = today;
-          inputs[1].value = today;
-          btn.click();
-        }
-      });
-    }, 600);
-  });
+  // 1. فلتر التاريخ - يفلتر من tbody بدون ما يلمس Firebase
+  function addDateFilter(table) {
+    const id = table.id;
+    const card = table.closest('.card');
+    if (!card || card.querySelector(`#${id}_filter`)) return;
 
-  // ===== 4. ترتيب الجدول + الاسهم =====
-  document.addEventListener('click', e => {
-    const th = e.target.closest('.table-scroll th.sortable');
-    if (!th) return;
+    const filter = document.createElement('div');
+    filter.id = `${id}_filter`;
+    filter.style.display = 'flex';
+    filter.style.gap = '8px';
+    filter.style.marginBottom = '8px';
+    filter.style.flexWrap = 'wrap';
 
-    const table = th.closest('table');
+    filter.innerHTML = `
+      <input type="date" id="${id}_from">
+      <input type="date" id="${id}_to">
+      <button type="button" id="${id}_btn">فلترة</button>
+      <button type="button" id="${id}_clear">مسح</button>
+    `;
+    card.insertBefore(filter, table);
+
+    const today = getToday();
+    document.getElementById(`${id}_from`).value = today;
+    document.getElementById(`${id}_to`).value = today;
+
+    document.getElementById(`${id}_btn`).onclick = () => filterTableByDate(table);
+    document.getElementById(`${id}_clear`).onclick = () => {
+      document.getElementById(`${id}_from`).value = today;
+      document.getElementById(`${id}_to`).value = today;
+      showAllRows(table);
+    };
+  }
+
+  // 2. الفلترة تتم على الصفوف الموجودة في tbody
+  function filterTableByDate(table) {
+    const id = table.id;
+    const from = document.getElementById(`${id}_from`).value;
+    const to = document.getElementById(`${id}_to`).value;
+    if (!from ||!to) return;
+
+    const fromTime = new Date(from + 'T00:00:00').getTime();
+    const toTime = new Date(to + 'T23:59:59').getTime();
+
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+      // الوقت في اخر عمود عندك كـ text. نحوله لتايم ستامب
+      const timeText = row.cells[row.cells.length - 1]?.textContent || '';
+      const rowTime = parseTimeText(timeText);
+
+      if (rowTime >= fromTime && rowTime <= toTime) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+
+  function showAllRows(table) {
+    table.querySelectorAll('tbody tr').forEach(r => r.style.display = '');
+  }
+
+  // يحول نص الوقت "10:30:15 م" الى timestamp
+  function parseTimeText(txt) {
+    const today = new Date().toDateString();
+    const d = new Date(today + ' + txt);
+    return isNaN(d.getTime())? 0 : d.getTime();
+  }
+
+  // 3. سكرول للجدول فقط
+  function wrapScroll(table) {
+    if (table.parentElement.classList.contains('scroll-box')) return;
+    const box = document.createElement('div');
+    box.className = 'scroll-box';
+    box.style.overflow = 'auto';
+    box.style.maxHeight = '60vh';
+    box.style.width = '100%';
+    table.parentNode.insertBefore(box, table);
+    box.appendChild(table);
+  }
+
+  // 4. ترتيب بالضغط على الهيدر
+  function enableSort(table) {
+    const ths = table.querySelectorAll('thead th');
+    ths.forEach((th, i) => {
+      th.style.cursor = 'pointer';
+      th.onclick = () => sortTable(table, i, th);
+    });
+  }
+
+  function sortTable(table, col, th) {
     const tbody = table.querySelector('tbody');
-    const rows = [...tbody.querySelectorAll('tr')];
-    const idx = [...th.parentNode.children].indexOf(th);
-
-    // شل الكلاس من الباقي
-    table.querySelectorAll('th').forEach(h => {
-      if (h!== th) h.classList.remove('asc', 'desc');
-    });
-
-    const isAsc = th.classList.contains('asc');
-    th.classList.remove('asc', 'desc');
-    th.classList.add(isAsc? 'desc' : 'asc');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const dir = table.dataset.sortDir === 'asc'? 'desc' : 'asc';
+    table.dataset.sortDir = dir;
 
     rows.sort((a, b) => {
-      const va = a.children[idx]?.textContent.trim() || '';
-      const vb = b.children[idx]?.textContent.trim() || '';
-      const na = parseFloat(va.replace(/,/g, '')), nb = parseFloat(vb.replace(/,/g, ''));
-      if (!isNaN(na) &&!isNaN(nb)) return isAsc? nb - na : na - nb;
-      return isAsc? vb.localeCompare(va, 'ar') : va.localeCompare(vb, 'ar');
+      const A = a.cells[col]?.textContent.trim() || '';
+      const B = b.cells[col]?.textContent.trim() || '';
+      const nA = parseFloat(A.replace(/,/g, ''));
+      const nB = parseFloat(B.replace(/,/g, ''));
+      if (!isNaN(nA) &&!isNaN(nB)) {
+        return dir === 'asc'? nA - nB : nB - nA;
+      }
+      return dir === 'asc'? A.localeCompare(B, 'ar') : B.localeCompare(A, 'ar');
     });
 
+    tbody.innerHTML = '';
     rows.forEach(r => tbody.appendChild(r));
-  });
+    updateArrow(table, col, dir);
+  }
 
-  // ===== 5. تحديد الكل من اول خانة هيدر =====
-  document.addEventListener('click', e => {
-    const th = e.target.closest('.table-scroll th.select-all');
-    if (!th) return;
-    e.stopPropagation();
+  function updateArrow(table, col, dir) {
+    table.querySelectorAll('thead th').forEach((th, i) => {
+      th.textContent = th.textContent.replace(/ [▲▼]$/, '');
+      if (i === col) th.textContent += dir === 'asc'? ' ▲' : ' ▼';
+    });
+  }
 
-    const table = th.closest('table');
-    const rows = [...table.querySelectorAll('tbody tr')];
-    const allSel = rows.every(r => r.classList.contains('selected'));
-    rows.forEach(r => r.classList.toggle('selected',!allSel));
-  });
+  // 5. تحديد صف + تحديد الكل
+  function enableSelect(table) {
+    // ركن تحديد الكل
+    const headRow = table.querySelector('thead tr');
+    if (headRow &&!headRow.querySelector('.select-all')) {
+      const th = document.createElement('th');
+      th.className = 'select-all';
+      th.style.width = '32px';
+      th.style.cursor = 'pointer';
+      th.innerHTML = '☐';
+      headRow.insertBefore(th, headRow.firstChild);
 
-  // ===== 6. تحديد صف واحد =====
-  document.addEventListener('click', e => {
-    const tr = e.target.closest('.table-scroll tbody tr');
-    if (!tr) return;
-    tr.classList.toggle('selected');
-  });
+      th.onclick = () => {
+        const rows = table.querySelectorAll('tbody tr');
+        const allSel = Array.from(rows).every(r => r.classList.contains('selected'));
+        rows.forEach(r => r.classList.toggle('selected',!allSel));
+        th.innerHTML =!allSel? '☑' : '☐';
+      };
+    }
+
+    table.addEventListener('click', e => {
+      if (e.target.tagName === 'TD') {
+        e.target.parentElement.classList.toggle('selected');
+      }
+    });
+
+    if (!document.getElementById('sel-style')) {
+      const s = document.createElement('style');
+      s.id = 'sel-style';
+      s.textContent = 'tr.selected{background:rgba(37,211,102,0.25)!important}';
+      document.head.appendChild(s);
+    }
+  }
 
 })();
+
+
+
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
