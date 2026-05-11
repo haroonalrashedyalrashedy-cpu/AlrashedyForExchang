@@ -1941,55 +1941,75 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ===== الفلترة والتواريخ والترتيب =====
   function addDateFiltersToTables() {
-    const tables = ['buyTable', 'sellTable', 'depositTable', 'withdrawTable', 'sendTable', 'RecTable', 'payTable', 'accBalanceTable', 'rateLogTable', 'matchTable'];
-    tables.forEach(id => {
-      const table = document.getElementById(id);
-      if (!table) return;
-      const card = table.closest('.card');
-      if (!card || card.querySelector('.dateFilter')) return;
+  const tables = ['buyTable', 'sellTable', 'depositTable', 'withdrawTable', 
+                  'sendTable', 'RecTable', 'payTable', 'accBalanceTable', 
+                  'rateLogTable', 'matchTable'];
 
-      const filterDiv = document.createElement('div');
-      filterDiv.className = 'dateFilter row';
-      filterDiv.innerHTML = `
-        <input type="date" id="${id}From" placeholder="من">
-        <input type="date" id="${id}To" placeholder="الى">
-        <button id="${id}Filter">فلترة</button>
-        <button id="${id}Clear">مسح</button>
-      `;
-      card.insertBefore(filterDiv, table);
+  tables.forEach(id => {
+    const table = document.getElementById(id);
+    if (!table) return;
+    const card = table.closest('.card');
+    if (!card || card.querySelector('.dateFilter')) return;
 
-      const today = getToday();
+    const filterDiv = document.createElement('div');
+    filterDiv.className = 'dateFilter row';
+    filterDiv.innerHTML = `
+      <input type="date" id="${id}From" placeholder="من">
+      <input type="date" id="${id}To" placeholder="الى">
+      <button id="${id}Filter">فلترة</button>
+      <button id="${id}Today">اليوم</button>
+    `;
+    card.insertBefore(filterDiv, table);
+
+    const today = getToday();
+    document.getElementById(`${id}From`).value = today;
+    document.getElementById(`${id}To`).value = today;
+    
+    // السطرين اللي أضفناهم:
+    document.getElementById(`${id}Filter`).onclick = () => filterTable(id);
+    document.getElementById(`${id}Today`).onclick = () => {
       document.getElementById(`${id}From`).value = today;
       document.getElementById(`${id}To`).value = today;
-      document.getElementById(`${id}Filter`).onclick = () => filterTable(id);
-      document.getElementById(`${id}Clear`).onclick = () => {
-        document.getElementById(`${id}From`).value = today;
-        document.getElementById(`${id}To`).value = today;
-        filterTable(id);
-      };
-    });
-  }
-  addDateFiltersToTables();
+      filterTable(id);
+    };
 
-  async function filterTable(tableId) {
-    const from = document.getElementById(`${tableId}From`).value;
-    const to = document.getElementById(`${tableId}To`).value;
-    const tbody = document.querySelector(`#${tableId} tbody`);
-    if (!tbody) return;
-    tbody.innerHTML = '';
+    // السطر المهم: نادي الفلترة أول ما يفتح عشان يجيب حق اليوم
+    filterTable(id);
+  });
+}
+  
 
-    for (let d = new Date(from); d <= new Date(to); d.setDate(d.getDate() + 1)) {
-      const day = d.toISOString().split('T')[0];
-      const path = getPathForTable(tableId, day);
-      if (!path) continue;
-      const snap = await get(ref(db, path));
-      const data = snap.val();
-      if (data) {
-        Object.values(data).reverse().forEach(op => appendRow(tableId, op));
-      }
+async function filterTable(tableId) {
+  const from = document.getElementById(`${tableId}From`).value;
+  const to = document.getElementById(`${tableId}To`).value;
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+  let found = false;
+
+  // لف على الايام من - الى
+  for (let d = new Date(from); d <= new Date(to); d.setDate(d.getDate() + 1)) {
+    const day = d.toISOString().split('T')[0];
+    const path = getPathForTable(tableId, day);
+    if (!path) continue;
+
+    const snap = await get(ref(db, path));
+    const data = snap.val();
+    if (data) {
+      found = true; // لقينا بيانات
+      Object.values(data).reverse().forEach(op => appendRow(tableId, op));
     }
-    autoSizeTableColumns();
   }
+
+  // لو ما لقينا بيانات طلع رسالة
+  if (!found) {
+    tbody.innerHTML = '<tr><td colspan="10">لا توجد بيانات لليوم المحدد</td></tr>';
+  }
+
+  autoSizeTableColumns();
+}
+  
 
   function getPathForTable(tableId, day) {
     const map = {
@@ -2098,6 +2118,10 @@ document.addEventListener('DOMContentLoaded', () => {
     observer.observe(tbody, { childList: true, subtree: true });
   });
   window.addEventListener('resize', () => setTimeout(autoSizeTableColumns, 200));
+
+
+addDateFiltersToTables();
+
 
 }); // نهاية DOMContentLoaded
 
@@ -2328,27 +2352,37 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAccounts();
   } else {
     function loadAccounts() {
-      onValue(ref(db, ACC_PATH), (snap) => {
-        const data = snap.val() || {};
-        const selects = [viewAccSelect, editAccSelect, deleteAccSelect, depositAccount, withdrawAccount];
+  onValue(ref(db, ACC_PATH), (snap) => {
+    const data = snap.val() || {};
+    const selects = [viewAccSelect, editAccSelect, deleteAccSelect, depositAccount, withdrawAccount];
 
-        selects.forEach(sel => {
-          if (!sel) return;
-          const currentVal = sel.value;
-          sel.innerHTML = '<option value="">ابحث واختر الحساب</option>';
+    selects.forEach(sel => {
+      if (!sel) return;
+      const currentVal = sel.value;
+      sel.innerHTML = '<option value="">ابحث واختر الحساب</option>';
 
-          Object.entries(data).forEach(([id, acc]) => {
-            if (acc.active === false && (sel.id === 'depositAccount' || sel.id === 'withdrawAccount')) {
-              return;
-            }
-            const status = acc.active === false? ' [موقف]' : '';
-            sel.innerHTML += `<option value="${id}">${acc.name} - ${acc.phone || ''}${status}</option>`;
-          });
+      Object.entries(data).forEach(([id, acc]) => {
+        // اخفي الحساب الموقوف من الإيداع والصرف فقط
+        const isTxnSelect = sel.id === 'depositAccount' || sel.id === 'withdrawAccount';
+        if (acc.active === false && isTxnSelect) {
+          return;
+        }
 
-          if (data[currentVal]) sel.value = currentVal;
-        });
+        // ضيف [موقف] و خلي الخيار رمادي ومعطل في القوائم الثانية
+        const isInactive = acc.active === false;
+        const status = isInactive? ' [موقف]' : '';
+        const disabledAttr = isInactive? 'disabled style="color:#999"' : '';
+
+        sel.innerHTML += `<option value="${id}" ${disabledAttr}>
+          ${acc.name} - ${acc.phone || ''}${status}
+        </option>`;
       });
-    }
+
+      // رجع الاختيار القديم لو لسه موجود
+      if (data[currentVal]) sel.value = currentVal;
+    });
+  });
+}
     loadAccounts();
   }
 
