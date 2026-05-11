@@ -1782,11 +1782,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 (() => {
-  // ===== إصلاح سحب الكروت والتبويبات الفرعية =====
+  // ===== 1. سحب الكروت والتبويبات الفرعية =====
   document.addEventListener('touchstart', (e) => {
     const subTabContent = e.target.closest('.tab-content[data-subtab]');
     if (!subTabContent) return;
-
     subTabContent.__startX = e.touches[0].clientX;
     subTabContent.__startY = e.touches[0].clientY;
     subTabContent.__isSwiping = false;
@@ -1795,20 +1794,17 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('touchmove', (e) => {
     const subTabContent = e.target.closest('.tab-content[data-subtab]');
     if (!subTabContent ||!subTabContent.__startX) return;
-
     const diffX = Math.abs(e.touches[0].clientX - subTabContent.__startX);
     const diffY = Math.abs(e.touches[0].clientY - subTabContent.__startY);
-
     if (diffX > diffY && diffX > 20) {
       subTabContent.__isSwiping = true;
-      e.preventDefault(); // يمنع سحب الكرت كامل
+      e.preventDefault();
     }
   }, {passive: false});
 
   document.addEventListener('touchend', (e) => {
     const subTabContent = e.target.closest('.tab-content[data-subtab]');
     if (!subTabContent ||!subTabContent.__isSwiping) return;
-
     const diffX = e.changedTouches[0].clientX - subTabContent.__startX;
     if (Math.abs(diffX) < 50) return;
 
@@ -1831,7 +1827,7 @@ document.addEventListener('DOMContentLoaded', () => {
     subTabContent.__isSwiping = false;
   }, {passive: true});
 
-  // ===== CSS إضافي ملفوف =====
+  // ===== 2. CSS الإضافي =====
   const style = document.createElement('style');
   style.textContent = `
    .patch-wrap.dateFilter {
@@ -1849,7 +1845,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
    .patch-wrap.table-wrap {
       overflow: auto!important;
-      max-height: 240px!important; /* 4 صفوف تقريباً */
+      max-height: 240px!important;
       -webkit-overflow-scrolling: touch!important;
     }
    .patch-wrap.table-wrap table {
@@ -1869,26 +1865,28 @@ document.addEventListener('DOMContentLoaded', () => {
   `;
   document.head.appendChild(style);
 
-  // ===== لف الكروت والجداول بدون لمس HTML الأصلي =====
-  document.querySelectorAll('#buy, #sell, #deposit, #withdraw, #sendTransfers, #receTransfers, #payTransfers').forEach(card => {
-    if (!card.classList.contains('patch-wrap')) {
-      card.classList.add('patch-wrap');
-      card.querySelectorAll('table').forEach(tbl => {
-        if (!tbl.parentElement.classList.contains('table-wrap')) {
-          const wrap = document.createElement('div');
-          wrap.className = 'table-wrap';
-          tbl.parentNode.insertBefore(wrap, tbl);
-          wrap.appendChild(tbl);
-        }
-      });
-    }
-  });
+  // ===== 3. لف الكروت والجداول =====
+  const initPatchWrap = () => {
+    document.querySelectorAll('#buy, #sell, #deposit, #withdraw, #sendTransfers, #receTransfers, #payTransfers').forEach(card => {
+      if (!card.classList.contains('patch-wrap')) {
+        card.classList.add('patch-wrap');
+        card.querySelectorAll('table').forEach(tbl => {
+          if (!tbl.parentElement.classList.contains('table-wrap')) {
+            const wrap = document.createElement('div');
+            wrap.className = 'table-wrap';
+            tbl.parentNode.insertBefore(wrap, tbl);
+            wrap.appendChild(tbl);
+          }
+        });
+      }
+    });
+  };
+  initPatchWrap();
 
-  // ===== ترتيب الجدول عند الضغط على الهيدر =====
+  // ===== 4. ترتيب الجدول عند الضغط على الهيدر =====
   document.addEventListener('click', (e) => {
     const th = e.target.closest('.patch-wrap.table-wrap th');
     if (!th) return;
-
     const table = th.closest('table');
     const tbody = table.querySelector('tbody');
     const rows = [...tbody.rows];
@@ -1913,7 +1911,7 @@ document.addEventListener('DOMContentLoaded', () => {
     rows.forEach(row => tbody.appendChild(row));
   });
 
-  // ===== تحديد صف / تحديد الكل =====
+  // ===== 5. تحديد صف / تحديد الكل =====
   document.addEventListener('click', (e) => {
     const th = e.target.closest('.patch-wrap th.select-all');
     if (th) {
@@ -1922,16 +1920,15 @@ document.addEventListener('DOMContentLoaded', () => {
       table.querySelectorAll('tbody tr').forEach(r => r.classList.toggle('selected', checked));
       return;
     }
-
     const tr = e.target.closest('.patch-wrap tbody tr');
     if (tr) tr.classList.toggle('selected');
   });
 
-  // ===== فلترة التاريخ =====
+  // ===== 6. فلترة التاريخ =====
   function filterTableByDate(table, from, to) {
     const rows = table.querySelectorAll('tbody tr');
     rows.forEach(row => {
-      const dateCell = row.cells[row.cells.length - 1]; // آخر عمود = الوقت
+      const dateCell = row.cells[row.cells.length - 1];
       if (!dateCell) return;
       const rowDate = dateCell.textContent.split(' ')[0].replace(/\//g, '-');
       const show = (!from || rowDate >= from) && (!to || rowDate <= to);
@@ -1940,66 +1937,51 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.addEventListener('click', (e) => {
-    if (e.target.textContent.trim() === 'فلترة') {
+    const txt = e.target.textContent.trim();
+    if (txt === 'فلترة' || txt === 'مسح') {
       const card = e.target.closest('.patch-wrap');
       const inputs = card.querySelectorAll('.dateFilter input[type="date"],.dateFilter input[type="text"]');
-      const from = inputs[0]?.value;
-      const to = inputs[1]?.value;
       const table = card.querySelector('table');
-      filterTableByDate(table, from, to);
-    }
-    if (e.target.textContent.trim() === 'مسح') {
-      const card = e.target.closest('.patch-wrap');
-      const inputs = card.querySelectorAll('.dateFilter input');
-      inputs.forEach(i => i.value = '');
-      card.querySelectorAll('tbody tr').forEach(r => r.style.display = '');
+      if (txt === 'فلترة') {
+        filterTableByDate(table, inputs[0]?.value, inputs[1]?.value);
+      } else {
+        inputs.forEach(i => i.value = '');
+        card.querySelectorAll('tbody tr').forEach(r => r.style.display = '');
+      }
     }
   });
 
-})();
-</script>
-<script>
-(() => {
-  // يشتغل بعد ما يخلص تحميل الصفحة
-  window.addEventListener('load', () => {
+  // ===== 7. فلترة اليوم تلقائي عند الدخول =====
+  const applyTodayFilter = () => {
     setTimeout(() => {
       document.querySelectorAll('.patch-wrap').forEach(card => {
         const dateInputs = card.querySelectorAll('.dateFilter input[type="date"],.dateFilter input[type="text"]');
         const filterBtn = [...card.querySelectorAll('button')].find(b => b.textContent.trim() === 'فلترة');
         const table = card.querySelector('table');
-
         if (!dateInputs.length ||!filterBtn ||!table) return;
 
-        // جيب تاريخ اليوم بصيغة yyyy-mm-dd
         const today = new Date().toISOString().split('T')[0];
-
-        // حط تاريخ اليوم في الخانتين من - الى
         if (dateInputs[0]) dateInputs[0].value = today;
         if (dateInputs[1]) dateInputs[1].value = today;
-
-        // شغل الفلترة تلقائي
         filterBtn.click();
       });
-    }, 500); // نص ثانية عشان ينتظر Firebase يحمل البيانات
-  });
+    }, 500);
+  };
 
-  // لو تبغى يحدث الفلترة كل ما يجي داتا جديدة
+  window.addEventListener('load', applyTodayFilter);
+
+  // تحديث الفلترة لو جات بيانات جديدة
   const obs = new MutationObserver(() => {
     document.querySelectorAll('.patch-wrap').forEach(card => {
       const dateInputs = card.querySelectorAll('.dateFilter input[type="date"],.dateFilter input[type="text"]');
       const filterBtn = [...card.querySelectorAll('button')].find(b => b.textContent.trim() === 'فلترة');
-
-      if (!dateInputs[0]?.value ||!filterBtn) return;
-
-      // بس لو التاريخ موجود، اعد الفلترة
-      filterBtn.click();
+      if (dateInputs[0]?.value && filterBtn) filterBtn.click();
     });
   });
-
   obs.observe(document.body, { childList: true, subtree: true });
+
 })();
 </script>
-
 
 
 
