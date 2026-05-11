@@ -568,6 +568,29 @@ table.table-selected {
   background: rgba(37, 211, 102, 0.25)!important;
 }
 
+.match-card{background:#2a2f38;padding:12px;border-radius:12px}
+.match-toolbar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.match-toolbar.field{flex:1;min-width:80px;display:flex;flex-direction:column}
+.match-toolbar input,.match-toolbar select,.match-toolbar button{
+  height:34px;font-size:13px;border-radius:6px;border:1px solid #444;
+  background:#1e2229;color:#fff
+}
+.table-wrap{border:2px solid #d97706;border-radius:8px;overflow-x:auto}
+#matchTable{width:100%;border-collapse:collapse;font-size:15px;color:#fff}
+#matchTable thead{background:#000}
+#matchTable th,#matchTable td{padding:8px 6px;text-align:center}
+#matchTable td{background:#3a4049;border:1px solid #2a2f38}
+#matchTable select,#matchTable input{
+  width:100%;height:38px;background:#3a4049;border:1px solid #555;
+  border-radius:6px;color:#fff;text-align:center;font-size:15px
+}
+#matchTable select option{background:#3a4049;color:#fff}
+.matchResult{font-weight:bold}
+.matchResult.pos{color:#facc15}.matchResult.neg{color:#ef4444}.matchResult.zero{color:#22c55e}
+.btn-green{width:100%;height:44px;margin-top:12px;background:#22c55e;border:none;
+  border-radius:8px;font-size:16px;font-weight:bold;color:#000}
+
+
 
 
   </style>
@@ -942,46 +965,37 @@ table.table-selected {
     
     
     
-     
-   <div id="matchs" class="tab-content">
-  <div class="card">
+ <div id="matchs" class="tab-content">
+  <div class="card match-card">
     <h3>مطابقة الموظف</h3>
-    
-    <!-- الصف الاول: تاريخ + قائمة المطابقات -->
-    <div class="row" style="gap:12px; align-items:end; margin-bottom:12px;">
-      <div>
-        <label>تاريخ المطابقة</label>
+
+    <div class="match-toolbar">
+      <div class="field">
+        <label>التاريخ</label>
         <input type="date" id="matchDate">
       </div>
-      <div>
-        <label>رقم المطابقة</label>
-        <select id="matchSelect" style="min-width:140px;">
-          <option value="">جديدة</option>
-        </select>
+      <div class="field">
+        <label>رقم</label>
+        <select id="matchSelect"><option value="">جديدة</option></select>
       </div>
       <button id="btnLoadMatch">عرض</button>
     </div>
 
-    <!-- الصف الثاني: الجدول -->
-    <table id="matchTable" class="table">
-      <thead>
-        <tr>
-          <th>العملة</th>
-          <th>الرصيد الفعلي</th>
-          <th>رصيد النظام</th>
-          <th>النتيجة</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- 5 صفوف بتتعبى بالـ JS -->
-      </tbody>
-    </table>
-
-    <!-- هنا تحط الزر -->
-    <div style="margin-top:12px;">
-      <button id="btnRunMatch">مطابقة</button>
+    <div class="table-wrap">
+      <table id="matchTable">
+        <thead>
+          <tr>
+            <th>نتيجة المطابقة</th>
+            <th>رصيد النظام</th>
+            <th>الرصيد الفعلي</th>
+            <th>العملة</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
 
+    <button id="btnRunMatch" class="btn-green">مطابقة</button>
   </div>
 </div>
 
@@ -2730,6 +2744,109 @@ async function runMatch() {
   alert(`تمت المطابقة والحفظ - رقم ${nextNum}`);
 }
 
+
+
+
+
+
+
+
+
+
+const MATCH_PATH = 'matches';
+const matchDate = document.getElementById('matchDate');
+const matchSelect = document.getElementById('matchSelect');
+const matchTbody = document.querySelector('#matchTable tbody');
+
+// شغّل اعدادات العملات اول شي
+initCurrencySettings();
+matchDate.value = getToday();
+buildMatchRows();
+loadMatchList(matchDate.value);
+
+matchDate.onchange = () => loadMatchList(matchDate.value);
+document.getElementById('btnLoadMatch').onclick = loadSelectedMatch;
+document.getElementById('btnRunMatch').onclick = runMatch;
+
+function buildMatchRows() {
+  matchTbody.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    matchTbody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td class="matchResult"></td>
+        <td><input type="number" class="matchSys" readonly></td>
+        <td><input type="number" class="matchActual" step="0.01" placeholder="0"></td>
+        <td><select class="matchCur" data-role="currency"></select></td>
+      </tr>
+    `);
+  }
+}
+
+async function runMatch() {
+  const date = matchDate.value;
+  const rows = [];
+  let hasData = false;
+
+  for (let tr of matchTbody.children) {
+    const cur = tr.querySelector('.matchCur').value;
+    const actual = parseFloat(tr.querySelector('.matchActual').value) || 0;
+    const sysInput = tr.querySelector('.matchSys');
+    const resultTd = tr.querySelector('.matchResult');
+
+    if (!cur) {
+      sysInput.value = '';
+      resultTd.textContent = '';
+      resultTd.className = 'matchResult';
+      continue;
+    }
+
+    hasData = true;
+    const sysSnap = await get(ref(db, `balances/${cur}`));
+    const sys = sysSnap.val() || 0;
+    const result = actual - sys;
+
+    sysInput.value = sys;
+    resultTd.textContent = result.toFixed(2);
+    resultTd.className = 'matchResult ' + (result === 0? 'zero' : result > 0? 'pos' : 'neg');
+    rows.push({cur, actual, sys, result});
+  }
+
+  if (!hasData) return alert('اختار عملة واحدة على الاقل');
+
+  const snap = await get(ref(db, `${MATCH_PATH}/${date}`));
+  const nextNum = Object.keys(snap.val() || {}).length + 1;
+  await set(ref(db, `${MATCH_PATH}/${date}/${nextNum}`), {rows, createdAt: Date.now()});
+
+  await loadMatchList(date);
+  matchSelect.value = nextNum;
+  alert(`تمت المطابقة والحفظ - رقم ${nextNum}`);
+}
+
+async function loadMatchList(date) {
+  const snap = await get(ref(db, `${MATCH_PATH}/${date}`));
+  const data = snap.val() || {};
+  matchSelect.innerHTML = '<option value="">جديدة</option>';
+  Object.keys(data).sort((a,b)=>b-a).forEach(k => {
+    matchSelect.insertAdjacentHTML('beforeend', `<option value="${k}">مطابقة ${k}</option>`);
+  });
+}
+
+async function loadSelectedMatch() {
+  if (!matchSelect.value) return buildMatchRows();
+  const snap = await get(ref(db, `${MATCH_PATH}/${matchDate.value}/${matchSelect.value}`));
+  const rows = snap.val()?.rows || [];
+  buildMatchRows();
+  rows.forEach((r,i) => {
+    const tr = matchTbody.children[i];
+    if (!tr) return;
+    tr.querySelector('.matchCur').value = r.cur;
+    tr.querySelector('.matchActual').value = r.actual;
+    tr.querySelector('.matchSys').value = r.sys;
+    const td = tr.querySelector('.matchResult');
+    td.textContent = r.result.toFixed(2);
+    td.className = 'matchResult ' + (r.result === 0? 'zero' : r.result > 0? 'pos' : 'neg');
+  });
+}
 
 
 </script>
