@@ -2288,6 +2288,271 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+
+
+
+
+
+
+
+
+// ===== كود تبويب الحسابات - كامل ونهائي =====
+document.addEventListener('DOMContentLoaded', () => {
+
+  const ACC_PATH = 'accounts';
+  const CURRENCIES = ["يمني", "سعودي شبكة", "سعودي نقد", "دولار", "يورو"];
+
+  // عناصر التبويب
+  const accName = document.getElementById('accName');
+  const accPhone = document.getElementById('accPhone');
+  const btnCreateAcc = document.getElementById('btnCreateAcc');
+
+  const depositAccount = document.getElementById('depositAccount');
+  const withdrawAccount = document.getElementById('withdrawAccount');
+  const viewAccSelect = document.getElementById('viewAccSelect');
+  const editAccSelect = document.getElementById('editAccSelect');
+  const deleteAccSelect = document.getElementById('deleteAccSelect');
+
+  const btnViewAcc = document.getElementById('btnViewAcc');
+  const btnClearAcc = document.getElementById('btnClearAcc');
+
+  const editAccName = document.getElementById('editAccName');
+  const editAccPhone = document.getElementById('editAccPhone');
+  const btnSaveEditAcc = document.getElementById('btnSaveEditAcc');
+
+  const btnSuspendAcc = document.getElementById('btnSuspendAcc');
+  const btnActivateAcc = document.getElementById('btnActivateAcc');
+  const btnDeleteAcc = document.getElementById('btnDeleteAcc');
+
+  // 1. تحميل الحسابات لحظي وتعبئة كل القوائم
+  function loadAccounts() {
+    onValue(ref(db, ACC_PATH), (snap) => {
+      const data = snap.val() || {};
+
+      // كل القوائم اللي لازم تتحدث تلقائي
+      const selects = [viewAccSelect, editAccSelect, deleteAccSelect, depositAccount, withdrawAccount];
+
+      selects.forEach(sel => {
+        if (!sel) return;
+        const currentVal = sel.value;
+        sel.innerHTML = '<option value="">ابحث واختر الحساب</option>';
+
+        Object.entries(data).forEach(([id, acc]) => {
+          // في الإيداع والصرف لا تعرض الحسابات الموقوفة
+          if (acc.active === false && (sel.id === 'depositAccount' || sel.id === 'withdrawAccount')) {
+            return;
+          }
+
+          const status = acc.active === false? ' [موقف]' : '';
+          sel.innerHTML += `<option value="${id}">${acc.name} - ${acc.phone || ''}${status}</option>`;
+        });
+
+        // رجع القيمة القديمة لو لسه موجودة
+        if (data[currentVal]) sel.value = currentVal;
+      });
+    });
+  }
+
+  // 2. تبويب انشاء: حفظ حساب جديد
+  btnCreateAcc?.addEventListener('click', async () => {
+    const name = accName.value.trim();
+    const phone = accPhone.value.trim();
+    const currencies = Array.from(document.querySelectorAll('.accCurrency:checked')).map(cb => cb.value);
+
+    if (!name) { alert('ادخل اسم العميل'); return; }
+    if (!phone) { alert('ادخل رقم الهاتف'); return; }
+    if (currencies.length === 0) { alert('اختر على الاقل عملة واحدة'); return; }
+
+    const accId = `acc_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+
+    const accData = {
+      name,
+      phone,
+      active: true,
+      createdAt: Date.now(),
+      createdBy: window.currentUser || 'admin',
+      currencies: {}
+    };
+
+    currencies.forEach(cur => {
+      accData.currencies[cur] = 0;
+    });
+
+    await set(ref(db, `${ACC_PATH}/${accId}`), accData);
+
+    accName.value = '';
+    accPhone.value = '';
+    document.querySelectorAll('.accCurrency').forEach(cb => cb.checked = false);
+    alert(`تم انشاء الحساب "${name}" بنجاح`);
+  });
+
+  // 3. تبويب عرض: عرض الرصيد التراكمي
+  btnViewAcc?.addEventListener('click', async () => {
+    const accId = viewAccSelect.value;
+    const tbody = document.querySelector('#accBalanceTable tbody');
+    if (!accId) { alert('اختر الحساب'); return; }
+    if (!tbody) return;
+
+    const snap = await get(ref(db, `${ACC_PATH}/${accId}`));
+    if (!snap.exists()) { alert('الحساب غير موجود'); return; }
+
+    const acc = snap.val();
+    tbody.innerHTML = '';
+
+    let hasData = false;
+    CURRENCIES.forEach(cur => {
+      const balance = acc.currencies?.[cur] || 0;
+      if (acc.currencies?.[cur]!== undefined) {
+        hasData = true;
+        tbody.innerHTML += `
+          <tr>
+            <td>${cur}</td>
+            <td>${balance.toFixed(2)}</td>
+          </tr>
+        `;
+      }
+    });
+
+    if (!hasData) {
+      tbody.innerHTML = '<tr><td colspan="2">لا يوجد ارصدة</td></tr>';
+    }
+  });
+
+  btnClearAcc?.addEventListener('click', () => {
+    const tbody = document.querySelector('#accBalanceTable tbody');
+    if (tbody) tbody.innerHTML = '';
+    viewAccSelect.value = '';
+  });
+
+  // 4. تبويب تعديل: تحميل بيانات الحساب عند الاختيار
+  editAccSelect?.addEventListener('change', async () => {
+    const accId = editAccSelect.value;
+    if (!accId) return;
+
+    const snap = await get(ref(db, `${ACC_PATH}/${accId}`));
+    if (!snap.exists()) return;
+
+    const acc = snap.val();
+    editAccName.value = acc.name || '';
+    editAccPhone.value = acc.phone || '';
+
+    document.querySelectorAll('.editAccCurrency').forEach(cb => {
+      cb.checked = acc.currencies?.[cb.value]!== undefined;
+    });
+  });
+
+  btnSaveEditAcc?.addEventListener('click', async () => {
+    const accId = editAccSelect.value;
+    const name = editAccName.value.trim();
+    const phone = editAccPhone.value.trim();
+    const currencies = Array.from(document.querySelectorAll('.editAccCurrency:checked')).map(cb => cb.value);
+
+    if (!accId) { alert('اختر الحساب'); return; }
+    if (!name) { alert('ادخل الاسم'); return; }
+    if (currencies.length === 0) { alert('اختر على الاقل عملة واحدة'); return; }
+
+    const snap = await get(ref(db, `${ACC_PATH}/${accId}`));
+    if (!snap.exists()) { alert('الحساب غير موجود'); return; }
+
+    const oldData = snap.val();
+    const updateData = {
+      name,
+      phone,
+      currencies: {}
+    };
+
+    // حافظ على الارصدة القديمة للعملات الموجودة
+    currencies.forEach(cur => {
+      updateData.currencies[cur] = oldData.currencies?.[cur] || 0;
+    });
+
+    await update(ref(db, `${ACC_PATH}/${accId}`), updateData);
+    alert('تم حفظ التعديل بنجاح');
+  });
+
+  // 5. تبويب ايقاف/حذف
+  btnSuspendAcc?.addEventListener('click', async () => {
+    const accId = deleteAccSelect.value;
+    if (!accId) { alert('اختر الحساب'); return; }
+
+    const reason = prompt('اكتب سبب إيقاف الحساب:');
+    if (!reason) return;
+
+    await update(ref(db, `${ACC_PATH}/${accId}`), {
+      active: false,
+      suspendReason: reason,
+      suspendedAt: Date.now(),
+      suspendedBy: window.currentUser || 'admin'
+    });
+    alert('تم إيقاف الحساب');
+  });
+
+  btnActivateAcc?.addEventListener('click', async () => {
+    const accId = deleteAccSelect.value;
+    if (!accId) { alert('اختر الحساب'); return; }
+
+    await update(ref(db, `${ACC_PATH}/${accId}`), {
+      active: true,
+      suspendReason: '',
+      suspendedAt: null,
+      suspendedBy: null,
+      reactivatedAt: Date.now(),
+      reactivatedBy: window.currentUser || 'admin'
+    });
+    alert('تم تفعيل الحساب');
+  });
+
+  btnDeleteAcc?.addEventListener('click', async () => {
+    const accId = deleteAccSelect.value;
+    if (!accId) { alert('اختر الحساب'); return; }
+
+    const confirm1 = confirm('تحذير: سيتم حذف الحساب ورصيده نهائياً. متأكد؟');
+    if (!confirm1) return;
+
+    const confirm2 = confirm('هذا الإجراء لا يمكن التراجع عنه. متأكد 100%؟');
+    if (!confirm2) return;
+
+    await remove(ref(db, `${ACC_PATH}/${accId}`));
+    alert('تم حذف الحساب نهائياً');
+  });
+
+  // 6. دوال مساعدة للعمليات المالية
+  window.getAccountBalance = async (accId, currency) => {
+    const snap = await get(ref(db, `${ACC_PATH}/${accId}/currencies/${currency}`));
+    return snap.val() || 0;
+  };
+
+  window.updateAccountBalance = async (accId, currency, amount) => {
+    const current = await window.getAccountBalance(accId, currency);
+    const newVal = current + amount;
+    if (newVal < 0) throw new Error(`رصيد الحساب ${currency} لا يسمح بالسالب`);
+    await update(ref(db, `${ACC_PATH}/${accId}/currencies`), { [currency]: newVal });
+    return newVal;
+  };
+
+  window.isAccountActive = async (accId) => {
+    const snap = await get(ref(db, `${ACC_PATH}/${accId}`));
+    if (!snap.exists()) return false;
+    const acc = snap.val();
+    if (acc.active === false) {
+      alert(`الحساب موقف\nالسبب: ${acc.suspendReason || 'بدون سبب'}`);
+      return false;
+    }
+    return true;
+  };
+
+  // شغل التحميل اول ما يفتح
+  loadAccounts();
+});
+
+
+
+
+
+
+
+
+
 </script>
 
 
