@@ -285,6 +285,46 @@
     
     
     
+    /* الحاوية اللي تمسك السكرول */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;   /* سكرول افقي */
+  overflow-y: auto;   /* سكرول راسي */
+  -webkit-overflow-scrolling: touch; /* سلاسة على الايفون */
+  max-height: 300px;  /* طول الجدول قبل ما يطلع السكرول الراسي. غيّره زي ما تبغى */
+}
+
+/* الجدول نفسه */
+.table-wrap table {
+  width: max-content; /* خليه يتمدد حسب المحتوى عشان يطلع السكرول الافقي */
+  min-width: 100%;
+  border-collapse: collapse;
+  table-layout: auto; /* خليه auto عشان الاعمدة تاخذ حجمها الطبيعي */
+}
+
+/* الثابتات */
+.table-wrap thead {
+  position: sticky;
+  top: 0;
+  background: var(--bg-dark);
+  z-index: 2;
+}
+
+/* شيل السكرول من tbody */
+.table-wrap tbody {
+  max-height: none;
+  overflow: visible;
+}
+
+.table-wrap th,
+.table-wrap td {
+  padding: 8px 12px;
+  white-space: nowrap; /* مهم عشان ما يكسر السطر ويطلع السكرول الافقي */
+  border: 1px solid var(--border-color);
+  text-align: center;
+}
+    
+    
     
   </style>
 </head>
