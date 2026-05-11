@@ -1796,12 +1796,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ===== نظام فلترة وترتيب وتحديد للجداول - لحاله 100% =====
+// ===== نظام فلترة وترتيب وتحديد للجداول - لحاله 100% =====
 (function() {
   const getToday = () => new Date().toISOString().split('T')[0];
 
-  // شغل بعد تحميل الصفحة وبعد ما دوالك القديمة تطبع البيانات
   document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(enhanceTables, 1000); // 1 ثانية عشان تتأكد ان كل listenXOps خلصت
+    setTimeout(enhanceTables, 1200);
   });
 
   function enhanceTables() {
@@ -1819,7 +1819,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 1. فلتر التاريخ - يفلتر من tbody بدون ما يلمس Firebase
   function addDateFilter(table) {
     const id = table.id;
     const card = table.closest('.card');
@@ -1852,7 +1851,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // 2. الفلترة تتم على الصفوف الموجودة في tbody
   function filterTableByDate(table) {
     const id = table.id;
     const from = document.getElementById(`${id}_from`).value;
@@ -1864,15 +1862,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const rows = table.querySelectorAll('tbody tr');
     rows.forEach(row => {
-      // الوقت في اخر عمود عندك كـ text. نحوله لتايم ستامب
       const timeText = row.cells[row.cells.length - 1]?.textContent || '';
       const rowTime = parseTimeText(timeText);
-
-      if (rowTime >= fromTime && rowTime <= toTime) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
-      }
+      row.style.display = (rowTime >= fromTime && rowTime <= toTime)? '' : 'none';
     });
   }
 
@@ -1880,14 +1872,14 @@ document.addEventListener('DOMContentLoaded', () => {
     table.querySelectorAll('tbody tr').forEach(r => r.style.display = '');
   }
 
-  // يحول نص الوقت "10:30:15 م" الى timestamp
+  // مصح: كان فيه غلط في الكوتس
   function parseTimeText(txt) {
-    const today = new Date().toDateString();
-    const d = new Date(today + ' + txt);
+    if (!txt) return 0;
+    const todayStr = new Date().toDateString();
+    const d = new Date(todayStr + ' + txt);
     return isNaN(d.getTime())? 0 : d.getTime();
   }
 
-  // 3. سكرول للجدول فقط
   function wrapScroll(table) {
     if (table.parentElement.classList.contains('scroll-box')) return;
     const box = document.createElement('div');
@@ -1899,7 +1891,6 @@ document.addEventListener('DOMContentLoaded', () => {
     box.appendChild(table);
   }
 
-  // 4. ترتيب بالضغط على الهيدر
   function enableSort(table) {
     const ths = table.querySelectorAll('thead th');
     ths.forEach((th, i) => {
@@ -1937,9 +1928,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 5. تحديد صف + تحديد الكل
   function enableSelect(table) {
-    // ركن تحديد الكل
     const headRow = table.querySelector('thead tr');
     if (headRow &&!headRow.querySelector('.select-all')) {
       const th = document.createElement('th');
@@ -1970,9 +1959,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.head.appendChild(s);
     }
   }
-
 })();
-
 
 
 </script>
