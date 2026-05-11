@@ -253,17 +253,18 @@ html, body, .tab-content, .card {
 
     
 /* الجدول الرئيسي */
+/* الجدول */
 table {
   display: block;
   width: 100%;
   border-collapse: collapse;
   margin-top: 12px;
   font-size: 12px;
-  overflow-x: auto;
+  overflow-x: auto;      /* سكرول افقي للجدول */
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-x; /* سحب افقي فقط للجدول */
-  overscroll-behavior-x: contain; /* يمنع سحب الكرت */
+  touch-action: pan-x;   /* سحب افقي فقط */
+  overscroll-behavior-x: contain;
 }
 
 /* الهيدر والجسم والصفوف */
@@ -281,9 +282,10 @@ thead {
 }
 
 tbody {
-  max-height: calc(3 * 34px);
-  overflow-y: auto;
+  max-height: calc(4 * 34px); /* 4 صفوف ظاهرة */
+  overflow-y: auto;           /* سكرول راسي للجدول */
   overflow-x: hidden;
+  touch-action: pan-y;        /* السحب العمودي جوا الجدول */
 }
 
 /* الخلايا */
@@ -303,7 +305,6 @@ th {
   font-weight: 600;
 }
 
-/* التحديد */
 tbody tr.selected {
   background: rgba(37, 211, 102, 0.25) !important;
 }
@@ -316,7 +317,8 @@ table.table-selected {
 /* اقفل السحب الافقي على الكرت والصفحة */
 html, body, .tab-content, .card {
   overflow-x: hidden;
-  touch-action: pan-y; /* عمودي فقط للكرت */
+  touch-action: pan-y; 
+  overscroll-behavior-x: none; /* يمنع المطاطية الافقية */
 }
     
     
@@ -1835,10 +1837,15 @@ document.querySelectorAll('.subtabs').forEach(sub => {
 });
 
 
-document.querySelectorAll('table').forEach(tbl => {
-  tbl.addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
-});
 
+
+
+
+// يمنع الجدول يجر الكرت معه لما تسحب افقي
+document.querySelectorAll('table, tbody').forEach(el => {
+  el.addEventListener('touchstart', e => e.stopPropagation(), { passive: true });
+  el.addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
+});
 }); // نهاية DOMContentLoaded
 </script>
 
