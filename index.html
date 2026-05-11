@@ -2704,14 +2704,12 @@ function initMatchTab() {
   const matchTbody = document.querySelector('#matchTable tbody');
   if (!matchDate || !matchTbody || !matchSelect) return;
 
-  // لا تبني الصفوف ولا تعبي القائمة هنا، الدوال القديمة بتسويها
-  broadcastCurrencies();
-  
+  buildMatchRows(); // هنا تناديها
   matchDate.value = getToday();
-  loadMatchList(matchDate.value); // استدعاء للدالة الموجودة فوق
+  loadMatchList(matchDate.value);
 
   matchDate.onchange = () => loadMatchList(matchDate.value);
-  document.getElementById('btnLoadMatch').onclick = loadSelectedMatch; // استدعاء للدالة الموجودة فوق
+  document.getElementById('btnLoadMatch').onclick = loadSelectedMatch;
   document.getElementById('btnRunMatch').onclick = runMatch;
 }
 
@@ -2764,6 +2762,34 @@ async function runMatch() {
   matchSelect.value = nextNum;
   alert(`تمت المطابقة والحفظ - رقم ${nextNum}`);
 }
+
+
+
+function buildMatchRows() {
+  const matchTbody = document.querySelector('#matchTable tbody');
+  if (!matchTbody) return;
+  
+  matchTbody.innerHTML = '';
+  
+  for (let i = 0; i < 5; i++) {
+    // الترتيب: العملة | الرصيد الفعلي | رصيد النظام | نتيجة المطابقة
+    matchTbody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td><select class="matchCur" data-role="currency"></select></td>
+        <td><input type="number" class="matchActual" step="0.01" placeholder="0"></td>
+        <td><input type="number" class="matchSys" readonly></td>
+        <td class="matchResult"></td>
+      </tr>
+    `);
+  }
+  
+  // عبي القوائم المنسدلة بالعملات بعد ما تنبني الصفوف
+  broadcastCurrencies();
+}
+
+
+
+
 
 </script>
 
