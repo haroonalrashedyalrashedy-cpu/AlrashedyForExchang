@@ -270,34 +270,37 @@
     
     
     
-    
-    
-    /* 1. منع السحب الافقي للكروت والمحتوى */
-.tab-content, .card, body {
-  overflow-x: hidden; /* يوقف السحب يمين يسار */
-  overflow-y: auto;   /* يخلي السحب عمودي شغال */
+    /* 1. اقفل السحب الافقي على الصفحة والكروت نهائياً */
+html, body, .tab-content, .card {
+  overflow-x: hidden;
+  touch-action: pan-y; /* يسمح بسحب عمودي فقط */
 }
 
-/* 2. خلي التبويبات فقط هي اللي تسحب افقي */
+/* 2. التبويبات الرئيسية والفرعية تسحب افقي بس */
 .tabs, .subtabs {
-  overflow-x: auto; 
+  overflow-x: auto;
   overflow-y: hidden;
-  -webkit-overflow-scrolling: touch; /* سحب ناعم بالجوال */
+  -webkit-overflow-scrolling: touch;
   white-space: nowrap;
+  touch-action: pan-x; /* يسمح بسحب افقي فقط */
+  overscroll-behavior-x: contain; /* يمنع سحب الاب لما توصل للاخير */
 }
 
-/* 3. خلي الجدول هو اللي يسحب افقي لو عريض، بدون ما يسحب الكرت كامل */
+/* 3. الجدول يسحب افقي داخلياً لو عريض، بدون ما يجر الكرت */
 table {
   display: block;
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x; /* السحب الافقي للجدول فقط */
 }
 table thead, table tbody, table tr {
   display: table;
   width: 100%;
   table-layout: fixed;
 }
+    
+
     
     
     
@@ -1807,6 +1810,15 @@ document.addEventListener('DOMContentLoaded', () => {
     observer.observe(tbody, { childList: true, subtree: true });
   });
   window.addEventListener('resize', () => setTimeout(autoSizeTableColumns, 200));
+
+
+
+document.querySelectorAll('.subtabs').forEach(sub => {
+  sub.addEventListener('touchmove', e => e.stopPropagation(), { passive: true });
+});
+
+
+
 
 }); // نهاية DOMContentLoaded
 </script>
