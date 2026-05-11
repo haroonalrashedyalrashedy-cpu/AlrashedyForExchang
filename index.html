@@ -2296,9 +2296,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-// ===== كود تبويب الحسابات - كامل ونهائي =====
-document.addEventListener('DOMContentLoaded', () => {
-
+// ===== كود تبويب الحسابات - معدل =====
+(function initAccountsTab() {
   const ACC_PATH = 'accounts';
   const CURRENCIES = ["يمني", "سعودي شبكة", "سعودي نقد", "دولار", "يورو"];
 
@@ -2324,36 +2323,36 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnActivateAcc = document.getElementById('btnActivateAcc');
   const btnDeleteAcc = document.getElementById('btnDeleteAcc');
 
-  // 1. تحميل الحسابات لحظي وتعبئة كل القوائم
-  function loadAccounts() {
-    onValue(ref(db, ACC_PATH), (snap) => {
-      const data = snap.val() || {};
+  // 1. تحميل الحسابات لحظي - استدعاء فقط لو مش موجودة
+  if (typeof loadAccounts === 'function') {
+    loadAccounts();
+  } else {
+    function loadAccounts() {
+      onValue(ref(db, ACC_PATH), (snap) => {
+        const data = snap.val() || {};
+        const selects = [viewAccSelect, editAccSelect, deleteAccSelect, depositAccount, withdrawAccount];
 
-      // كل القوائم اللي لازم تتحدث تلقائي
-      const selects = [viewAccSelect, editAccSelect, deleteAccSelect, depositAccount, withdrawAccount];
+        selects.forEach(sel => {
+          if (!sel) return;
+          const currentVal = sel.value;
+          sel.innerHTML = '<option value="">ابحث واختر الحساب</option>';
 
-      selects.forEach(sel => {
-        if (!sel) return;
-        const currentVal = sel.value;
-        sel.innerHTML = '<option value="">ابحث واختر الحساب</option>';
+          Object.entries(data).forEach(([id, acc]) => {
+            if (acc.active === false && (sel.id === 'depositAccount' || sel.id === 'withdrawAccount')) {
+              return;
+            }
+            const status = acc.active === false? ' [موقف]' : '';
+            sel.innerHTML += `<option value="${id}">${acc.name} - ${acc.phone || ''}${status}</option>`;
+          });
 
-        Object.entries(data).forEach(([id, acc]) => {
-          // في الإيداع والصرف لا تعرض الحسابات الموقوفة
-          if (acc.active === false && (sel.id === 'depositAccount' || sel.id === 'withdrawAccount')) {
-            return;
-          }
-
-          const status = acc.active === false? ' [موقف]' : '';
-          sel.innerHTML += `<option value="${id}">${acc.name} - ${acc.phone || ''}${status}</option>`;
+          if (data[currentVal]) sel.value = currentVal;
         });
-
-        // رجع القيمة القديمة لو لسه موجودة
-        if (data[currentVal]) sel.value = currentVal;
       });
-    });
+    }
+    loadAccounts();
   }
 
-  // 2. تبويب انشاء: حفظ حساب جديد
+  // 2. انشاء حساب جديد
   btnCreateAcc?.addEventListener('click', async () => {
     const name = accName.value.trim();
     const phone = accPhone.value.trim();
@@ -2374,9 +2373,7 @@ document.addEventListener('DOMContentLoaded', () => {
       currencies: {}
     };
 
-    currencies.forEach(cur => {
-      accData.currencies[cur] = 0;
-    });
+    currencies.forEach(cur => accData.currencies[cur] = 0);
 
     await set(ref(db, `${ACC_PATH}/${accId}`), accData);
 
@@ -2386,7 +2383,7 @@ document.addEventListener('DOMContentLoaded', () => {
     alert(`تم انشاء الحساب "${name}" بنجاح`);
   });
 
-  // 3. تبويب عرض: عرض الرصيد التراكمي
+  // 3. عرض الرصيد
   btnViewAcc?.addEventListener('click', async () => {
     const accId = viewAccSelect.value;
     const tbody = document.querySelector('#accBalanceTable tbody');
@@ -2401,13 +2398,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let hasData = false;
     CURRENCIES.forEach(cur => {
-      const balance = acc.currencies?.[cur] || 0;
       if (acc.currencies?.[cur]!== undefined) {
         hasData = true;
         tbody.innerHTML += `
           <tr>
             <td>${cur}</td>
-            <td>${balance.toFixed(2)}</td>
+            <td>${(acc.currencies[cur] || 0).toFixed(2)}</td>
           </tr>
         `;
       }
@@ -2424,7 +2420,7 @@ document.addEventListener('DOMContentLoaded', () => {
     viewAccSelect.value = '';
   });
 
-  // 4. تبويب تعديل: تحميل بيانات الحساب عند الاختيار
+  // 4. تعديل الحساب
   editAccSelect?.addEventListener('change', async () => {
     const accId = editAccSelect.value;
     if (!accId) return;
@@ -2455,13 +2451,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!snap.exists()) { alert('الحساب غير موجود'); return; }
 
     const oldData = snap.val();
-    const updateData = {
-      name,
-      phone,
-      currencies: {}
-    };
+    const updateData = { name, phone, currencies: {} };
 
-    // حافظ على الارصدة القديمة للعملات الموجودة
     currencies.forEach(cur => {
       updateData.currencies[cur] = oldData.currencies?.[cur] || 0;
     });
@@ -2470,7 +2461,7 @@ document.addEventListener('DOMContentLoaded', () => {
     alert('تم حفظ التعديل بنجاح');
   });
 
-  // 5. تبويب ايقاف/حذف
+  // 5. ايقاف / تفعيل / حذف
   btnSuspendAcc?.addEventListener('click', async () => {
     const accId = deleteAccSelect.value;
     if (!accId) { alert('اختر الحساب'); return; }
@@ -2516,35 +2507,7 @@ document.addEventListener('DOMContentLoaded', () => {
     alert('تم حذف الحساب نهائياً');
   });
 
-  // 6. دوال مساعدة للعمليات المالية
-  window.getAccountBalance = async (accId, currency) => {
-    const snap = await get(ref(db, `${ACC_PATH}/${accId}/currencies/${currency}`));
-    return snap.val() || 0;
-  };
-
-  window.updateAccountBalance = async (accId, currency, amount) => {
-    const current = await window.getAccountBalance(accId, currency);
-    const newVal = current + amount;
-    if (newVal < 0) throw new Error(`رصيد الحساب ${currency} لا يسمح بالسالب`);
-    await update(ref(db, `${ACC_PATH}/${accId}/currencies`), { [currency]: newVal });
-    return newVal;
-  };
-
-  window.isAccountActive = async (accId) => {
-    const snap = await get(ref(db, `${ACC_PATH}/${accId}`));
-    if (!snap.exists()) return false;
-    const acc = snap.val();
-    if (acc.active === false) {
-      alert(`الحساب موقف\nالسبب: ${acc.suspendReason || 'بدون سبب'}`);
-      return false;
-    }
-    return true;
-  };
-
-  // شغل التحميل اول ما يفتح
-  loadAccounts();
-});
-
+})(); // نهاية IIFE
 
 
 
