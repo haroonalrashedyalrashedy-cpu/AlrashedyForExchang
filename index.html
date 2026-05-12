@@ -2691,13 +2691,6 @@ document.addEventListener('DOMContentLoaded', () => {
       sel.innerHTML = '<option value="">ابحث واختر الحساب</option>';
 
       Object.entries(data).forEach(([id, acc]) => {
-        // اخفي الحساب الموقوف من الإيداع والصرف فقط
-        const isTxnSelect = sel.id === 'depositAccount' || sel.id === 'withdrawAccount';
-        if (acc.active === false && isTxnSelect) {
-          return;
-        }
-
-        // ضيف [موقف] و خلي الخيار رمادي ومعطل في القوائم الثانية
         const isInactive = acc.active === false;
         const status = isInactive? ' [موقف]' : '';
         const disabledAttr = isInactive? 'disabled style="color:#999"' : '';
@@ -2708,7 +2701,11 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       // رجع الاختيار القديم لو لسه موجود
-      if (data[currentVal]) sel.value = currentVal;
+      if (data[currentVal] && data[currentVal].active!== false) {
+        sel.value = currentVal;
+      } else {
+        sel.value = '';
+      }
     });
   });
 }
