@@ -3428,6 +3428,7 @@ document.getElementById('btnSaveColors')?.addEventListener('click', async () => 
 
 
 // ===== عرض الرصيد فقط =====
+// ===== عرض الرصيد فقط =====
 async function viewEmployeeBalance() {
   const empUsername = document.getElementById('matchEmpSelect').value;
   const currency = document.getElementById('matchCurrencySelect').value;
@@ -3444,7 +3445,8 @@ async function viewEmployeeBalance() {
 
   try {
     const empId = empUsername;
-    const snap = await get(ref(db, `${ACCOUNTS_PATH}/${empId}/currencies`));
+    // استخدم 'accounts' مباشرة بدل ACCOUNTS_PATH
+    const snap = await get(ref(db, `accounts/${empId}/currencies`));
     const allCurrBals = snap.val() || {};
 
     // حدد العملات
@@ -3455,7 +3457,7 @@ async function viewEmployeeBalance() {
       return;
     }
 
-    // خفي عمودين "رصيد الواقع" و "النتيجة" عشان ما يظهرو
+    // خفي عمودين "رصيد الواقع" و "النتيجة"
     thead.children[2].style.display = 'none';
     thead.children[3].style.display = 'none';
 
@@ -3476,11 +3478,11 @@ async function viewEmployeeBalance() {
 
   } catch (e) {
     tbody.innerHTML = `<tr><td colspan="4">خطأ: ${e.message}</td></tr>`;
+    console.error(e);
   }
 }
 
 document.getElementById('btnViewBalance')?.addEventListener('click', viewEmployeeBalance);
-
 
 
 
