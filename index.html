@@ -1455,18 +1455,17 @@ btnLogin?.addEventListener('click', async () => {
   window.currentRole = user.role;
   loginScreen.classList.remove('active');
 
-  if (currentRole === 'admin') {
-    adminScreen.classList.add('active');
-    document.getElementById('adminName').textContent = user.name;
-    document.getElementById('adminRole').textContent = 'مدير';
-    closeAllTabsOnLogin();
-    
-    
-    
-    
-  } else {
-    alert('واجهة الموظف لسه ما جهزت');
-  }
+  // حمل صلاحيات الموظف قبل ما تفتح الشاشة
+  await loadUserPerms(username);
+
+  adminScreen.classList.add('active');
+  document.getElementById('adminName').textContent = user.name;
+  document.getElementById('adminRole').textContent = currentRole === 'admin' ? 'مدير' : 'موظف';
+  
+  // طبق الصلاحيات واخفي التبويبات
+  renderTabsByPerms();
+  closeAllTabsOnLogin();
+
   passwordInput.value = '';
 });
 
