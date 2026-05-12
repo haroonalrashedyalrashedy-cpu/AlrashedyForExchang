@@ -2806,9 +2806,53 @@ function buildMatchRows() {
   
   // عبي القوائم المنسدلة بالعملات بعد ما تنبني الصفوف
   broadcastCurrencies();
+  attachMatchListeners();
 }
 
+// يحسب نتيجة المطابقة لحظياً عند الكتابة
+function attachMatchListeners() {
+  const matchTbody = document.querySelector('#matchTable tbody');
+  if (!matchTbody) return;
 
+  matchTbody.addEventListener('input', async (e) => {
+    if (!e.target.classList.contains('matchActual')) return;
+
+    const tr = e.target.closest('tr');
+    const cur = tr.querySelector('.matchCur').value;
+    const actual = parseFloat(e.target.value) || 0;
+    const sysInput = tr.querySelector('.matchSys');
+    const resultTd = tr.querySelector('.matchResult');
+
+    if (!cur) {
+      sysInput.value = '';
+      resultTd.textContent = '';
+      resultTd.className = 'matchResult';
+      return;
+    }
+
+    try {
+      // نستخدم دالة الرصيد الموجودة عندك
+      const sysVal = await getSystemBalance(cur) || 0;
+      const result = actual - sysVal;
+
+      sysInput.value = sysVal;
+      resultTd.textContent = result.toFixed(2);
+      resultTd.className = 'matchResult ' + (result === 0 ? 'zero' : result > 0 ? 'pos' : 'neg');
+    } catch (err) {
+      sysInput.value = 0;
+      resultTd.textContent = 'خطأ';
+      resultTd.className = 'matchResult neg';
+    }
+  });
+
+  // لما يغير العملة نعيد الحساب لو فيه رقم مكتوب
+  matchTbody.addEventListener('change', async (e) => {
+    if (!e.target.classList.contains('matchCur')) return;
+    const tr = e.target.closest('tr');
+    const input = tr.querySelector('.matchActual');
+    if (input.value) input.dispatchEvent(new Event('input'));
+  });
+}
 
 
 
