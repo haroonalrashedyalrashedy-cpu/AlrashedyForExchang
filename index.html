@@ -1411,49 +1411,44 @@ function hasPerm(key) {
 function renderTabsByPerms() {
   const all = document.querySelectorAll('.tabs.tab,.tab-content,.subtabs,.card');
 
-  // ادمن: امسح inline style + فعل الكل
   if (window.currentRole === 'admin') {
     all.forEach(el => {
-      el.style.removeProperty('display');
-      el.classList.add('active'); // خلي CSS يظهره
+      if(el) el.style.removeProperty('display');
+      if(el) el.classList.add('active');
     });
-    setupTabClickHandlers(); // ★★★ اضافة جديدة ★★★
+    setupTabClickHandlers();
     return;
   }
 
-  // موظف: اخفي الكل اول وشيل active
+  // اخفي الكل
   all.forEach(el => {
-    el.style.display = 'none';
-    el.classList.remove('active');
+    if(el) {
+      el.style.display = 'none';
+      el.classList.remove('active');
+    }
   });
 
-  // اظهر المسموح فقط
+  // اظهر التبويبات المسموحة
   const showTab = (tabName, perm) => {
     if (!hasPerm(perm)) return;
     const tab = document.querySelector(`.tab[data-tab="${tabName}"]`);
-    // const content = document.getElementById(tabName); // ★★★ عطّل هذا السطر ★★★
-    if (tab) {
-      tab.style.removeProperty('display');
-      // tab.classList.add('active'); // ★★★ عطّل هذا السطر ★★★
-    }
-    // if (content) { // ★★★ عطّل هذا البلوك كامل ★★★
-    // content.style.removeProperty('display');
-    // content.classList.add('active');
-    // }
+    if (tab) tab.style.removeProperty('display');
   };
 
   showTab('operations', 'permOperat');
   showTab('transfers', 'permTrans');
   showTab('accounts', 'permAcc');
   showTab('employees', 'employEd');
-  showTab('matchs', 'permMach'); // ★★★ اضافة جديدة ★★★
-  showTab('permissions', 'permPerms'); // ★★★ اضافة جديدة ★★★
+  showTab('matchs', 'permMach');
+  showTab('permissions', 'permPerms');
 
-  setupTabClickHandlers(); // ★★★ اضافة جديدة ★★★
+  setupTabClickHandlers();
 
-  // فعل اول تبويب ظاهر تلقائياً ★★★ اضافة جديدة ★★★
-  const firstVisible = document.querySelector('.tabs.tab:not([style*="display: none"])');
-  if(firstVisible) firstVisible.click();
+  // ★★★ التعديل المهم: انتظر شوي قبل ما تضغط ★★★
+  setTimeout(() => {
+    const firstVisible = document.querySelector('.tabs.tab:not([style*="display: none"])');
+    if(firstVisible) firstVisible.click();
+  }, 100); // 100 ملي ثانية بس
 }
 
 
