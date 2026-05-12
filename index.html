@@ -2788,8 +2788,9 @@ async function runMatch() {
   if (btn) btn.disabled = true;
 
   try {
-    const date = document.getElementById('matchDate').value || new Date().toISOString().split('T')[0];
+    const date = document.getElementById('matchDate').value || getToday();
     const matchTbody = document.querySelector('#matchTable tbody');
+    const matchSelect = document.getElementById('matchSelect');
     if (!matchTbody) return;
 
     const rows = [];
@@ -2810,16 +2811,15 @@ async function runMatch() {
 
       hasData = true;
 
-      // جيب رصيد النظام مباشرة من Firebase بدون ما تعتمد على getSystemBalance
-      const snap = await get(ref(db, `systemBalance/${cur}`));
-      const sysVal = snap.val() || 0;
-
+      // هنا التعديل: شيل .uid
+      const sysVal = await calcSystemBalanceForMatch(currentUser, cur);
+      
       const result = actual - sysVal;
 
       sysInput.value = sysVal.toFixed(2);
       resultTd.textContent = result.toFixed(2);
-      resultTd.className = 'matchResult ' + (result === 0? 'zero' : result > 0? 'pos' : 'neg');
-
+      resultTd.className = 'matchResult ' + (result === 0 ? 'zero' : result > 0 ? 'pos' : 'neg');
+      
       rows.push({ cur, actual, sys: sysVal, result });
     }
 
@@ -2828,19 +2828,18 @@ async function runMatch() {
       return;
     }
 
-    // احفظ المطابقة
-    const snap = await get(ref(db, `matches/${date}`));
+    const snap = await get(ref(db, `${MATCH_PATH}/${date}`));
     const existing = snap.val() || {};
     const nextNum = Object.keys(existing).length + 1;
 
-    await set(ref(db, `matches/${date}/${nextNum}`), {
+    await set(ref(db, `${MATCH_PATH}/${date}/${nextNum}`), {
       rows,
       createdAt: Date.now()
     });
 
+    await loadMatchList(date);
+    matchSelect.value = nextNum;
     alert(`تمت المطابقة والحفظ - رقم ${nextNum}`);
-    document.getElementById('matchSelect').innerHTML += `<option value="${nextNum}">مطابقة ${nextNum}</option>`;
-    document.getElementById('matchSelect').value = nextNum;
 
   } catch (err) {
     console.error(err);
@@ -2849,6 +2848,9 @@ async function runMatch() {
     if (btn) btn.disabled = false;
   }
 }
+
+
+
 
 // الحساب اللحظي عند الكتابة وتغيير العملة
 function attachMatchListeners() {
@@ -2897,6 +2899,32 @@ async function calcRowResult(tr) {
     resultTd.className = 'matchResult neg';
   }
 }
+
+
+
+
+
+
+async function calcSystemBalanceForMatch(userId, currency) {
+  const snap = await get(ref(db, 'transactions'));
+  if (!snap.exists()) return 0;
+
+  let balance = 0;
+  const data = Object.values(snap.val());
+  
+  data.forEach(d => {
+    // تجاهل لو مش نفس المستخدم والعملة
+    if (d.userId !== userId || d.currency !== currency) return;
+    
+    // قبض وشراء = زيادة
+    if (d.type === 'deposit' || d.type === 'buy') balance += parseFloat(d.amount) || 0;
+    // صرف وبيع = نقص
+    if (d.type === 'withdraw' || d.type === 'sell') balance -= parseFloat(d.amount) || 0;
+  });
+  
+  return balance;
+}
+
 
 
 
