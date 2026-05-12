@@ -1387,16 +1387,16 @@ function hasPerm(key) {
 
 // 4. دالة اخفاء التبويبات حسب الصلاحية
 function renderTabsByPerms() {
-  // لو ادمن اظهر كل شي واخرج
+  // لو ادمن، اظهر كل شي واخرج فوراً
   if (window.currentRole === 'admin') {
-    document.querySelectorAll('.tabs.tab,.tab-content,.subtabs,.card')
-     .forEach(el => el.style.display = '');
+    document.querySelectorAll('.tabs.tab, .tab-content, .subtabs, .card')
+    .forEach(el => el.style.display = '');
     return;
   }
 
-  // اخفي الكل اول
-  document.querySelectorAll('.tabs.tab,.tab-content,.subtabs,.card')
-   .forEach(el => el.style.display = 'none');
+  // لو موظف، اخفي الكل اول
+  document.querySelectorAll('.tabs.tab, .tab-content, .subtabs, .card')
+  .forEach(el => el.style.display = 'none');
 
   // اظهر التبويبات المسموحه فقط
   if (hasPerm('permOperat')) {
@@ -1411,11 +1411,19 @@ function renderTabsByPerms() {
     document.querySelector('.tab[data-tab="accounts"]').style.display = '';
     document.getElementById('accounts').style.display = 'block';
   }
+  if (hasPerm('employEd')) {
+    document.querySelector('.tab[data-tab="employees"]').style.display = '';
+    document.getElementById('employees').style.display = 'block';
+  }
 
   // افتح اول تبويب ظاهر
   const first = document.querySelector('.tabs.tab:not([style*="display: none"])');
   if (first) first.click();
 }
+
+
+
+
 
 
 // المتغيرات
@@ -1517,6 +1525,11 @@ btnLogin?.addEventListener('click', async () => {
 
   // حمل صلاحيات الموظف قبل ما تفتح الشاشة
   await loadUserPerms(username);
+
+
+renderTabsByPerms();
+
+
 
   adminScreen.classList.add('active');
   document.getElementById('adminName').textContent = user.name;
