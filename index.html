@@ -1626,12 +1626,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. حط الديف مباشرة في الكارد، لا تخليه داخل .row
     card.insertAdjacentHTML('afterbegin', `
+     
       <div id="rateLogFilter">
+       <div class="row-inline">
         <input type="date" id="rateLogFrom">
         <input type="date" id="rateLogTo">
         <button id="btnRateLogFilter">فلترة</button>
         <button id="btnRateLogClear">مسح</button>
+     </div>
       </div>
+      
     `);
 
     // 3. الكود حقك العادي
@@ -2229,7 +2233,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function addDateFiltersToTables() {
   const tables = ['buyTable', 'sellTable', 'depositTable', 'withdrawTable', 
                   'sendTable', 'RecTable', 'payTable', 'accBalanceTable', 
-                  'rateLogTable', 'matchTable'];
+                  'rateLogTable'];
 
   tables.forEach(id => {
     const table = document.getElementById(id);
@@ -2240,10 +2244,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterDiv = document.createElement('div');
     filterDiv.className = 'dateFilter row';
     filterDiv.innerHTML = `
+       <div class="row-inline">
       <input type="date" id="${id}From" placeholder="من">
       <input type="date" id="${id}To" placeholder="الى">
       <button id="${id}Filter">فلترة</button>
-      <button id="${id}Today">اليوم</button>
+      <button id="${id}Today">اليوم</button> </div>
     `;
 
     // التعديل هنا: نتأكد ان الجدول ابن للكارد قبل insertBefore
