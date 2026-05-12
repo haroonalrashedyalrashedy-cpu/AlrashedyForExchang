@@ -1912,14 +1912,23 @@ document.addEventListener('DOMContentLoaded', () => {
       const select = document.getElementById(selId);
       if (!select) return;
       const currentVal = select.value;
+
+      // رتب: المفعلة اول، الموقفة اخر
+      const sortedAccounts = Object.entries(accounts).sort((a, b) => {
+        const aInactive = a[1].active === false? 1 : 0;
+        const bInactive = b[1].active === false? 1 : 0;
+        return aInactive - bInactive;
+      });
+
       select.innerHTML = '<option value="">اختر الحساب</option>';
 
-      Object.entries(accounts).forEach(([id, acc]) => {
+      sortedAccounts.forEach(([id, acc]) => {
         const isInactive = acc.active === false;
         const status = isInactive? ' [موقف]' : '';
-        const disabledAttr = isInactive? 'disabled style="color:#999"' : '';
+        const styleAttr = isInactive? 'style="color:#999"' : '';
 
-        select.innerHTML += `<option value="${id}" ${disabledAttr}>
+        // شلت disabled عشان تقدر تختاره وتلغي الايقاف
+        select.innerHTML += `<option value="${id}" ${styleAttr}>
           ${acc.name} - ${acc.phone || ''}${status}
         </option>`;
       });
@@ -1929,7 +1938,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 }
 
-  document.getElementById('btnSaveDeposit')?.addEventListener('click', async () => {
+  
+document.getElementById('btnSaveDeposit')?.addEventListener('click', async () => {
     const accId = document.getElementById('depositAccount').value;
     const amount = parseFloat(document.getElementById('depositAmount').value);
     const currency = document.getElementById('depositCurrency').value;
@@ -1939,6 +1949,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (amount <= 0) { alert('المبلغ لازم يكون أكبر من صفر'); return; }
     if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
     if (btn.disabled) return;
+
+    // فحص حالة الحساب
+    const accSnap = await get(ref(db, `${ACCOUNTS_PATH}/${accId}`));
+    const acc = accSnap.val();
+    if (!acc) { alert('الحساب غير موجود'); return; }
+    if (acc.active === false) { alert('لا يمكن الايداع، الحساب موقف'); return; }
+
     btn.disabled = true;
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
     try {
@@ -1984,7 +2001,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () => {
+document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () => {
     const accId = document.getElementById('withdrawAccount').value;
     const amount = parseFloat(document.getElementById('withdrawAmount').value);
     const currency = document.getElementById('withdrawCurrency').value;
@@ -1994,6 +2011,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (amount <= 0) { alert('المبلغ لازم يكون أكبر من صفر'); return; }
     if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
     if (btn.disabled) return;
+
+    // فحص حالة الحساب
+    const accSnap = await get(ref(db, `${ACCOUNTS_PATH}/${accId}`));
+    const acc = accSnap.val();
+    if (!acc) { alert('الحساب غير موجود'); return; }
+    if (acc.active === false) { alert('لا يمكن السحب، الحساب موقف'); return; }
+
     btn.disabled = true;
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
     try {
@@ -2042,6 +2066,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }, {onlyOnce: true});
     });
   }
+  
   listenAccounts();
   listenDepositOps();
   listenWithdrawOps();
