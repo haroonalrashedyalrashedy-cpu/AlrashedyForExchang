@@ -1111,9 +1111,12 @@ table.table-selected {
 
 
 
-// كود عرض الأخطاء على الشاشة - DevTools للجوال
+
+// كود عرض الأخطاء + ايقونة DevTools قابلة للسحب
 (function() {
+  // 1. صندوق الأخطاء
   const errBox = document.createElement('div');
+  errBox.id = 'mobileDevConsole';
   errBox.style.cssText = `
     position: fixed;
     bottom: 0;
@@ -1134,8 +1137,87 @@ table.table-selected {
   function showErr(msg) {
     errBox.style.display = 'block';
     errBox.innerHTML += `<div>${msg}</div>`;
+    errBox.scrollTop = errBox.scrollHeight;
   }
 
+  // 2. الايقونة العائمة القابلة للسحب
+  const fab = document.createElement('div');
+  fab.id = 'devtoolsFab';
+  fab.innerHTML = '🐞';
+  fab.style.cssText = `
+    position: fixed;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #ff3b30;
+    color: #fff;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100000;
+    bottom: 20px;
+    right: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    touch-action: none;
+    user-select: none;
+  `;
+  document.body.appendChild(fab);
+
+  // 3. فتح واغلاق الكونسول
+  fab.addEventListener('click', () => {
+    errBox.style.display = errBox.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // 4. السحب على الجوال والكمبيوتر
+  let isDragging = false;
+  let startX, startY, startLeft, startTop;
+
+  fab.addEventListener('touchstart', e => {
+    isDragging = true;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    const rect = fab.getBoundingClientRect();
+    startLeft = rect.left;
+    startTop = rect.top;
+    e.preventDefault();
+  });
+
+  fab.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    fab.style.left = `${startLeft + dx}px`;
+    fab.style.top = `${startTop + dy}px`;
+    fab.style.right = 'auto';
+    fab.style.bottom = 'auto';
+  });
+
+  fab.addEventListener('touchend', () => { isDragging = false; });
+
+  fab.addEventListener('mousedown', e => {
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    const rect = fab.getBoundingClientRect();
+    startLeft = rect.left;
+    startTop = rect.top;
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    fab.style.left = `${startLeft + dx}px`;
+    fab.style.top = `${startTop + dy}px`;
+    fab.style.right = 'auto';
+    fab.style.bottom = 'auto';
+  });
+
+  document.addEventListener('mouseup', () => { isDragging = false; });
+
+  // 5. مسك الأخطاء
   window.onerror = function(msg, src, line, col, error) {
     showErr(`ERROR: ${msg}<br>Line: ${line} | File: ${src.split('/').pop()}`);
     return false;
@@ -1145,12 +1227,17 @@ table.table-selected {
     showErr(`PROMISE ERROR: ${e.reason}`);
   });
 
+  window.originalLog = console.log;
   console.log = (...args) => {
     showErr(`LOG: ${args.join(' ')}`);
     window.originalLog && window.originalLog(...args);
   };
-  window.originalLog = console.log;
 })();
+
+
+
+
+
 
 
 
@@ -2071,13 +2158,18 @@ document.addEventListener('DOMContentLoaded', () => {
       <button id="${id}Filter">فلترة</button>
       <button id="${id}Today">اليوم</button>
     `;
-    card.insertBefore(filterDiv, table);
+
+    // التعديل هنا: نتأكد ان الجدول ابن للكارد قبل insertBefore
+    if (table.parentNode === card) {
+      card.insertBefore(filterDiv, table);
+    } else {
+      card.appendChild(filterDiv);
+    }
 
     const today = getToday();
     document.getElementById(`${id}From`).value = today;
     document.getElementById(`${id}To`).value = today;
     
-    // السطرين اللي أضفناهم:
     document.getElementById(`${id}Filter`).onclick = () => filterTable(id);
     document.getElementById(`${id}Today`).onclick = () => {
       document.getElementById(`${id}From`).value = today;
@@ -2085,7 +2177,6 @@ document.addEventListener('DOMContentLoaded', () => {
       filterTable(id);
     };
 
-    // السطر المهم: نادي الفلترة أول ما يفتح عشان يجيب حق اليوم
     filterTable(id);
   });
 }
