@@ -3536,71 +3536,7 @@ document.getElementById('btnSaveColors')?.addEventListener('click', async () => 
 // ===== عرض الرصيد فقط =====
 // ===== عرض الرصيد فقط =====
 // ===== عرض الرصيد =====
-async function viewEmployeeBalance() {
-  const empUsername = document.getElementById('matchEmpSelect').value;
-  const currency = document.getElementById('matchCurrencySelect').value;
-  const table = document.getElementById('matchsTables');
-  const thead = table.querySelector('thead tr');
-  const tbody = table.querySelector('tbody');
 
-  if (!empUsername) {
-    alert('اختر الموظف أولاً');
-    return;
-  }
-
-  tbody.innerHTML = '<tr><td colspan="4">جاري التحميل...</td></tr>';
-
-  try {
-    const empId = empUsername;
-    const snap = await get(ref(db, `accounts/${empId}/currencies`));
-    const allCurrBals = snap.val() || {};
-
-    let currenciesToShow = currency? [currency] : Object.keys(allCurrBals);
-
-    if (currenciesToShow.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4">لا يوجد أرصدة مسجلة</td></tr>';
-      return;
-    }
-
-    thead.children[2].style.display = 'none';
-    thead.children[3].style.display = 'none';
-
-    let rows = '';
-    for (const cur of currenciesToShow) {
-      const bal = allCurrBals[cur] || 0;
-      rows += `
-        <tr>
-          <td>${cur}</td>
-          <td>${bal.toFixed(2)}</td>
-          <td style="display:none;"></td>
-          <td style="display:none;"></td>
-        </tr>
-      `;
-    }
-    tbody.innerHTML = rows;
-
-  } catch (e) {
-    tbody.innerHTML = `<tr><td colspan="4">خطأ: ${e.message}</td></tr>`;
-  }
-}
-
-document.getElementById('btnViewBalance')?.addEventListener('click', viewEmployeeBalance);
-
-// ===== اضافة الادمن بدون ما نلمس loadEmployees =====
-setTimeout(() => {
-  const matchEmpSelect = document.getElementById('matchEmpSelect');
-  if (matchEmpSelect &&!matchEmpSelect.querySelector('option[value="هارون الراشدي"]')) {
-    get(ref(db, 'users/هارون الراشدي')).then(snap => {
-      if (snap.exists()) {
-        const admin = snap.val();
-        const status = admin.active === false? ' [موقف]' : '';
-        matchEmpSelect.innerHTML += `<option value="هارون الراشدي" data-status="${admin.active}">
-          هارون الراشدي [مدير]${status}
-        </option>`;
-      }
-    });
-  }
-}, 1500);
 
 
 
