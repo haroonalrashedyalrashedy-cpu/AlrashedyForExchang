@@ -632,6 +632,29 @@ table.table-selected {
 
 
 
+
+:root {
+  --accent: #25d366;
+  --bg-card: #111b21;
+}
+
+header, .header {
+  background: var(--accent) !important;
+}
+
+button, .btn, input[type="submit"], .btn-primary {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+.card {
+  background: var(--bg-card) !important;
+}
+
+
+
+
+
   </style>
 </head>
 
@@ -1845,7 +1868,7 @@ document.addEventListener('DOMContentLoaded', () => {
       Object.values(data).reverse().forEach(op => {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td>
-          <td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+          <td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
         tbody.appendChild(tr);
       });
     });
@@ -1896,7 +1919,7 @@ document.addEventListener('DOMContentLoaded', () => {
       Object.values(data).reverse().forEach(op => {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td>
-          <td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+          <td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
         tbody.appendChild(tr);
       });
     });
@@ -1994,7 +2017,7 @@ document.getElementById('btnSaveDeposit')?.addEventListener('click', async () =>
           const accName = accounts[op.accountId]?.name || 'محذوف';
           const tr = document.createElement('tr');
           tr.innerHTML = `<td>${accName}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td>
-            <td>${op.depositor}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+            <td>${op.depositor}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
           tbody.appendChild(tr);
         });
       }, {onlyOnce: true});
@@ -2060,7 +2083,7 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
           const accName = accounts[op.accountId]?.name || 'محذوف';
           const tr = document.createElement('tr');
           tr.innerHTML = `<td>${accName}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td>
-            <td>${op.receiver}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+            <td>${op.receiver}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
           tbody.appendChild(tr);
         });
       }, {onlyOnce: true});
@@ -2135,7 +2158,7 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
           <td>${op.receiver}</td>
           <td>${op.sender}</td>
           <td>${op.type}</td>
-          <td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>
+          <td>${new Date(op.time).toLocaleString('ar-EG')}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -2226,7 +2249,7 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
           <td>${op.receiver}</td>
           <td>${op.sender}</td>
           <td>${op.type}</td>
-          <td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>
+          <td>${new Date(op.time).toLocaleString('ar-EG')}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -2294,7 +2317,7 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
           <td>${op.currency}</td>
           <td>${op.receiver}</td>
           <td>${op.type}</td>
-          <td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>
+          <td>${new Date(op.time).toLocaleString('ar-EG')}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -2400,13 +2423,13 @@ async function filterTable(tableId) {
     const tr = document.createElement('tr');
 
     if (tableId === 'payTable') {
-      tr.innerHTML = `<td>${op.number}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.receiver}</td><td>${op.type}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+      tr.innerHTML = `<td>${op.number}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.receiver}</td><td>${op.type}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
     } else if (tableId === 'buyTable' || tableId === 'sellTable') {
-      tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td><td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+      tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td><td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
     } else if (tableId === 'depositTable' || tableId === 'withdrawTable') {
-      tr.innerHTML = `<td>${op.accountId}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td><td>${op.depositor || op.receiver}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+      tr.innerHTML = `<td>${op.accountId}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td><td>${op.depositor || op.receiver}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
     } else if (tableId === 'sendTable' || tableId === 'RecTable') {
-      tr.innerHTML = `<td>${op.number}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.receiver}</td><td>${op.sender}</td><td>${op.type}</td><td>${new Date(op.time).toLocaleTimeString('ar-EG')}</td>`;
+      tr.innerHTML = `<td>${op.number}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.receiver}</td><td>${op.sender}</td><td>${op.type}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
     }
     tbody.appendChild(tr);
   }
@@ -2993,6 +3016,56 @@ obs.observe(document.body, { childList: true, subtree: true });
 
 
 
+const SETTINGS_PATH = 'app/settings'; // مسار الاعدادات في قاعدة البيانات
+
+// تحميل الاعدادات وتطبيقها لحظيًا
+function listenSettings() {
+  onValue(ref(db, SETTINGS_PATH), (snap) => {
+    const settings = snap.val() || {};
+    const accent = settings.accent || '#25d366';
+    const bgCard = settings.bgCard || '#111b21';
+
+    // طبّق على الـ CSS Variables
+    document.documentElement.style.setProperty('--accent', accent);
+    document.documentElement.style.setProperty('--bg-card', bgCard);
+
+    // حدّث قيم الـ color picker عشان تظهر نفس اللون عند الكل
+    const colorAccent = document.getElementById('colorAccent');
+    const colorBg = document.getElementById('colorBg');
+    if (colorAccent) colorAccent.value = accent;
+    if (colorBg) colorBg.value = bgCard;
+  });
+}
+listenSettings();
+
+// حفظ الالوان عند الضغط
+document.getElementById('btnSaveColors')?.addEventListener('click', async () => {
+  const accent = document.getElementById('colorAccent').value;
+  const bgCard = document.getElementById('colorBg').value;
+  const btn = document.getElementById('btnSaveColors');
+
+  btn.disabled = true;
+  try {
+    await set(ref(db, SETTINGS_PATH), {
+      accent: accent,
+      bgCard: bgCard,
+      updatedBy: window.currentUser || 'مجهول',
+      updatedAt: Date.now()
+    });
+    alert('تم حفظ الالوان بنجاح');
+  } catch (e) {
+    alert('فشل الحفظ: ' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+
+
+
+
+
+
 
 // ===== كود المطابقة - لا يتعارض مع الكود القديم =====
 // ===== كود المطابقة - يشتغل لما تفتح التبويب =====
@@ -3002,6 +3075,12 @@ obs.observe(document.body, { childList: true, subtree: true });
 // ===== كود المطابقة - نسخة شغالة 100% =====
 // ===== كود المطابقة - نسخة آمنة ما توقف الموقع =====
 // ===== كود المطابقة - نسخة ما توقف الموقع =====
+
+
+
+
+
+
 
 
 
