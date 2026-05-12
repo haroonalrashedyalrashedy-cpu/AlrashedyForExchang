@@ -1116,32 +1116,41 @@ table.table-selected {
 // كود عرض الأخطاء + ايقونة DevTools قابلة للسحب
 
 (function() {
-  // 1. صندوق الأخطاء - بالنص
+  // احذف اي صندوق قديم لو موجود
+  const oldBox = document.getElementById('mobileDevConsole');
+  if (oldBox) oldBox.remove();
+  
+  const oldFab = document.getElementById('devtoolsFab');
+  if (oldFab) oldFab.remove();
+
+  // 1. صندوق الأخطاء - بالنص غصب
   const errBox = document.createElement('div');
   errBox.id = 'mobileDevConsole';
-  errBox.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 92%;
-    max-width: 600px;
-    max-height: 60vh;
-    overflow-y: auto;
-    background: #000;
-    color: #ff5555;
-    font: 12px/1.4 monospace;
-    padding: 12px;
-    z-index: 2147483647;
-    border: 2px solid red;
-    border-radius: 8px;
-    display: none;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-  `;
+  errBox.setAttribute('style', `
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    bottom: auto !important;
+    right: auto !important;
+    width: 92% !important;
+    max-width: 600px !important;
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+    background: #000 !important;
+    color: #ff5555 !important;
+    font: 12px/1.4 monospace !important;
+    padding: 12px !important;
+    z-index: 2147483647 !important;
+    border: 2px solid red !important;
+    border-radius: 8px !important;
+    display: none !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6) !important;
+  `);
   document.body.appendChild(errBox);
 
   function showErr(msg) {
-    errBox.style.display = 'block';
+    errBox.style.setProperty('display', 'block', 'important');
     errBox.innerHTML += `<div>${msg}</div>`;
     errBox.scrollTop = errBox.scrollHeight;
   }
@@ -1150,35 +1159,36 @@ table.table-selected {
   const fab = document.createElement('div');
   fab.id = 'devtoolsFab';
   fab.innerHTML = '🐞';
-  fab.style.cssText = `
-    position: fixed;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: #ff3b30;
-    color: #fff;
-    font-size: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2147483647;
-    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-    right: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    touch-action: none;
-    user-select: none;
-  `;
+  fab.setAttribute('style', `
+    position: fixed !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;
+    background: #ff3b30 !important;
+    color: #fff !important;
+    font-size: 22px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    z-index: 2147483647 !important;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 20px !important;
+    top: auto !important;
+    left: auto !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+    touch-action: none !important;
+    user-select: none !important;
+  `);
   document.body.appendChild(fab);
 
-  // 3. فتح واغلاق مع تمييز السحب عن الضغط
+  // 3. فتح واغلاق
   let isDragging = false;
   let moved = 0;
   let startX, startY, startLeft, startTop;
 
   function toggleConsole() {
-    errBox.style.display = errBox.style.display === 'none' || errBox.style.display === '' 
-      ? 'block' 
-      : 'none';
+    const isHidden = errBox.style.display === 'none' || errBox.style.display === '';
+    errBox.style.setProperty('display', isHidden ? 'block' : 'none', 'important');
   }
 
   fab.addEventListener('click', () => {
@@ -1202,10 +1212,10 @@ table.table-selected {
     moved = Math.abs(dx) + Math.abs(dy);
     if (moved > 5) {
       isDragging = true;
-      fab.style.left = `${startLeft + dx}px`;
-      fab.style.top = `${startTop + dy}px`;
-      fab.style.right = 'auto';
-      fab.style.bottom = 'auto';
+      fab.style.setProperty('left', `${startLeft + dx}px`, 'important');
+      fab.style.setProperty('top', `${startTop + dy}px`, 'important');
+      fab.style.setProperty('right', 'auto', 'important');
+      fab.style.setProperty('bottom', 'auto', 'important');
     }
   });
 
@@ -1213,7 +1223,7 @@ table.table-selected {
     setTimeout(() => { isDragging = false; }, 50);
   });
 
-  // 5. السحب بالماوس للكمبيوتر
+  // 5. السحب بالماوس
   fab.addEventListener('mousedown', e => {
     isDragging = false;
     moved = 0;
@@ -1230,10 +1240,10 @@ table.table-selected {
     moved = Math.abs(e.clientX - startX) + Math.abs(e.clientY - startY);
     if (moved > 5) {
       isDragging = true;
-      fab.style.left = `${startLeft + (e.clientX - startX)}px`;
-      fab.style.top = `${startTop + (e.clientY - startY)}px`;
-      fab.style.right = 'auto';
-      fab.style.bottom = 'auto';
+      fab.style.setProperty('left', `${startLeft + (e.clientX - startX)}px`, 'important');
+      fab.style.setProperty('top', `${startTop + (e.clientY - startY)}px`, 'important');
+      fab.style.setProperty('right', 'auto', 'important');
+      fab.style.setProperty('bottom', 'auto', 'important');
     }
   });
 
