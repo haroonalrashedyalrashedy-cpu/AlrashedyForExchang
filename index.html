@@ -592,83 +592,7 @@ table.table-selected {
 
 
 
-/* خلي الجدول ثابت على 5 صفوف */
-.table-wrap {
-  border: 2px solid #d97706;
-  border-radius: 8px;
-  overflow: hidden; /* نخفي السكرول الخارجي */
-}
 
-#matchTable {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 15px;
-  color: #fff;
-  table-layout: fixed; /* يثبت عرض الاعمدة */
-}
-
-/* ثبّت الهيدر فوق */
-#matchTable thead {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-  background: #000;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-}
-
-/* الجسم يسكرول لوحده */
-#matchTable tbody {
-  display: block;
-  max-height: calc(5 * 38px); /* 5 صفوف * ارتفاع الصف */
-  overflow-y: auto;
-  overflow-x: hidden;
-  width: 100%;
-}
-
-/* الصفوف لازم تكون table عشان الاعمدة تضبط */
-#matchTable tbody tr {
-  display: table;
-  width: 100%;
-  table-layout: fixed;
-}
-
-#matchTable th,
-#matchTable td {
-  padding: 8px 6px;
-  text-align: center;
-  height: 38px; /* ارتفاع ثابت للصف */
-  box-sizing: border-box;
-}
-
-#matchTable td {
-  background: #3a4049;
-  border: 1px solid #2a2f38;
-}
-
-#matchTable select,
-#matchTable input {
-  width: 100%;
-  height: 100%; /* ياخذ ارتفاع الخلية */
-  background: #3a4049;
-  border: 1px solid #555;
-  border-radius: 6px;
-  color: #fff;
-  text-align: center;
-  font-size: 15px;
-  box-sizing: border-box;
-}
-
-#matchTable select option {
-  background: #3a4049;
-  color: #fff;
-}
-
-/* سكرول انعم على الجوال */
-#matchTable tbody {
-  -webkit-overflow-scrolling: touch;
-}
 
 
 
@@ -1868,6 +1792,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const today = getToday();
     const tbody = document.querySelector('#buyTable tbody');
     if (!tbody) return;
+    tbody.innerHTML = '';
     onValue(ref(db, `${OPS_PATH}/${today}/buy`), (snap) => {
       tbody.innerHTML = '';
       const data = snap.val();
