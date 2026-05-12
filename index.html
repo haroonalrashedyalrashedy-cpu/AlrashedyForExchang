@@ -1576,14 +1576,44 @@ document.addEventListener('DOMContentLoaded', () => {
   function initRateLogFilter() {
     const card = document.querySelector('#permissions.card:has(#rateLogTable)');
     if (!card || document.getElementById('rateLogFilter')) return;
+    
     card.insertAdjacentHTML('afterbegin', `
-      <div id="rateLogFilter" class="row" style="margin-bottom:8px">
+      <div id="rateLogFilter" class="rate-log-filter">
         <input type="date" id="rateLogFrom">
         <input type="date" id="rateLogTo">
         <button id="btnRateLogFilter">فلترة</button>
         <button id="btnRateLogClear">مسح</button>
       </div>
+      
+      <style>
+        .rate-log-filter {
+          display: flex;
+          flex-wrap: nowrap; /* ممنوع ينزل سطر ثاني */
+          gap: 4px;
+          margin-bottom: 8px;
+          align-items: center;
+          width: 100%;
+          overflow: hidden;
+        }
+        
+        .rate-log-filter input[type="date"],
+        .rate-log-filter button {
+          flex: 1 1 0; /* يتقلصون ويتمددون بنفس النسبة */
+          min-width: 0; /* مهم عشان يقدر يصغر تحت حجم المحتوى */
+          font-size: clamp(10px, 2.2vw, 13px);
+          padding: 4px 6px;
+          height: 32px;
+          box-sizing: border-box;
+        }
+        
+        .rate-log-filter button {
+          flex: 0 0 auto; /* الزر ما يتقلص كثير، يبقى بحجم النص */
+          padding: 4px 8px;
+          white-space: nowrap;
+        }
+      </style>
     `);
+    
     document.getElementById('rateLogFrom').value = getToday();
     document.getElementById('rateLogTo').value = getToday();
     document.getElementById('btnRateLogFilter').onclick = () => loadRateLogs();
@@ -1593,7 +1623,7 @@ document.addEventListener('DOMContentLoaded', () => {
       loadRateLogs();
     };
     loadRateLogs();
-  }
+}
   async function loadRateLogs() {
     const from = document.getElementById('rateLogFrom')?.value || getToday();
     const to = document.getElementById('rateLogTo')?.value || getToday();
