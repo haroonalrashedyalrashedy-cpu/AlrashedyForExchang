@@ -2920,25 +2920,28 @@ obs.observe(document.body, { childList: true, subtree: true });
 // ===== كود المطابقة - نسخة معزولة تشتغل 100% =====
 // ===== كود المطابقة - نسخة شغالة 100% =====
 // ===== كود المطابقة - نسخة آمنة ما توقف الموقع =====
+// ===== كود المطابقة - نسخة ما توقف الموقع =====
 (function() {
   const MATCH_PATH = 'matches';
+  let matchInitDone = false;
 
   const getTodayLocal = () => new Date().toISOString().split('T')[0];
 
-  let matchInitDone = false;
+  // لا تشغل اي شي الحين. انتظر لما المستخدم يضغط تبويب المطابقة
+  document.querySelector('[data-tab="matchs"], [data-tab="matches"]')?.addEventListener('click', initOnce);
 
-  document.querySelector('[data-tab="matchs"], [data-tab="matches"]')?.addEventListener('click', () => {
-    if (!matchInitDone) {
-      initMatchTab();
-      matchInitDone = true;
-    }
-  });
+  function initOnce() {
+    if (matchInitDone) return;
+    matchInitDone = true;
+    initMatchTab();
+  }
 
   function initMatchTab() {
-    // تحقق من Firebase بدون ما توقف الكود كله
+    // تحقق من Firebase هنا فقط، وبعد الضغط على التبويب
     const fb = window.firebaseApp;
     if (!fb ||!fb.db) {
-      console.error('[Match] Firebase مش جاهز. تأكد من تهيئة window.firebaseApp قبل هذا الكود');
+      console.error('[Match] Firebase مش جاهز. شغل المطابقة بعد ما يتهيأ Firebase');
+      alert('Firebase لسه ما اشتغل. حاول بعد ثانية');
       return;
     }
 
@@ -2946,7 +2949,10 @@ obs.observe(document.body, { childList: true, subtree: true });
     const matchDate = document.getElementById('matchDate');
     const matchSelect = document.getElementById('matchSelect');
     const matchTbody = document.querySelector('#matchTable tbody');
-    if (!matchDate ||!matchTbody ||!matchSelect) return;
+    if (!matchDate ||!matchTbody ||!matchSelect) {
+      console.error('[Match] عناصر HTML ناقصة');
+      return;
+    }
 
     buildMatchRows();
     fillCurrencySelects();
@@ -2955,7 +2961,7 @@ obs.observe(document.body, { childList: true, subtree: true });
 
     matchDate.onchange = () => loadMatchList(db, ref, get, matchDate.value);
     document.getElementById('btnLoadMatch')?.onclick = () => loadSelectedMatch(db, ref, get);
-    document.getElementById('btnRunMatch')?.addEventListener('click', () => runMatch(db, ref, get, set));
+    document.getElementById('btnRunMatch')?.onclick = () => runMatch(db, ref, get, set);
 
     if (!window.matchListenersAttached) {
       attachMatchListeners();
@@ -2966,7 +2972,6 @@ obs.observe(document.body, { childList: true, subtree: true });
   function buildMatchRows() {
     const matchTbody = document.querySelector('#matchTable tbody');
     if (!matchTbody) return;
-
     matchTbody.innerHTML = '';
     for (let i = 0; i < 5; i++) {
       matchTbody.insertAdjacentHTML('beforeend', `
@@ -3020,7 +3025,6 @@ obs.observe(document.body, { childList: true, subtree: true });
       const snap = await get(ref(db, `${MATCH_PATH}/${date}/${num}`));
       const match = snap.val();
       if (!match) return;
-
       buildMatchRows();
       match.rows.forEach((row, i) => {
         const tr = matchTbody.children[i];
@@ -3040,11 +3044,9 @@ obs.observe(document.body, { childList: true, subtree: true });
   function attachMatchListeners() {
     const matchTbody = document.querySelector('#matchTable tbody');
     if (!matchTbody) return;
-
     matchTbody.addEventListener('input', (e) => {
       if (e.target.classList.contains('matchActual')) calcRowResult(e.target.closest('tr'));
     });
-
     matchTbody.addEventListener('change', (e) => {
       if (e.target.classList.contains('matchCur') && e.target.closest('tr').querySelector('.matchActual').value) {
         calcRowResult(e.target.closest('tr'));
@@ -3057,10 +3059,8 @@ obs.observe(document.body, { childList: true, subtree: true });
     try {
       const snap = await get(ref(db, 'transactions'));
       if (!snap.exists()) return 0;
-
       let balance = 0;
-      const data = snap.val() || {};
-      Object.values(data).forEach(d => {
+      Object.values(snap.val() || {}).forEach(d => {
         if (d.userId!== userId || d.currency!== currency) return;
         if (d.type === 'deposit' || d.type === 'buy') balance += parseFloat(d.amount) || 0;
         if (d.type === 'withdraw' || d.type === 'sell') balance -= parseFloat(d.amount) || 0;
@@ -3075,19 +3075,16 @@ obs.observe(document.body, { childList: true, subtree: true });
   async function calcRowResult(tr) {
     const fb = window.firebaseApp;
     if (!fb) return;
-
     const cur = tr.querySelector('.matchCur').value;
     const actual = parseFloat(tr.querySelector('.matchActual').value) || 0;
     const sysInput = tr.querySelector('.matchSys');
     const resultTd = tr.querySelector('.matchResult');
-
     if (!cur) {
       sysInput.value = '';
       resultTd.textContent = '';
       resultTd.className = 'matchResult';
       return;
     }
-
     const sysVal = await calcSystemBalanceForMatch(fb.db, fb.ref, fb.get, window.currentUser, cur);
     const result = actual - sysVal;
     sysInput.value = sysVal.toFixed(2);
@@ -3098,13 +3095,11 @@ obs.observe(document.body, { childList: true, subtree: true });
   async function runMatch(db, ref, get, set) {
     const btn = document.getElementById('btnRunMatch');
     if (btn) btn.disabled = true;
-
     try {
       if (!window.currentUser) {
         alert('لازم تسجل دخول اول');
         return;
       }
-
       const date = document.getElementById('matchDate').value || getTodayLocal();
       const matchTbody = document.querySelector('#matchTable tbody');
       const matchSelect = document.getElementById('matchSelect');
@@ -3118,18 +3113,15 @@ obs.observe(document.body, { childList: true, subtree: true });
         const actual = parseFloat(tr.querySelector('.matchActual')?.value) || 0;
         const sysInput = tr.querySelector('.matchSys');
         const resultTd = tr.querySelector('.matchResult');
-
         if (!cur || actual === 0) {
           sysInput.value = '';
           resultTd.textContent = '';
           resultTd.className = 'matchResult';
           continue;
         }
-
         hasData = true;
         const sysVal = await calcSystemBalanceForMatch(db, ref, get, window.currentUser, cur);
         const result = actual - sysVal;
-
         sysInput.value = sysVal.toFixed(2);
         resultTd.textContent = result.toFixed(2);
         resultTd.className = 'matchResult ' + (result === 0? 'zero' : result > 0? 'pos' : 'neg');
@@ -3144,12 +3136,10 @@ obs.observe(document.body, { childList: true, subtree: true });
       const snap = await get(ref(db, `${MATCH_PATH}/${date}`));
       const existing = snap.val() || {};
       const nextNum = Object.keys(existing).length + 1;
-
       await set(ref(db, `${MATCH_PATH}/${date}/${nextNum}`), { rows, createdAt: Date.now() });
       await loadMatchList(db, ref, get, date);
       matchSelect.value = nextNum;
       alert(`تمت المطابقة والحفظ - رقم ${nextNum}`);
-
     } catch (err) {
       console.error('[Match] runMatch error:', err);
       alert('خطأ: ' + err.message);
@@ -3158,7 +3148,6 @@ obs.observe(document.body, { childList: true, subtree: true });
     }
   }
 })();
-
 
 
 
