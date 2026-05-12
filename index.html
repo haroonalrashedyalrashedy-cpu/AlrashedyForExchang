@@ -1576,7 +1576,50 @@ document.addEventListener('DOMContentLoaded', () => {
   function initRateLogFilter() {
     const card = document.querySelector('#permissions.card:has(#rateLogTable)');
     if (!card || document.getElementById('rateLogFilter')) return;
-    
+
+    // 1. حط الستايل في الهيد مرة وحدة عشان يغلب كل الستايلات الثانية
+    if (!document.getElementById('rateLogFilterStyle')) {
+        const s = document.createElement('style');
+        s.id = 'rateLogFilterStyle';
+        s.textContent = `
+          #rateLogFilter {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            gap: 4px !important;
+            margin-bottom: 8px !important;
+            width: 100% !important;
+          }
+          #rateLogFilter input,
+          #rateLogFilter button {
+            all: unset !important; /* يلغي width: 100% و min-width: 100% */
+            box-sizing: border-box !important;
+            height: 32px !important;
+            font-size: 12px !important;
+            text-align: center !important;
+            border-radius: 6px !important;
+          }
+          #rateLogFilter input[type="date"] {
+            flex: 1 1 0 !important; /* يتمدد ويتقلص */
+            min-width: 0 !important;
+            width: 0 !important; /* يخليه يتقلص بقوة */
+            background: var(--bg-panel) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--border-color) !important;
+            padding: 0 4px !important;
+          }
+          #rateLogFilter button {
+            flex: 0 0 auto !important; /* ما يتقلص */
+            background: var(--accent-green) !important;
+            color: var(--bg-dark) !important;
+            font-weight: 600 !important;
+            padding: 0 8px !important;
+            white-space: nowrap !important;
+          }
+        `;
+        document.head.appendChild(s);
+    }
+
+    // 2. حط الديف مباشرة في الكارد، لا تخليه داخل .row
     card.insertAdjacentHTML('afterbegin', `
       <div id="rateLogFilter">
         <input type="date" id="rateLogFrom">
@@ -1584,55 +1627,9 @@ document.addEventListener('DOMContentLoaded', () => {
         <button id="btnRateLogFilter">فلترة</button>
         <button id="btnRateLogClear">مسح</button>
       </div>
-      
-      <style>
-        #rateLogFilter {
-          display: flex !important;
-          flex-direction: row !important;
-          flex-wrap: nowrap !important;
-          gap: 4px !important;
-          margin-bottom: 8px !important;
-          align-items: stretch !important;
-          width: 100% !important;
-        }
-        
-        #rateLogFilter input[type="date"],
-        #rateLogFilter button {
-          all: unset !important; /* يلغي ستايل input, button العام */
-          box-sizing: border-box !important;
-          background: var(--bg-panel) !important;
-          color: var(--text-primary) !important;
-          border: 1px solid var(--border-color) !important;
-          border-radius: 6px !important;
-          font-size: clamp(10px, 2.2vw, 13px) !important;
-          height: 32px !important;
-          padding: 0 6px !important;
-          text-align: center !important;
-        }
-        
-        #rateLogFilter input[type="date"] {
-          flex: 1 1 0 !important;
-          min-width: 0 !important;
-          width: 0 !important; /* يخليه يتقلص بقوة */
-        }
-        
-        #rateLogFilter button {
-          flex: 0 0 auto !important;
-          background: var(--accent-green) !important;
-          color: var(--bg-dark) !important;
-          font-weight: 600 !important;
-          padding: 0 10px !important;
-          white-space: nowrap !important;
-          cursor: pointer !important;
-        }
-        
-        #rateLogFilter button:active {
-          opacity: 0.8 !important;
-          transform: scale(0.98) !important;
-        }
-      </style>
     `);
-    
+
+    // 3. الكود حقك العادي
     document.getElementById('rateLogFrom').value = getToday();
     document.getElementById('rateLogTo').value = getToday();
     document.getElementById('btnRateLogFilter').onclick = () => loadRateLogs();
