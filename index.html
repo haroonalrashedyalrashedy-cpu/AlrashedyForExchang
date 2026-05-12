@@ -1113,6 +1113,7 @@ table.table-selected {
 
 
 // كود عرض الأخطاء + ايقونة DevTools قابلة للسحب
+// كود عرض الأخطاء + ايقونة DevTools قابلة للسحب
 (function() {
   // 1. صندوق الأخطاء
   const errBox = document.createElement('div');
@@ -1140,7 +1141,7 @@ table.table-selected {
     errBox.scrollTop = errBox.scrollHeight;
   }
 
-  // 2. الايقونة العائمة القابلة للسحب
+  // 2. الايقونة العائمة
   const fab = document.createElement('div');
   fab.id = 'devtoolsFab';
   fab.innerHTML = '🐞';
@@ -1164,39 +1165,53 @@ table.table-selected {
   `;
   document.body.appendChild(fab);
 
-  // 3. فتح واغلاق الكونسول
-  fab.addEventListener('click', () => {
-    errBox.style.display = errBox.style.display === 'none' ? 'block' : 'none';
-  });
-
-  // 4. السحب على الجوال والكمبيوتر
+  // 3. فتح واغلاق مع تمييز السحب عن الضغط
   let isDragging = false;
+  let moved = 0;
   let startX, startY, startLeft, startTop;
 
+  function toggleConsole() {
+    errBox.style.display = errBox.style.display === 'none' || errBox.style.display === '' 
+      ? 'block' 
+      : 'none';
+  }
+
+  fab.addEventListener('click', () => {
+    if (!isDragging && moved < 5) toggleConsole();
+  });
+
+  // 4. السحب لمس
   fab.addEventListener('touchstart', e => {
-    isDragging = true;
+    isDragging = false;
+    moved = 0;
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
     const rect = fab.getBoundingClientRect();
     startLeft = rect.left;
     startTop = rect.top;
-    e.preventDefault();
   });
 
   fab.addEventListener('touchmove', e => {
-    if (!isDragging) return;
     const dx = e.touches[0].clientX - startX;
     const dy = e.touches[0].clientY - startY;
-    fab.style.left = `${startLeft + dx}px`;
-    fab.style.top = `${startTop + dy}px`;
-    fab.style.right = 'auto';
-    fab.style.bottom = 'auto';
+    moved = Math.abs(dx) + Math.abs(dy);
+    if (moved > 5) {
+      isDragging = true;
+      fab.style.left = `${startLeft + dx}px`;
+      fab.style.top = `${startTop + dy}px`;
+      fab.style.right = 'auto';
+      fab.style.bottom = 'auto';
+    }
   });
 
-  fab.addEventListener('touchend', () => { isDragging = false; });
+  fab.addEventListener('touchend', () => {
+    setTimeout(() => { isDragging = false; }, 50);
+  });
 
+  // 5. السحب بالماوس للكمبيوتر
   fab.addEventListener('mousedown', e => {
-    isDragging = true;
+    isDragging = false;
+    moved = 0;
     startX = e.clientX;
     startY = e.clientY;
     const rect = fab.getBoundingClientRect();
@@ -1206,18 +1221,22 @@ table.table-selected {
   });
 
   document.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    fab.style.left = `${startLeft + dx}px`;
-    fab.style.top = `${startTop + dy}px`;
-    fab.style.right = 'auto';
-    fab.style.bottom = 'auto';
+    if (moved < 5 && e.buttons !== 1) return;
+    moved = Math.abs(e.clientX - startX) + Math.abs(e.clientY - startY);
+    if (moved > 5) {
+      isDragging = true;
+      fab.style.left = `${startLeft + (e.clientX - startX)}px`;
+      fab.style.top = `${startTop + (e.clientY - startY)}px`;
+      fab.style.right = 'auto';
+      fab.style.bottom = 'auto';
+    }
   });
 
-  document.addEventListener('mouseup', () => { isDragging = false; });
+  document.addEventListener('mouseup', () => {
+    setTimeout(() => { isDragging = false; }, 50);
+  });
 
-  // 5. مسك الأخطاء
+  // 6. مسك الأخطاء
   window.onerror = function(msg, src, line, col, error) {
     showErr(`ERROR: ${msg}<br>Line: ${line} | File: ${src.split('/').pop()}`);
     return false;
