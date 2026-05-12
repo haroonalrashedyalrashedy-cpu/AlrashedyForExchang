@@ -1366,38 +1366,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// المتغيرات
-window.currentUser = null;
-window.currentRole = null;
-
-// عناصر الصفحة
-const loginScreen = document.getElementById('loginScreen');
-const adminScreen = document.getElementById('adminScreen');
-const userSelect = document.getElementById('userSelect');
-const userList = document.getElementById('userList');
-const dropdownOverlay = document.getElementById('dropdownOverlay');
-const passwordInput = document.getElementById('passwordInput');
-const btnLogin = document.getElementById('btnLogin');
-const togglePass = document.getElementById('togglePass');
-const btnLogoutAdmin = document.getElementById('btnLogoutAdmin');
-
-// 1. انشاء الادمن مرة وحدة عند التحميل
-async function createAdminIfMissing() {
-  const adminRef = ref(db, 'users/هارون الراشدي');
-  const snap = await get(adminRef);
-  if (!snap.exists()) {
-    await set(adminRef, {
-      password: "123",
-      role: "admin",
-      name: "هارون الراشدي",
-      active: true
-    });
-  }
-}
-createAdminIfMissing();
-
-
-
+window.db = db;
 
 // 1. مسار الصلاحيات
 const PERMS_PATH = 'perms';
@@ -1447,6 +1416,42 @@ function renderTabsByPerms() {
   const first = document.querySelector('.tabs.tab:not([style*="display: none"])');
   if (first) first.click();
 }
+
+
+// المتغيرات
+window.currentUser = null;
+window.currentRole = null;
+
+// عناصر الصفحة
+const loginScreen = document.getElementById('loginScreen');
+const adminScreen = document.getElementById('adminScreen');
+const userSelect = document.getElementById('userSelect');
+const userList = document.getElementById('userList');
+const dropdownOverlay = document.getElementById('dropdownOverlay');
+const passwordInput = document.getElementById('passwordInput');
+const btnLogin = document.getElementById('btnLogin');
+const togglePass = document.getElementById('togglePass');
+const btnLogoutAdmin = document.getElementById('btnLogoutAdmin');
+
+// 1. انشاء الادمن مرة وحدة عند التحميل
+async function createAdminIfMissing() {
+  const adminRef = ref(db, 'users/هارون الراشدي');
+  const snap = await get(adminRef);
+  if (!snap.exists()) {
+    await set(adminRef, {
+      password: "123",
+      role: "admin",
+      name: "هارون الراشدي",
+      active: true
+    });
+  }
+}
+createAdminIfMissing();
+
+
+
+
+
 
 
 
