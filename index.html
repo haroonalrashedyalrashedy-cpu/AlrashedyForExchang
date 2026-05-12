@@ -1123,7 +1123,7 @@ table.table-selected {
   const oldFab = document.getElementById('devtoolsFab');
   if (oldFab) oldFab.remove();
 
-  // 1. صندوق الأخطاء - بالنص غصب
+  // 1. صندوق الأخطاء - بالنص وبحجم ثابت
   const errBox = document.createElement('div');
   errBox.id = 'mobileDevConsole';
   errBox.setAttribute('style', `
@@ -1135,6 +1135,8 @@ table.table-selected {
     right: auto !important;
     width: 92% !important;
     max-width: 600px !important;
+    height: 60vh !important;
+    min-height: 200px !important;
     max-height: 60vh !important;
     overflow-y: auto !important;
     background: #000 !important;
@@ -1181,7 +1183,7 @@ table.table-selected {
   `);
   document.body.appendChild(fab);
 
-  // 3. فتح واغلاق
+  // 3. فتح واغلاق مع تمييز السحب عن الضغط
   let isDragging = false;
   let moved = 0;
   let startX, startY, startLeft, startTop;
@@ -1223,7 +1225,7 @@ table.table-selected {
     setTimeout(() => { isDragging = false; }, 50);
   });
 
-  // 5. السحب بالماوس
+  // 5. السحب بالماوس للكمبيوتر
   fab.addEventListener('mousedown', e => {
     isDragging = false;
     moved = 0;
