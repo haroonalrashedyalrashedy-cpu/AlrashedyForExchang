@@ -655,6 +655,27 @@ button, .btn, input[type="submit"], .btn-primary {
 
 
 
+
+
+
+
+
+
+.tab-content, .subtabs, .card { 
+  display: none; 
+}
+.tab-content.active, .subtabs.active, .card.active { 
+  display: block; 
+}
+.tabs.tab.active { 
+  display: inline-block; 
+}
+
+
+
+
+
+
   </style>
 </head>
 
@@ -1389,34 +1410,42 @@ function hasPerm(key) {
 
 
 function renderTabsByPerms() {
-  // لو ادمن، اظهر كل شي واخرج فوراً
+  const all = document.querySelectorAll('.tabs.tab, .tab-content, .subtabs, .card');
+  
+  // ادمن: امسح inline style + فعل الكل
   if (window.currentRole === 'admin') {
-    document.querySelectorAll('.tabs.tab, .tab-content, .subtabs, .card')
-    .forEach(el => el.style.removeProperty('display'));
+    all.forEach(el => {
+      el.style.removeProperty('display');
+      el.classList.add('active'); // خلي CSS يظهره
+    });
     return;
   }
 
-  // لو موظف، اخفي الكل اول
-  document.querySelectorAll('.tabs.tab, .tab-content, .subtabs, .card')
-  .forEach(el => el.style.display = 'none');
+  // موظف: اخفي الكل اول وشيل active
+  all.forEach(el => {
+    el.style.display = 'none';
+    el.classList.remove('active');
+  });
 
-  // اظهر التبويبات المسموحه فقط
-  if (hasPerm('permOperat')) {
-    document.querySelector('.tab[data-tab="operations"]').style.removeProperty('display');
-    document.getElementById('operations').style.removeProperty('display');
-  }
-  if (hasPerm('permTrans')) {
-    document.querySelector('.tab[data-tab="transfers"]').style.removeProperty('display');
-    document.getElementById('transfers').style.removeProperty('display');
-  }
-  if (hasPerm('permAcc')) {
-    document.querySelector('.tab[data-tab="accounts"]').style.removeProperty('display');
-    document.getElementById('accounts').style.removeProperty('display');
-  }
-  if (hasPerm('employEd')) {
-    document.querySelector('.tab[data-tab="employees"]').style.removeProperty('display');
-    document.getElementById('employees').style.removeProperty('display');
-  }
+  // اظهر المسموح فقط
+  const showTab = (tabName, perm) => {
+    if (!hasPerm(perm)) return;
+    const tab = document.querySelector(`.tab[data-tab="${tabName}"]`);
+    const content = document.getElementById(tabName);
+    if (tab) {
+      tab.style.removeProperty('display');
+      tab.classList.add('active');
+    }
+    if (content) {
+      content.style.removeProperty('display');
+      content.classList.add('active');
+    }
+  };
+
+  showTab('operations', 'permOperat');
+  showTab('transfers', 'permTrans');
+  showTab('accounts', 'permAcc');
+  showTab('employees', 'employEd');
 }
 
 
@@ -1545,9 +1574,12 @@ btnLogoutAdmin?.addEventListener('click', () => {
   window.currentRole = null;
   window.userPerms = {}; 
 
-  // امسح display العالق من جلسة الموظف
+  // امسح inline + active عشان تبدأ نظيف
   document.querySelectorAll('.tabs.tab, .tab-content, .subtabs, .card')
-    .forEach(el => el.style.removeProperty('display'));
+    .forEach(el => {
+      el.style.removeProperty('display');
+      el.classList.remove('active');
+    });
 
   adminScreen.classList.remove('active');
   loginScreen.classList.add('active');
