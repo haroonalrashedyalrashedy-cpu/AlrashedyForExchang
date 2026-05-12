@@ -2696,6 +2696,7 @@ obs.observe(document.body, { childList: true, subtree: true });
 
 // ===== كود المطابقة - لا يتعارض مع الكود القديم =====
 // ===== كود المطابقة - يشتغل لما تفتح التبويب =====
+// ===== كود المطابقة - نظيف بدون تعارض =====
 const MATCH_PATH = 'matches';
 let matchInitDone = false;
 
@@ -2712,16 +2713,75 @@ function initMatchTab() {
   const matchTbody = document.querySelector('#matchTable tbody');
   if (!matchDate || !matchTbody || !matchSelect) return;
 
-  buildMatchRows(); // هنا تناديها
+  buildMatchRows();
   matchDate.value = getToday();
   loadMatchList(matchDate.value);
 
   matchDate.onchange = () => loadMatchList(matchDate.value);
   document.getElementById('btnLoadMatch').onclick = loadSelectedMatch;
   document.getElementById('btnRunMatch').onclick = runMatch;
+
+  // اربط الحساب اللحظي مرة وحدة بس
+  if (!window.matchListenersAttached) {
+    attachMatchListeners();
+    window.matchListenersAttached = true;
+  }
 }
 
-// خليت runMatch بس، لانها الوحيدة اللي تحتاج تعديل عشان تستخدم getSystemBalance
+function buildMatchRows() {
+  const matchTbody = document.querySelector('#matchTable tbody');
+  if (!matchTbody) return;
+  
+  matchTbody.innerHTML = '';
+  
+  for (let i = 0; i < 5; i++) {
+    matchTbody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td><select class="matchCur" data-role="currency"></select></td>
+        <td><input type="number" class="matchActual" step="0.01" placeholder="0" inputmode="decimal"></td>
+        <td><input type="number" class="matchSys" readonly tabindex="-1"></td>
+        <td class="matchResult"></td>
+      </tr>
+    `);
+  }
+  // لا تستدعي broadcastCurrencies هنا، عندك MutationObserver يعبّيها لحاله
+}
+
+async function loadMatchList(date) {
+  const matchSelect = document.getElementById('matchSelect');
+  if (!matchSelect) return;
+  const snap = await get(ref(db, `${MATCH_PATH}/${date}`));
+  const data = snap.val() || {};
+  matchSelect.innerHTML = '<option value="">جديدة</option>';
+  Object.keys(data).forEach(num => {
+    matchSelect.innerHTML += `<option value="${num}">مطابقة ${num}</option>`;
+  });
+}
+
+async function loadSelectedMatch() {
+  const date = document.getElementById('matchDate').value;
+  const num = document.getElementById('matchSelect').value;
+  const matchTbody = document.querySelector('#matchTable tbody');
+  if (!num) {
+    buildMatchRows();
+    return;
+  }
+  const snap = await get(ref(db, `${MATCH_PATH}/${date}/${num}`));
+  const match = snap.val();
+  if (!match) return;
+
+  buildMatchRows();
+  match.rows.forEach((row, i) => {
+    const tr = matchTbody.children[i];
+    if (!tr) return;
+    tr.querySelector('.matchCur').value = row.cur;
+    tr.querySelector('.matchActual').value = row.actual;
+    tr.querySelector('.matchSys').value = row.sys;
+    tr.querySelector('.matchResult').textContent = row.result.toFixed(2);
+    tr.querySelector('.matchResult').className = 'matchResult ' +
+      (row.result === 0 ? 'zero' : row.result > 0 ? 'pos' : 'neg');
+  });
+}
 
 async function runMatch() {
   const date = document.getElementById('matchDate').value;
@@ -2746,17 +2806,15 @@ async function runMatch() {
     hasData = true;
 
     try {
-      // جيب رصيد النظام من فايربيز
-      const sys = await getSystemBalance(cur);
-      
-      // لو رجع null او undefined خله 0
-      const sysVal = sys || 0;
+      // استخدم الدالة الموجودة عندك getSystemBalance
+      const sysVal = await getSystemBalance(cur) || 0;
       const result = actual - sysVal;
 
-      sysInput.value = sysVal;
+      sysInput.value = sysVal.toFixed(2);
       resultTd.textContent = result.toFixed(2);
       resultTd.className = 'matchResult ' + (result === 0 ? 'zero' : result > 0 ? 'pos' : 'neg');
-      rows.push({ cur, actual: actual, sys: sysVal, result: result });
+      
+      rows.push({ cur, actual, sys: sysVal, result });
       
     } catch (e) {
       console.error('خطأ في جلب رصيد النظام:', e);
@@ -2767,7 +2825,7 @@ async function runMatch() {
   }
 
   if (!hasData) {
-    alert('اختار عملة واحدة على الاقل');
+    alert('اختار عملة واحدة على الأقل');
     return;
   }
 
@@ -2785,73 +2843,52 @@ async function runMatch() {
   alert(`تمت المطابقة والحفظ - رقم ${nextNum}`);
 }
 
-
-function buildMatchRows() {
-  const matchTbody = document.querySelector('#matchTable tbody');
-  if (!matchTbody) return;
-  
-  matchTbody.innerHTML = '';
-  
-  for (let i = 0; i < 5; i++) {
-    // الترتيب: العملة | الرصيد الفعلي | رصيد النظام | نتيجة المطابقة
-    matchTbody.insertAdjacentHTML('beforeend', `
-      <tr>
-        <td><select class="matchCur" data-role="currency"></select></td>
-        <td><input type="number" class="matchActual" step="0.01" placeholder="0"></td>
-        <td><input type="number" class="matchSys" readonly></td>
-        <td class="matchResult"></td>
-      </tr>
-    `);
-  }
-  
-  // عبي القوائم المنسدلة بالعملات بعد ما تنبني الصفوف
-  broadcastCurrencies();
-  attachMatchListeners();
-}
-
-// يحسب نتيجة المطابقة لحظياً عند الكتابة
+// الحساب اللحظي عند الكتابة وتغيير العملة
 function attachMatchListeners() {
   const matchTbody = document.querySelector('#matchTable tbody');
   if (!matchTbody) return;
 
-  matchTbody.addEventListener('input', async (e) => {
-    if (!e.target.classList.contains('matchActual')) return;
-
-    const tr = e.target.closest('tr');
-    const cur = tr.querySelector('.matchCur').value;
-    const actual = parseFloat(e.target.value) || 0;
-    const sysInput = tr.querySelector('.matchSys');
-    const resultTd = tr.querySelector('.matchResult');
-
-    if (!cur) {
-      sysInput.value = '';
-      resultTd.textContent = '';
-      resultTd.className = 'matchResult';
-      return;
-    }
-
-    try {
-      // نستخدم دالة الرصيد الموجودة عندك
-      const sysVal = await getSystemBalance(cur) || 0;
-      const result = actual - sysVal;
-
-      sysInput.value = sysVal;
-      resultTd.textContent = result.toFixed(2);
-      resultTd.className = 'matchResult ' + (result === 0 ? 'zero' : result > 0 ? 'pos' : 'neg');
-    } catch (err) {
-      sysInput.value = 0;
-      resultTd.textContent = 'خطأ';
-      resultTd.className = 'matchResult neg';
+  matchTbody.addEventListener('input', (e) => {
+    if (e.target.classList.contains('matchActual')) {
+      calcRowResult(e.target.closest('tr'));
     }
   });
 
-  // لما يغير العملة نعيد الحساب لو فيه رقم مكتوب
-  matchTbody.addEventListener('change', async (e) => {
-    if (!e.target.classList.contains('matchCur')) return;
-    const tr = e.target.closest('tr');
-    const input = tr.querySelector('.matchActual');
-    if (input.value) input.dispatchEvent(new Event('input'));
+  matchTbody.addEventListener('change', (e) => {
+    if (e.target.classList.contains('matchCur')) {
+      const tr = e.target.closest('tr');
+      if (tr.querySelector('.matchActual').value) {
+        calcRowResult(tr);
+      }
+    }
   });
+}
+
+async function calcRowResult(tr) {
+  const cur = tr.querySelector('.matchCur').value;
+  const actual = parseFloat(tr.querySelector('.matchActual').value) || 0;
+  const sysInput = tr.querySelector('.matchSys');
+  const resultTd = tr.querySelector('.matchResult');
+
+  if (!cur) {
+    sysInput.value = '';
+    resultTd.textContent = '';
+    resultTd.className = 'matchResult';
+    return;
+  }
+
+  try {
+    const sysVal = await getSystemBalance(cur) || 0;
+    const result = actual - sysVal;
+
+    sysInput.value = sysVal.toFixed(2);
+    resultTd.textContent = result.toFixed(2);
+    resultTd.className = 'matchResult ' + (result === 0 ? 'zero' : result > 0 ? 'pos' : 'neg');
+  } catch (err) {
+    sysInput.value = 0;
+    resultTd.textContent = 'خطأ';
+    resultTd.className = 'matchResult neg';
+  }
 }
 
 
