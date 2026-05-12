@@ -1392,7 +1392,7 @@ function renderTabsByPerms() {
   // لو ادمن، اظهر كل شي واخرج فوراً
   if (window.currentRole === 'admin') {
     document.querySelectorAll('.tabs.tab, .tab-content, .subtabs, .card')
-    .forEach(el => el.style.display = '');
+    .forEach(el => el.style.removeProperty('display'));
     return;
   }
 
@@ -1402,23 +1402,21 @@ function renderTabsByPerms() {
 
   // اظهر التبويبات المسموحه فقط
   if (hasPerm('permOperat')) {
-    document.querySelector('.tab[data-tab="operations"]').style.display = '';
-    document.getElementById('operations').style.display = 'block';
+    document.querySelector('.tab[data-tab="operations"]').style.removeProperty('display');
+    document.getElementById('operations').style.removeProperty('display');
   }
   if (hasPerm('permTrans')) {
-    document.querySelector('.tab[data-tab="transfers"]').style.display = '';
-    document.getElementById('transfers').style.display = 'block';
+    document.querySelector('.tab[data-tab="transfers"]').style.removeProperty('display');
+    document.getElementById('transfers').style.removeProperty('display');
   }
   if (hasPerm('permAcc')) {
-    document.querySelector('.tab[data-tab="accounts"]').style.display = '';
-    document.getElementById('accounts').style.display = 'block';
+    document.querySelector('.tab[data-tab="accounts"]').style.removeProperty('display');
+    document.getElementById('accounts').style.removeProperty('display');
   }
   if (hasPerm('employEd')) {
-    document.querySelector('.tab[data-tab="employees"]').style.display = '';
-    document.getElementById('employees').style.display = 'block';
+    document.querySelector('.tab[data-tab="employees"]').style.removeProperty('display');
+    document.getElementById('employees').style.removeProperty('display');
   }
-
-  // لا تفتح شي تلقائياً - خلي closeAllTabsOnLogin تتكفل
 }
 
 
@@ -1521,22 +1519,18 @@ btnLogin?.addEventListener('click', async () => {
   window.currentRole = user.role;
   loginScreen.classList.remove('active');
 
-  // 1. حمل الصلاحيات للموظف فقط. الادمن خليه فاضي
   if (user.role !== 'admin') {
     await loadUserPerms(username);
   } else {
     window.userPerms = {};
   }
 
-  adminScreen.classList.add('active');
+  adminScreen.classList.add('active'); // افتح الشاشة اول
   document.getElementById('adminName').textContent = user.name;
   document.getElementById('adminRole').textContent = currentRole === 'admin' ? 'مدير' : 'موظف';
   
-  // 2. طبق الصلاحيات مرة وحدة بس بعد فتح الشاشة
-  renderTabsByPerms();
-
-  // 3. اقفل التبويبات للكل عشان ترجع زي اول
-  closeAllTabsOnLogin();
+  renderTabsByPerms(); // بعدين طبّق العرض
+  closeAllTabsOnLogin(); // بعدين اقفل التبويبات
 
   passwordInput.value = '';
 });
@@ -1551,9 +1545,9 @@ btnLogoutAdmin?.addEventListener('click', () => {
   window.currentRole = null;
   window.userPerms = {}; 
 
-  // رجع كل شي ظاهر مؤقتاً
+  // امسح display العالق من جلسة الموظف
   document.querySelectorAll('.tabs.tab, .tab-content, .subtabs, .card')
-    .forEach(el => el.style.display = '');
+    .forEach(el => el.style.removeProperty('display'));
 
   adminScreen.classList.remove('active');
   loginScreen.classList.add('active');
