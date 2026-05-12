@@ -595,6 +595,40 @@ table.table-selected {
 
 
 
+/* تصغير فلتر التاريخ عشان يدخل داخل الكرت */
+.dateFilter .row-inline {
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.dateFilter .row-inline input[type="date"],
+.dateFilter .row-inline button {
+  flex: 0 0 auto;
+  height: 30px;
+  font-size: 12px;
+  padding: 0 6px;
+  min-width: 0;
+}
+
+.dateFilter .row-inline input[type="date"] {
+  width: 130px;
+}
+
+.dateFilter .row-inline button {
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+/* اخفي سكرول الفلتر على الجوال */
+.dateFilter .row-inline::-webkit-scrollbar {
+  display: none;
+}
+.dateFilter .row-inline {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 
 
 
