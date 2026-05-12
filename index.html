@@ -1905,22 +1905,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ===== القبض والصرف =====
   function listenAccounts() {
-    const selects = ['depositAccount', 'withdrawAccount', 'viewAccSelect', 'editAccSelect', 'deleteAccSelect'];
-    onValue(ref(db, ACCOUNTS_PATH), (snap) => {
-      const accounts = snap.val() || {};
-      selects.forEach(selId => {
-        const select = document.getElementById(selId);
-        if (!select) return;
-        const currentVal = select.value;
-        select.innerHTML = '<option value="">اختر الحساب</option>';
-        Object.entries(accounts).forEach(([id, acc]) => {
-          if (acc.active === false) return;
-          select.innerHTML += `<option value="${id}">${acc.name} - ${acc.phone || ''}</option>`;
-        });
-        if (accounts[currentVal]) select.value = currentVal;
+  const selects = ['depositAccount', 'withdrawAccount', 'viewAccSelect', 'editAccSelect', 'deleteAccSelect'];
+  onValue(ref(db, ACCOUNTS_PATH), (snap) => {
+    const accounts = snap.val() || {};
+    selects.forEach(selId => {
+      const select = document.getElementById(selId);
+      if (!select) return;
+      const currentVal = select.value;
+      select.innerHTML = '<option value="">اختر الحساب</option>';
+
+      Object.entries(accounts).forEach(([id, acc]) => {
+        const isInactive = acc.active === false;
+        const status = isInactive? ' [موقف]' : '';
+        const disabledAttr = isInactive? 'disabled style="color:#999"' : '';
+
+        select.innerHTML += `<option value="${id}" ${disabledAttr}>
+          ${acc.name} - ${acc.phone || ''}${status}
+        </option>`;
       });
+
+      if (accounts[currentVal]) select.value = currentVal;
     });
-  }
+  });
+}
 
   document.getElementById('btnSaveDeposit')?.addEventListener('click', async () => {
     const accId = document.getElementById('depositAccount').value;
