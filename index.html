@@ -1114,24 +1114,29 @@ table.table-selected {
 
 // كود عرض الأخطاء + ايقونة DevTools قابلة للسحب
 // كود عرض الأخطاء + ايقونة DevTools قابلة للسحب
+
 (function() {
-  // 1. صندوق الأخطاء
+  // 1. صندوق الأخطاء - بالنص
   const errBox = document.createElement('div');
   errBox.id = 'mobileDevConsole';
   errBox.style.cssText = `
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    max-height: 40%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 92%;
+    max-width: 600px;
+    max-height: 60vh;
     overflow-y: auto;
     background: #000;
     color: #ff5555;
     font: 12px/1.4 monospace;
-    padding: 8px;
-    z-index: 99999;
-    border-top: 2px solid red;
+    padding: 12px;
+    z-index: 2147483647;
+    border: 2px solid red;
+    border-radius: 8px;
     display: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
   `;
   document.body.appendChild(errBox);
 
@@ -1156,8 +1161,8 @@ table.table-selected {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 100000;
-    bottom: 20px;
+    z-index: 2147483647;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
     right: 20px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     touch-action: none;
@@ -1252,7 +1257,6 @@ table.table-selected {
     window.originalLog && window.originalLog(...args);
   };
 })();
-
 
 
 
