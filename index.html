@@ -1407,15 +1407,17 @@ function hasPerm(key) {
 // 4. دالة اخفاء التبويبات حسب الصلاحية
 
 
+
 function renderTabsByPerms() {
-  const all = document.querySelectorAll('.tabs.tab, .tab-content, .subtabs, .card');
-  
+  const all = document.querySelectorAll('.tabs.tab,.tab-content,.subtabs,.card');
+
   // ادمن: امسح inline style + فعل الكل
   if (window.currentRole === 'admin') {
     all.forEach(el => {
       el.style.removeProperty('display');
       el.classList.add('active'); // خلي CSS يظهره
     });
+    setupTabClickHandlers(); // ★★★ اضافة جديدة ★★★
     return;
   }
 
@@ -1429,21 +1431,95 @@ function renderTabsByPerms() {
   const showTab = (tabName, perm) => {
     if (!hasPerm(perm)) return;
     const tab = document.querySelector(`.tab[data-tab="${tabName}"]`);
-    const content = document.getElementById(tabName);
+    // const content = document.getElementById(tabName); // ★★★ عطّل هذا السطر ★★★
     if (tab) {
       tab.style.removeProperty('display');
-      tab.classList.add('active');
+      // tab.classList.add('active'); // ★★★ عطّل هذا السطر ★★★
     }
-    if (content) {
-      content.style.removeProperty('display');
-      content.classList.add('active');
-    }
+    // if (content) { // ★★★ عطّل هذا البلوك كامل ★★★
+    // content.style.removeProperty('display');
+    // content.classList.add('active');
+    // }
   };
 
   showTab('operations', 'permOperat');
   showTab('transfers', 'permTrans');
   showTab('accounts', 'permAcc');
   showTab('employees', 'employEd');
+  showTab('matchs', 'permMach'); // ★★★ اضافة جديدة ★★★
+  showTab('permissions', 'permPerms'); // ★★★ اضافة جديدة ★★★
+
+  setupTabClickHandlers(); // ★★★ اضافة جديدة ★★★
+
+  // فعل اول تبويب ظاهر تلقائياً ★★★ اضافة جديدة ★★★
+  const firstVisible = document.querySelector('.tabs.tab:not([style*="display: none"])');
+  if(firstVisible) firstVisible.click();
+}
+
+
+
+// ★★★ دالة جديدة: تشغل الضغط على التبويبات ★★★
+function setupTabClickHandlers(){
+  document.querySelectorAll('.tabs.tab').forEach(tab => {
+    tab.onclick = function(e) {
+      e.preventDefault();
+      const tabName = this.getAttribute('data-tab');
+
+      // 1. اخفي كل المحتويات والكروت
+      document.querySelectorAll('.tab-content,.subtabs,.card').forEach(el => {
+        el.style.display = 'none';
+        el.classList.remove('active');
+      });
+      document.querySelectorAll('.tabs.tab').forEach(t => t.classList.remove('active'));
+
+      // 2. اظهر التبويب المحدد
+      const targetContent = document.getElementById(tabName);
+      if(targetContent) {
+        targetContent.style.display = 'block';
+        targetContent.classList.add('active');
+        showSubElementsByPerm(tabName); // هذا يظهر الكروت
+      }
+
+      this.classList.add('active');
+    };
+  });
+}
+
+// ★★★ دالة جديدة: تظهر الكروت والفرعي حسب الصلاحية ★★★
+function showSubElementsByPerm(tabName) {
+  const content = document.getElementById(tabName);
+  if (!content) return;
+
+  if (window.currentRole === 'admin') {
+    content.querySelectorAll('.subtabs,.card').forEach(el => {
+      el.style.removeProperty('display');
+    });
+    return;
+  }
+
+  // للموظف: اظهر حسب الصلاحيات
+  if (tabName === 'matchs' && hasPerm('permMach')) {
+    content.querySelectorAll('.card').forEach(el => el.style.display = '');
+  }
+  if (tabName === 'accounts' && hasPerm('permAcc')) {
+    content.querySelector('.subtabs')?.style.removeProperty('display');
+    if (hasPerm('creatAcco')) content.querySelector('#createAcc')?.style.removeProperty('display');
+    if (hasPerm('showAcco')) content.querySelector('#viewAcc')?.style.removeProperty('display');
+  }
+  if (tabName === 'employees' && hasPerm('employEd')) {
+    const cards = content.querySelectorAll('.card');
+    if (hasPerm('addEmploy') && cards[0]) cards[0].style.display = '';
+    if (hasPerm('updateEploy') && cards[1]) cards[1].style.display = '';
+  }
+  if (tabName === 'operations' && hasPerm('permOperat')) {
+    content.querySelectorAll('.card').forEach(el => el.style.display = '');
+  }
+  if (tabName === 'transfers' && hasPerm('permTrans')) {
+    content.querySelectorAll('.card').forEach(el => el.style.display = '');
+  }
+  if (tabName === 'permissions' && hasPerm('permPerms')) {
+    content.querySelectorAll('.card').forEach(el => el.style.display = '');
+  }
 }
 
 
