@@ -1546,6 +1546,12 @@ renderTabsByPerms();
 btnLogoutAdmin?.addEventListener('click', () => {
   window.currentUser = null;
   window.currentRole = null;
+  window.userPerms = {}; 
+
+  // رجع كل شي ظاهر مؤقتاً
+  document.querySelectorAll('.tabs.tab, .tab-content, .subtabs, .card')
+    .forEach(el => el.style.display = '');
+
   adminScreen.classList.remove('active');
   loginScreen.classList.add('active');
   userSelect.value = '';
