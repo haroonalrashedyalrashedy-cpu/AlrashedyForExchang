@@ -1386,6 +1386,8 @@ function hasPerm(key) {
 }
 
 // 4. دالة اخفاء التبويبات حسب الصلاحية
+
+
 function renderTabsByPerms() {
   // لو ادمن، اظهر كل شي واخرج فوراً
   if (window.currentRole === 'admin') {
@@ -1416,12 +1418,8 @@ function renderTabsByPerms() {
     document.getElementById('employees').style.display = 'block';
   }
 
-  // افتح اول تبويب ظاهر
-  const first = document.querySelector('.tabs.tab:not([style*="display: none"])');
-  if (first) first.click();
+  // لا تفتح شي تلقائياً - خلي closeAllTabsOnLogin تتكفل
 }
-
-
 
 
 
@@ -1523,6 +1521,7 @@ btnLogin?.addEventListener('click', async () => {
   window.currentRole = user.role;
   loginScreen.classList.remove('active');
 
+  // 1. حمل الصلاحيات للموظف فقط. الادمن خليه فاضي
   if (user.role !== 'admin') {
     await loadUserPerms(username);
   } else {
@@ -1533,13 +1532,11 @@ btnLogin?.addEventListener('click', async () => {
   document.getElementById('adminName').textContent = user.name;
   document.getElementById('adminRole').textContent = currentRole === 'admin' ? 'مدير' : 'موظف';
   
-  // طبق الصلاحيات اول
+  // 2. طبق الصلاحيات مرة وحدة بس بعد فتح الشاشة
   renderTabsByPerms();
 
-  // اقفل التبويبات للموظف فقط
-  if (user.role !== 'admin') {
-    closeAllTabsOnLogin();
-  }
+  // 3. اقفل التبويبات للكل عشان ترجع زي اول
+  closeAllTabsOnLogin();
 
   passwordInput.value = '';
 });
