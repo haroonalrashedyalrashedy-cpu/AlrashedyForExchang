@@ -2784,63 +2784,85 @@ async function loadSelectedMatch() {
 }
 
 async function runMatch() {
-  const date = document.getElementById('matchDate').value;
-  const matchTbody = document.querySelector('#matchTable tbody');
-  const matchSelect = document.getElementById('matchSelect');
-  const rows = [];
-  let hasData = false;
+  const btn = document.getElementById('btnRunMatch');
+  if (btn) btn.disabled = true;
 
-  for (let tr of matchTbody.children) {
-    const cur = tr.querySelector('.matchCur').value;
-    const actual = parseFloat(tr.querySelector('.matchActual').value) || 0;
-    const sysInput = tr.querySelector('.matchSys');
-    const resultTd = tr.querySelector('.matchResult');
+  try {
+    const date = document.getElementById('matchDate').value || getToday();
+    const matchTbody = document.querySelector('#matchTable tbody');
+    const matchSelect = document.getElementById('matchSelect');
 
-    if (!cur) {
-      sysInput.value = '';
-      resultTd.textContent = '';
-      resultTd.className = 'matchResult';
-      continue;
+    if (!matchTbody) {
+      alert('جدول المطابقة مش موجود');
+      return;
     }
 
-    hasData = true;
+    const rows = [];
+    let hasData = false;
 
-    try {
-      // استخدم الدالة الموجودة عندك getSystemBalance
-      const sysVal = await getSystemBalance(cur) || 0;
+    for (let tr of matchTbody.children) {
+      const cur = tr.querySelector('.matchCur')?.value;
+      const actual = parseFloat(tr.querySelector('.matchActual')?.value) || 0;
+      const sysInput = tr.querySelector('.matchSys');
+      const resultTd = tr.querySelector('.matchResult');
+
+      if (!cur) {
+        sysInput.value = '';
+        resultTd.textContent = '';
+        resultTd.className = 'matchResult';
+        continue;
+      }
+
+      hasData = true;
+
+      // جيب رصيد النظام الحقي من Firebase
+      const sysVal = await getSystemBalance(cur);
+
+      // احسب النتيجة
       const result = actual - sysVal;
 
+      // حط القيم في الجدول
       sysInput.value = sysVal.toFixed(2);
       resultTd.textContent = result.toFixed(2);
-      resultTd.className = 'matchResult ' + (result === 0 ? 'zero' : result > 0 ? 'pos' : 'neg');
-      
+
+      // لون النتيجة
+      if (result === 0) {
+        resultTd.className = 'matchResult zero';
+      } else if (result > 0) {
+        resultTd.className = 'matchResult pos';
+      } else {
+        resultTd.className = 'matchResult neg';
+      }
+
       rows.push({ cur, actual, sys: sysVal, result });
-      
-    } catch (e) {
-      console.error('خطأ في جلب رصيد النظام:', e);
-      sysInput.value = 0;
-      resultTd.textContent = 'خطأ';
-      resultTd.className = 'matchResult neg';
     }
+
+    if (!hasData) {
+      alert('اختار عملة واكتب الرصيد الفعلي');
+      return;
+    }
+
+    // احفظ المطابقة في Firebase
+    const snap = await get(ref(db, `${MATCH_PATH}/${date}`));
+    const existing = snap.val() || {};
+    const nextNum = Object.keys(existing).length + 1;
+
+    await set(ref(db, `${MATCH_PATH}/${date}/${nextNum}`), {
+      rows,
+      createdAt: Date.now()
+    });
+
+    await loadMatchList(date);
+    if (matchSelect) matchSelect.value = nextNum;
+    alert(`تمت المطابقة والحفظ - رقم ${nextNum}`);
+
+  } catch (err) {
+    console.error(err);
+    alert('صار خطأ: ' + err.message);
+  } finally {
+    if (btn) btn.disabled = false;
   }
-
-  if (!hasData) {
-    alert('اختار عملة واحدة على الأقل');
-    return;
-  }
-
-  const snap = await get(ref(db, `${MATCH_PATH}/${date}`));
-  const existing = snap.val() || {};
-  const nextNum = Object.keys(existing).length + 1;
-
-  await set(ref(db, `${MATCH_PATH}/${date}/${nextNum}`), {
-    rows,
-    createdAt: Date.now()
-  });
-
-  await loadMatchList(date);
-  matchSelect.value = nextNum;
-  alert(`تمت المطابقة والحفظ - رقم ${nextNum}`);
+}alert(`تمت المطابقة والحفظ - رقم ${nextNum}`);
 }
 
 // الحساب اللحظي عند الكتابة وتغيير العملة
