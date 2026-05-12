@@ -2788,14 +2788,9 @@ async function runMatch() {
   if (btn) btn.disabled = true;
 
   try {
-    const date = document.getElementById('matchDate').value || getToday();
+    const date = document.getElementById('matchDate').value || new Date().toISOString().split('T')[0];
     const matchTbody = document.querySelector('#matchTable tbody');
-    const matchSelect = document.getElementById('matchSelect');
-
-    if (!matchTbody) {
-      alert('جدول المطابقة مش موجود');
-      return;
-    }
+    if (!matchTbody) return;
 
     const rows = [];
     let hasData = false;
@@ -2815,24 +2810,15 @@ async function runMatch() {
 
       hasData = true;
 
-      // جيب رصيد النظام الحقي من Firebase
-      const sysVal = await getSystemBalance(cur);
+      // جيب رصيد النظام مباشرة من Firebase بدون ما تعتمد على getSystemBalance
+      const snap = await get(ref(db, `systemBalance/${cur}`));
+      const sysVal = snap.val() || 0;
 
-      // احسب النتيجة
       const result = actual - sysVal;
 
-      // حط القيم في الجدول
       sysInput.value = sysVal.toFixed(2);
       resultTd.textContent = result.toFixed(2);
-
-      // لون النتيجة
-      if (result === 0) {
-        resultTd.className = 'matchResult zero';
-      } else if (result > 0) {
-        resultTd.className = 'matchResult pos';
-      } else {
-        resultTd.className = 'matchResult neg';
-      }
+      resultTd.className = 'matchResult ' + (result === 0? 'zero' : result > 0? 'pos' : 'neg');
 
       rows.push({ cur, actual, sys: sysVal, result });
     }
@@ -2842,23 +2828,23 @@ async function runMatch() {
       return;
     }
 
-    // احفظ المطابقة في Firebase
-    const snap = await get(ref(db, `${MATCH_PATH}/${date}`));
+    // احفظ المطابقة
+    const snap = await get(ref(db, `matches/${date}`));
     const existing = snap.val() || {};
     const nextNum = Object.keys(existing).length + 1;
 
-    await set(ref(db, `${MATCH_PATH}/${date}/${nextNum}`), {
+    await set(ref(db, `matches/${date}/${nextNum}`), {
       rows,
       createdAt: Date.now()
     });
 
-    await loadMatchList(date);
-    if (matchSelect) matchSelect.value = nextNum;
     alert(`تمت المطابقة والحفظ - رقم ${nextNum}`);
+    document.getElementById('matchSelect').innerHTML += `<option value="${nextNum}">مطابقة ${nextNum}</option>`;
+    document.getElementById('matchSelect').value = nextNum;
 
   } catch (err) {
     console.error(err);
-    alert('صار خطأ: ' + err.message);
+    alert('خطأ: ' + err.message);
   } finally {
     if (btn) btn.disabled = false;
   }
