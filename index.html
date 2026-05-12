@@ -1592,29 +1592,43 @@ document.addEventListener('DOMContentLoaded', () => {
           flex-wrap: nowrap !important;
           gap: 4px !important;
           margin-bottom: 8px !important;
-          align-items: center !important;
+          align-items: stretch !important;
           width: 100% !important;
-          overflow: hidden !important;
+        }
+        
+        #rateLogFilter input[type="date"],
+        #rateLogFilter button {
+          all: unset !important; /* يلغي ستايل input, button العام */
+          box-sizing: border-box !important;
+          background: var(--bg-panel) !important;
+          color: var(--text-primary) !important;
+          border: 1px solid var(--border-color) !important;
+          border-radius: 6px !important;
+          font-size: clamp(10px, 2.2vw, 13px) !important;
+          height: 32px !important;
+          padding: 0 6px !important;
+          text-align: center !important;
         }
         
         #rateLogFilter input[type="date"] {
           flex: 1 1 0 !important;
           min-width: 0 !important;
-          width: 0 !important;
-          font-size: clamp(10px, 2.2vw, 13px) !important;
-          padding: 4px 6px !important;
-          height: 32px !important;
-          box-sizing: border-box !important;
+          width: 0 !important; /* يخليه يتقلص بقوة */
         }
         
         #rateLogFilter button {
           flex: 0 0 auto !important;
-          width: auto !important;
-          font-size: clamp(10px, 2.2vw, 13px) !important;
-          padding: 4px 8px !important;
-          height: 32px !important;
+          background: var(--accent-green) !important;
+          color: var(--bg-dark) !important;
+          font-weight: 600 !important;
+          padding: 0 10px !important;
           white-space: nowrap !important;
-          box-sizing: border-box !important;
+          cursor: pointer !important;
+        }
+        
+        #rateLogFilter button:active {
+          opacity: 0.8 !important;
+          transform: scale(0.98) !important;
         }
       </style>
     `);
