@@ -1510,37 +1510,40 @@ togglePass?.addEventListener('click', () => {
 btnLogin?.addEventListener('click', async () => {
   const username = userSelect.value.trim();
   const password = passwordInput.value.trim();
-  if (!username ||!password) { alert('ادخل اسم المستخدم وكلمة المرور'); return; }
+  if (!username || !password) { alert('ادخل اسم المستخدم وكلمة المرور'); return; }
 
   const snap = await get(ref(db, `users/${username}`));
   if (!snap.exists()) { alert('المستخدم غير موجود'); return; }
 
   const user = snap.val();
   if (user.active === false) { alert('الحساب موقف'); return; }
-  if (user.password!== password) { alert('كلمة المرور خطأ'); return; }
+  if (user.password !== password) { alert('كلمة المرور خطأ'); return; }
 
   window.currentUser = username;
   window.currentRole = user.role;
   loginScreen.classList.remove('active');
 
-  // حمل صلاحيات الموظف قبل ما تفتح الشاشة
-  await loadUserPerms(username);
-
-
-renderTabsByPerms();
-
-
+  // 1. حمل صلاحيات الموظف فقط، الادمن ما يحتاج
+  if (user.role !== 'admin') {
+    await loadUserPerms(username);
+  } else {
+    window.userPerms = {}; // فضي الصلاحيات عشان ما يعلق القديم
+  }
 
   adminScreen.classList.add('active');
   document.getElementById('adminName').textContent = user.name;
   document.getElementById('adminRole').textContent = currentRole === 'admin' ? 'مدير' : 'موظف';
   
-  // طبق الصلاحيات واخفي التبويبات
+  // 2. خلي الاستدعاء مرة وحدة بعد فتح الشاشة
   renderTabsByPerms();
   closeAllTabsOnLogin();
 
   passwordInput.value = '';
 });
+
+
+
+
 
 // 5. خروج
 btnLogoutAdmin?.addEventListener('click', () => {
