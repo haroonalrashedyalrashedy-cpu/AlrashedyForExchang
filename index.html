@@ -2696,7 +2696,8 @@ obs.observe(document.body, { childList: true, subtree: true });
 
 // ===== كود المطابقة - لا يتعارض مع الكود القديم =====
 // ===== كود المطابقة - يشتغل لما تفتح التبويب =====
-// ===== كود المطابقة - نظيف بدون تعارض =====
+// ===== كود المطابقة - نسخة شغالة =====
+// ===== كود المطابقة - نسخة شغالة =====
 const MATCH_PATH = 'matches';
 let matchInitDone = false;
 
@@ -2718,10 +2719,11 @@ function initMatchTab() {
   loadMatchList(matchDate.value);
 
   matchDate.onchange = () => loadMatchList(matchDate.value);
-  document.getElementById('btnLoadMatch').onclick = loadSelectedMatch;
-  document.getElementById('btnRunMatch').onclick = runMatch;
+  document.getElementById('btnLoadMatch')?.onclick = loadSelectedMatch;
+  
+  // الربط الصح للزر
+  document.getElementById('btnRunMatch')?.addEventListener('click', runMatch);
 
-  // اربط الحساب اللحظي مرة وحدة بس
   if (!window.matchListenersAttached) {
     attachMatchListeners();
     window.matchListenersAttached = true;
@@ -2733,7 +2735,6 @@ function buildMatchRows() {
   if (!matchTbody) return;
   
   matchTbody.innerHTML = '';
-  
   for (let i = 0; i < 5; i++) {
     matchTbody.insertAdjacentHTML('beforeend', `
       <tr>
@@ -2744,7 +2745,6 @@ function buildMatchRows() {
       </tr>
     `);
   }
-  // لا تستدعي broadcastCurrencies هنا، عندك MutationObserver يعبّيها لحاله
 }
 
 async function loadMatchList(date) {
@@ -2783,32 +2783,36 @@ async function loadSelectedMatch() {
   });
 }
 
-
-
-
-
-
-// الحساب اللحظي عند الكتابة وتغيير العملة
 function attachMatchListeners() {
   const matchTbody = document.querySelector('#matchTable tbody');
   if (!matchTbody) return;
 
   matchTbody.addEventListener('input', (e) => {
-    if (e.target.classList.contains('matchActual')) {
-      calcRowResult(e.target.closest('tr'));
-    }
+    if (e.target.classList.contains('matchActual')) calcRowResult(e.target.closest('tr'));
   });
 
   matchTbody.addEventListener('change', (e) => {
-    if (e.target.classList.contains('matchCur')) {
-      const tr = e.target.closest('tr');
-      if (tr.querySelector('.matchActual').value) {
-        calcRowResult(tr);
-      }
+    if (e.target.classList.contains('matchCur') && e.target.closest('tr').querySelector('.matchActual').value) {
+      calcRowResult(e.target.closest('tr'));
     }
   });
 }
 
+// الدالة الصح: تحسب من transactions
+async function calcSystemBalanceForMatch(userId, currency) {
+  const snap = await get(ref(db, 'transactions'));
+  if (!snap.exists()) return 0;
+
+  let balance = 0;
+  Object.values(snap.val()).forEach(d => {
+    if (d.userId !== userId || d.currency !== currency) return;
+    if (d.type === 'deposit' || d.type === 'buy') balance += parseFloat(d.amount) || 0;
+    if (d.type === 'withdraw' || d.type === 'sell') balance -= parseFloat(d.amount) || 0;
+  });
+  return balance;
+}
+
+// للحساب اللحظي في السطر الواحد
 async function calcRowResult(tr) {
   const cur = tr.querySelector('.matchCur').value;
   const actual = parseFloat(tr.querySelector('.matchActual').value) || 0;
@@ -2823,42 +2827,22 @@ async function calcRowResult(tr) {
   }
 
   try {
-    const sysVal = await getSystemBalance(cur) || 0;
+    const sysVal = await calcSystemBalanceForMatch(currentUser, cur);
     const result = actual - sysVal;
 
     sysInput.value = sysVal.toFixed(2);
     resultTd.textContent = result.toFixed(2);
     resultTd.className = 'matchResult ' + (result === 0 ? 'zero' : result > 0 ? 'pos' : 'neg');
   } catch (err) {
+    console.error(err);
     sysInput.value = 0;
     resultTd.textContent = 'خطأ';
     resultTd.className = 'matchResult neg';
   }
 }
 
-
-
-
-
-
-// 1. هذي لازم تكون فوق runMatch
-async function calcSystemBalanceForMatch(userId, currency) {
-  const snap = await get(ref(db, 'transactions'));
-  if (!snap.exists()) return 0;
-
-  let balance = 0;
-  Object.values(snap.val()).forEach(d => {
-    if (d.userId !== userId || d.currency !== currency) return;
-    if (d.type === 'deposit' || d.type === 'buy') balance += parseFloat(d.amount) || 0;
-    if (d.type === 'withdraw' || d.type === 'sell') balance -= parseFloat(d.amount) || 0;
-  });
-  return balance;
-}
-
-// 2. هذي runMatch المعدلة
 async function runMatch() {
-  console.log('runMatch شغالة'); // عشان نتأكد ان الزر ضغط
-  
+  console.log('runMatch شغالة'); // افتح F12 وتأكد انها تطلع
   const btn = document.getElementById('btnRunMatch');
   if (btn) btn.disabled = true;
 
@@ -2866,10 +2850,7 @@ async function runMatch() {
     const date = document.getElementById('matchDate').value || getToday();
     const matchTbody = document.querySelector('#matchTable tbody');
     const matchSelect = document.getElementById('matchSelect');
-    if (!matchTbody) {
-      console.log('matchTable مش موجود');
-      return;
-    }
+    if (!matchTbody) return;
 
     const rows = [];
     let hasData = false;
@@ -2888,18 +2869,13 @@ async function runMatch() {
       }
 
       hasData = true;
-      console.log('بحسب للعملة:', cur, 'المبلغ الفعلي:', actual);
-
-      // استخدم currentUser مباشرة بدون .uid
       const sysVal = await calcSystemBalanceForMatch(currentUser, cur);
       const result = actual - sysVal;
 
       sysInput.value = sysVal.toFixed(2);
       resultTd.textContent = result.toFixed(2);
       resultTd.className = 'matchResult ' + (result === 0 ? 'zero' : result > 0 ? 'pos' : 'neg');
-      
       rows.push({ cur, actual, sys: sysVal, result });
-      console.log('النظام:', sysVal, 'الفرق:', result);
     }
 
     if (!hasData) {
@@ -2907,15 +2883,11 @@ async function runMatch() {
       return;
     }
 
-    // احفظ في Firebase
     const snap = await get(ref(db, `${MATCH_PATH}/${date}`));
     const existing = snap.val() || {};
     const nextNum = Object.keys(existing).length + 1;
 
-    await set(ref(db, `${MATCH_PATH}/${date}/${nextNum}`), {
-      rows,
-      createdAt: Date.now()
-    });
+    await set(ref(db, `${MATCH_PATH}/${date}/${nextNum}`), { rows, createdAt: Date.now() });
 
     await loadMatchList(date);
     matchSelect.value = nextNum;
