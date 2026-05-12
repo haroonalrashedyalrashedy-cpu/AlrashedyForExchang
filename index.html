@@ -1108,6 +1108,53 @@ table.table-selected {
 
 
 <script type="module">
+
+
+
+// كود عرض الأخطاء على الشاشة - DevTools للجوال
+(function() {
+  const errBox = document.createElement('div');
+  errBox.style.cssText = `
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 40%;
+    overflow-y: auto;
+    background: #000;
+    color: #ff5555;
+    font: 12px/1.4 monospace;
+    padding: 8px;
+    z-index: 99999;
+    border-top: 2px solid red;
+    display: none;
+  `;
+  document.body.appendChild(errBox);
+
+  function showErr(msg) {
+    errBox.style.display = 'block';
+    errBox.innerHTML += `<div>${msg}</div>`;
+  }
+
+  window.onerror = function(msg, src, line, col, error) {
+    showErr(`ERROR: ${msg}<br>Line: ${line} | File: ${src.split('/').pop()}`);
+    return false;
+  };
+
+  window.addEventListener('unhandledrejection', function(e) {
+    showErr(`PROMISE ERROR: ${e.reason}`);
+  });
+
+  console.log = (...args) => {
+    showErr(`LOG: ${args.join(' ')}`);
+    window.originalLog && window.originalLog(...args);
+  };
+  window.originalLog = console.log;
+})();
+
+
+
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set, get, update, onValue, remove }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
