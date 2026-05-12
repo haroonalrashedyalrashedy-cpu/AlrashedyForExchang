@@ -656,11 +656,6 @@ button, .btn, input[type="submit"], .btn-primary {
 
 
 
-
-
-
-
-
 .tab-content, .subtabs, .card { 
   display: none; 
 }
@@ -670,6 +665,9 @@ button, .btn, input[type="submit"], .btn-primary {
 .tabs.tab.active { 
   display: inline-block; 
 }
+
+
+
 
 
 
@@ -3422,6 +3420,66 @@ document.getElementById('btnSaveColors')?.addEventListener('click', async () => 
 
 
 
+
+
+
+
+
+
+
+// ===== عرض الرصيد فقط =====
+async function viewEmployeeBalance() {
+  const empUsername = document.getElementById('matchEmpSelect').value;
+  const currency = document.getElementById('matchCurrencySelect').value;
+  const table = document.getElementById('matchsTables');
+  const thead = table.querySelector('thead tr');
+  const tbody = table.querySelector('tbody');
+
+  if (!empUsername) {
+    alert('اختر الموظف أولاً');
+    return;
+  }
+
+  tbody.innerHTML = '<tr><td colspan="4">جاري التحميل...</td></tr>';
+
+  try {
+    const empId = empUsername;
+    const snap = await get(ref(db, `${ACCOUNTS_PATH}/${empId}/currencies`));
+    const allCurrBals = snap.val() || {};
+
+    // حدد العملات
+    let currenciesToShow = currency? [currency] : Object.keys(allCurrBals).filter(c => allCurrBals[c] > 0);
+
+    if (currenciesToShow.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4">لا يوجد أرصدة</td></tr>';
+      return;
+    }
+
+    // خفي عمودين "رصيد الواقع" و "النتيجة" عشان ما يظهرو
+    thead.children[2].style.display = 'none';
+    thead.children[3].style.display = 'none';
+
+    // عبي عمودين فقط
+    let rows = '';
+    for (const cur of currenciesToShow) {
+      const bal = allCurrBals[cur] || 0;
+      rows += `
+        <tr>
+          <td>${cur}</td>
+          <td>${bal.toFixed(2)}</td>
+          <td style="display:none;"></td>
+          <td style="display:none;"></td>
+        </tr>
+      `;
+    }
+    tbody.innerHTML = rows;
+
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="4">خطأ: ${e.message}</td></tr>`;
+  }
+}
+
+document.getElementById('btnViewBalance')?.addEventListener('click', viewEmployeeBalance);
 
 
 
