@@ -1459,66 +1459,101 @@ function renderTabsByPerms() {
 
 
 // ★★★ دالة جديدة: تشغل الضغط على التبويبات ★★★
+// 1. دالة الضغط على التبويبات - آمنة
 function setupTabClickHandlers(){
   document.querySelectorAll('.tabs.tab').forEach(tab => {
     tab.onclick = function(e) {
       e.preventDefault();
       const tabName = this.getAttribute('data-tab');
 
-      // 1. اخفي كل المحتويات والكروت
+      // اخفي الكل بأمان
       document.querySelectorAll('.tab-content,.subtabs,.card').forEach(el => {
-        el.style.display = 'none';
-        el.classList.remove('active');
+        if(el) {
+          el.style.display = 'none';
+          el.classList.remove('active');
+        }
       });
-      document.querySelectorAll('.tabs.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tabs.tab').forEach(t => {
+        if(t) t.classList.remove('active');
+      });
 
-      // 2. اظهر التبويب المحدد
+      // اظهر التبويب المحدد
       const targetContent = document.getElementById(tabName);
       if(targetContent) {
         targetContent.style.display = 'block';
         targetContent.classList.add('active');
-        showSubElementsByPerm(tabName); // هذا يظهر الكروت
+        showSubElementsByPerm(tabName); // هذا يشغل الكروت لكل التبويبات
       }
 
-      this.classList.add('active');
+      if(this) this.classList.add('active');
     };
   });
 }
 
-// ★★★ دالة جديدة: تظهر الكروت والفرعي حسب الصلاحية ★★★
+// 2. دالة اظهار الكروت والفرعي - آمنة لكل التبويبات
 function showSubElementsByPerm(tabName) {
   const content = document.getElementById(tabName);
   if (!content) return;
 
+  // لو ادمن اظهر كل شي داخل التبويب
   if (window.currentRole === 'admin') {
     content.querySelectorAll('.subtabs,.card').forEach(el => {
-      el.style.removeProperty('display');
+      if(el) el.style.removeProperty('display');
     });
     return;
   }
 
-  // للموظف: اظهر حسب الصلاحيات
-  if (tabName === 'matchs' && hasPerm('permMach')) {
-    content.querySelectorAll('.card').forEach(el => el.style.display = '');
-  }
-  if (tabName === 'accounts' && hasPerm('permAcc')) {
-    content.querySelector('.subtabs')?.style.removeProperty('display');
-    if (hasPerm('creatAcco')) content.querySelector('#createAcc')?.style.removeProperty('display');
-    if (hasPerm('showAcco')) content.querySelector('#viewAcc')?.style.removeProperty('display');
-  }
-  if (tabName === 'employees' && hasPerm('employEd')) {
-    const cards = content.querySelectorAll('.card');
-    if (hasPerm('addEmploy') && cards[0]) cards[0].style.display = '';
-    if (hasPerm('updateEploy') && cards[1]) cards[1].style.display = '';
-  }
-  if (tabName === 'operations' && hasPerm('permOperat')) {
-    content.querySelectorAll('.card').forEach(el => el.style.display = '');
-  }
-  if (tabName === 'transfers' && hasPerm('permTrans')) {
-    content.querySelectorAll('.card').forEach(el => el.style.display = '');
-  }
-  if (tabName === 'permissions' && hasPerm('permPerms')) {
-    content.querySelectorAll('.card').forEach(el => el.style.display = '');
+  // للموظف: نشيك على كل تبويب لحاله
+  const cards = content.querySelectorAll('.card');
+  const subTabs = content.querySelector('.subtabs');
+
+  switch(tabName) {
+    case 'operations':
+      if (hasPerm('permOperat')) {
+        cards.forEach(el => { if(el) el.style.display = ''; });
+        if(subTabs) subTabs.style.display = '';
+      }
+      break;
+
+    case 'transfers':
+      if (hasPerm('permTrans')) {
+        cards.forEach(el => { if(el) el.style.display = ''; });
+        if(subTabs) subTabs.style.display = '';
+      }
+      break;
+
+    case 'matchs':
+      if (hasPerm('permMach')) {
+        cards.forEach(el => { if(el) el.style.display = ''; });
+      }
+      break;
+
+    case 'accounts':
+      if (hasPerm('permAcc')) {
+        if(subTabs) subTabs.style.display = '';
+        if (hasPerm('creatAcco')) {
+          const createAcc = content.querySelector('#createAcc');
+          if(createAcc) createAcc.style.display = '';
+        }
+        if (hasPerm('showAcco')) {
+          const viewAcc = content.querySelector('#viewAcc');
+          if(viewAcc) viewAcc.style.display = '';
+        }
+      }
+      break;
+
+    case 'employees':
+      if (hasPerm('employEd')) {
+        if (hasPerm('addEmploy') && cards[0]) cards[0].style.display = '';
+        if (hasPerm('updateEploy') && cards[1]) cards[1].style.display = '';
+      }
+      break;
+
+    case 'permissions':
+      if (hasPerm('permPerms')) {
+        cards.forEach(el => { if(el) el.style.display = ''; });
+      }
+      break;
   }
 }
 
