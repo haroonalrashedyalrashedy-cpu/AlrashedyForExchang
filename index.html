@@ -1108,7 +1108,7 @@ table.table-selected {
         </div>
         
         <div class="table-wrap">
-        <table id="matchTable">
+        <table id="matchsTables">
           <thead><tr><th>العملة</th><th>رصيد النظام</th><th>رصيد الواقع</th><th>النتيجة</th></tr></thead>
           <tbody></tbody>
         </table>
@@ -2267,7 +2267,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function addDateFiltersToTables() {
   const tables = ['buyTable', 'sellTable', 'depositTable', 'withdrawTable', 
                   'sendTable', 'RecTable', 'payTable', 'accBalanceTable', 
-                  'rateLogTable'];
+                  'rateLogTable','matchsTables'];
 
   tables.forEach(id => {
     const table = document.getElementById(id);
