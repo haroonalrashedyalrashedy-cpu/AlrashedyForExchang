@@ -2918,6 +2918,243 @@ obs.observe(document.body, { childList: true, subtree: true });
 // ===== كود المطابقة - نسخة شغالة =====
 // ===== كود المطابقة - نسخة شغالة =====
 // ===== كود المطابقة - نسخة معزولة تشتغل 100% =====
+// ===== كود المطابقة - نسخة شغالة 100% =====
+(function() {
+  const MATCH_PATH = 'matches';
+
+  // تأكد ان Firebase جاهز
+  const { db, ref, get, set } = window.firebaseApp || {};
+  if (!db) {
+    console.error('Firebase مش متهيأ. تأكد ان window.firebaseApp موجود');
+    return;
+  }
+
+  const getTodayLocal = () => new Date().toISOString().split('T')[0];
+
+  let matchInitDone = false;
+
+  document.querySelector('[data-tab="matchs"], [data-tab="matches"]')?.addEventListener('click', () => {
+    if (!matchInitDone) {
+      initMatchTab();
+      matchInitDone = true;
+    }
+  });
+
+  function initMatchTab() {
+    const matchDate = document.getElementById('matchDate');
+    const matchSelect = document.getElementById('matchSelect');
+    const matchTbody = document.querySelector('#matchTable tbody');
+    if (!matchDate ||!matchTbody ||!matchSelect) return;
+
+    buildMatchRows();
+    fillCurrencySelects(); // تعبئة العملات
+    matchDate.value = getTodayLocal();
+    loadMatchList(matchDate.value);
+
+    matchDate.onchange = () => loadMatchList(matchDate.value);
+    document.getElementById('btnLoadMatch')?.onclick = loadSelectedMatch;
+    document.getElementById('btnRunMatch')?.addEventListener('click', runMatch);
+
+    if (!window.matchListenersAttached) {
+      attachMatchListeners();
+      window.matchListenersAttached = true;
+    }
+  }
+
+  function buildMatchRows() {
+    const matchTbody = document.querySelector('#matchTable tbody');
+    if (!matchTbody) return;
+
+    matchTbody.innerHTML = '';
+    for (let i = 0; i < 5; i++) {
+      matchTbody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td><select class="matchCur" data-role="currency"><option value="">اختر عملة</option></select></td>
+          <td><input type="number" class="matchActual" step="0.01" placeholder="0" inputmode="decimal"></td>
+          <td><input type="number" class="matchSys" readonly tabindex="-1"></td>
+          <td class="matchResult"></td>
+        </tr>
+      `);
+    }
+    fillCurrencySelects(); // عبّي العملات بعد ما تنبني الصفوف
+  }
+
+  function fillCurrencySelects() {
+    const currencies = window.currencies || ['ريال سعودي', 'دولار', 'يورو', 'ريال يمني'];
+    // لو عندك مصدر عملات غير window.currencies غيره هنا
+
+    document.querySelectorAll('#matchTable.matchCur').forEach(sel => {
+      const currentVal = sel.value;
+      sel.innerHTML = '<option value="">اختر عملة</option>';
+      currencies.forEach(c => {
+        sel.innerHTML += `<option value="${c}">${c}</option>`;
+      });
+      sel.value = currentVal; // ارجع القيمة لو كانت موجودة
+    });
+  }
+
+  async function loadMatchList(date) {
+    const matchSelect = document.getElementById('matchSelect');
+    if (!matchSelect) return;
+    const snap = await get(ref(db, `${MATCH_PATH}/${date}`));
+    const data = snap.val() || {};
+    matchSelect.innerHTML = '<option value="">جديدة</option>';
+    Object.keys(data).forEach(num => {
+      matchSelect.innerHTML += `<option value="${num}">مطابقة ${num}</option>`;
+    });
+  }
+
+  async function loadSelectedMatch() {
+    const date = document.getElementById('matchDate').value;
+    const num = document.getElementById('matchSelect').value;
+    const matchTbody = document.querySelector('#matchTable tbody');
+    if (!num) {
+      buildMatchRows();
+      return;
+    }
+    const snap = await get(ref(db, `${MATCH_PATH}/${date}/${num}`));
+    const match = snap.val();
+    if (!match) return;
+
+    buildMatchRows();
+    match.rows.forEach((row, i) => {
+      const tr = matchTbody.children[i];
+      if (!tr) return;
+      tr.querySelector('.matchCur').value = row.cur;
+      tr.querySelector('.matchActual').value = row.actual;
+      tr.querySelector('.matchSys').value = row.sys;
+      tr.querySelector('.matchResult').textContent = parseFloat(row.result).toFixed(2);
+      const r = parseFloat(row.result);
+      tr.querySelector('.matchResult').className = 'matchResult ' +
+        (r === 0? 'zero' : r > 0? 'pos' : 'neg');
+    });
+  }
+
+  function attachMatchListeners() {
+    const matchTbody = document.querySelector('#matchTable tbody');
+    if (!matchTbody) return;
+
+    matchTbody.addEventListener('input', (e) => {
+      if (e.target.classList.contains('matchActual')) calcRowResult(e.target.closest('tr'));
+    });
+
+    matchTbody.addEventListener('change', (e) => {
+      if (e.target.classList.contains('matchCur') && e.target.closest('tr').querySelector('.matchActual').value) {
+        calcRowResult(e.target.closest('tr'));
+      }
+    });
+  }
+
+  async function calcSystemBalanceForMatch(userId, currency) {
+    if (!userId) return 0;
+    const snap = await get(ref(db, 'transactions'));
+    if (!snap.exists()) return 0;
+
+    let balance = 0;
+    const data = snap.val() || {};
+    Object.values(data).forEach(d => {
+      if (d.userId!== userId || d.currency!== currency) return;
+      if (d.type === 'deposit' || d.type === 'buy') balance += parseFloat(d.amount) || 0;
+      if (d.type === 'withdraw' || d.type === 'sell') balance -= parseFloat(d.amount) || 0;
+    });
+    return balance;
+  }
+
+  async function calcRowResult(tr) {
+    const cur = tr.querySelector('.matchCur').value;
+    const actual = parseFloat(tr.querySelector('.matchActual').value) || 0;
+    const sysInput = tr.querySelector('.matchSys');
+    const resultTd = tr.querySelector('.matchResult');
+
+    if (!cur) {
+      sysInput.value = '';
+      resultTd.textContent = '';
+      resultTd.className = 'matchResult';
+      return;
+    }
+
+    try {
+      const sysVal = await calcSystemBalanceForMatch(window.currentUser, cur);
+      const result = actual - sysVal;
+      sysInput.value = sysVal.toFixed(2);
+      resultTd.textContent = result.toFixed(2);
+      resultTd.className = 'matchResult ' + (result === 0? 'zero' : result > 0? 'pos' : 'neg');
+    } catch (err) {
+      console.error(err);
+      sysInput.value = 0;
+      resultTd.textContent = 'خطأ';
+      resultTd.className = 'matchResult neg';
+    }
+  }
+
+  async function runMatch() {
+    const btn = document.getElementById('btnRunMatch');
+    if (btn) btn.disabled = true;
+
+    try {
+      if (!window.currentUser) {
+        alert('لازم تسجل دخول اول');
+        return;
+      }
+
+      const date = document.getElementById('matchDate').value || getTodayLocal();
+      const matchTbody = document.querySelector('#matchTable tbody');
+      const matchSelect = document.getElementById('matchSelect');
+      if (!matchTbody) return;
+
+      const rows = [];
+      let hasData = false;
+
+      for (let tr of matchTbody.children) {
+        const cur = tr.querySelector('.matchCur')?.value;
+        const actual = parseFloat(tr.querySelector('.matchActual')?.value) || 0;
+        const sysInput = tr.querySelector('.matchSys');
+        const resultTd = tr.querySelector('.matchResult');
+
+        if (!cur || actual === 0) {
+          sysInput.value = '';
+          resultTd.textContent = '';
+          resultTd.className = 'matchResult';
+          continue;
+        }
+
+        hasData = true;
+        const sysVal = await calcSystemBalanceForMatch(window.currentUser, cur);
+        const result = actual - sysVal;
+
+        sysInput.value = sysVal.toFixed(2);
+        resultTd.textContent = result.toFixed(2);
+        resultTd.className = 'matchResult ' + (result === 0? 'zero' : result > 0? 'pos' : 'neg');
+        rows.push({ cur, actual, sys: sysVal, result });
+      }
+
+      if (!hasData) {
+        alert('اختار عملة واكتب الرصيد الفعلي');
+        return;
+      }
+
+      const snap = await get(ref(db, `${MATCH_PATH}/${date}`));
+      const existing = snap.val() || {};
+      const nextNum = Object.keys(existing).length + 1;
+
+      await set(ref(db, `${MATCH_PATH}/${date}/${nextNum}`), { rows, createdAt: Date.now() });
+      await loadMatchList(date);
+      matchSelect.value = nextNum;
+      alert(`تمت المطابقة والحفظ - رقم ${nextNum}`);
+
+    } catch (err) {
+      console.error('خطأ في runMatch:', err);
+      alert('خطأ: ' + err.message);
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+})();
+
+
+
+
+
 
 
 
