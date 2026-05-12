@@ -1396,6 +1396,61 @@ async function createAdminIfMissing() {
 }
 createAdminIfMissing();
 
+
+
+
+// 1. مسار الصلاحيات
+const PERMS_PATH = 'perms';
+window.userPerms = {};
+
+// 2. دالة تحميل الصلاحيات
+async function loadUserPerms(uid) {
+  if (window.currentRole === 'admin') return;
+  const snap = await get(ref(db, `${PERMS_PATH}/${uid}`));
+  window.userPerms = snap.val() || {};
+}
+
+// 3. دالة فحص الصلاحية
+function hasPerm(key) {
+  if (window.currentRole === 'admin') return true;
+  return!!window.userPerms[key];
+}
+
+// 4. دالة اخفاء التبويبات حسب الصلاحية
+function renderTabsByPerms() {
+  // لو ادمن اظهر كل شي واخرج
+  if (window.currentRole === 'admin') {
+    document.querySelectorAll('.tabs.tab,.tab-content,.subtabs,.card')
+     .forEach(el => el.style.display = '');
+    return;
+  }
+
+  // اخفي الكل اول
+  document.querySelectorAll('.tabs.tab,.tab-content,.subtabs,.card')
+   .forEach(el => el.style.display = 'none');
+
+  // اظهر التبويبات المسموحه فقط
+  if (hasPerm('permOperat')) {
+    document.querySelector('.tab[data-tab="operations"]').style.display = '';
+    document.getElementById('operations').style.display = 'block';
+  }
+  if (hasPerm('permTrans')) {
+    document.querySelector('.tab[data-tab="transfers"]').style.display = '';
+    document.getElementById('transfers').style.display = 'block';
+  }
+  if (hasPerm('permAcc')) {
+    document.querySelector('.tab[data-tab="accounts"]').style.display = '';
+    document.getElementById('accounts').style.display = 'block';
+  }
+
+  // افتح اول تبويب ظاهر
+  const first = document.querySelector('.tabs.tab:not([style*="display: none"])');
+  if (first) first.click();
+}
+
+
+
+
 // 2. تحميل المستخدمين لحظي للدروب داون
 function loadUsers() {
   const usersRef = ref(db, 'users');
