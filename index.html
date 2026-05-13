@@ -1599,6 +1599,9 @@ function showSubElementsByPerm(tabName) {
       el.classList.add('active');
       el.style.display = el.classList.contains('subtabs') ? 'flex' : 'block';
     });
+    
+    
+    setupTabs(content, '.subtabs .tab', 'data-subtab', true);
     return;
   }
 
@@ -1612,6 +1615,9 @@ function showSubElementsByPerm(tabName) {
           const el = document.getElementById(id);
           if (el) el.style.display = 'block';
         });
+      
+         setupTabs(content, '.subtabs .tab', 'data-subtab', true); 
+          
       }
       break;
 
@@ -1623,6 +1629,9 @@ function showSubElementsByPerm(tabName) {
           const el = document.getElementById(id);
           if (el) el.style.display = 'block';
         });
+      
+         setupTabs(content, '.subtabs .tab', 'data-subtab', true); 
+          
       }
       break;
 
@@ -1632,6 +1641,9 @@ function showSubElementsByPerm(tabName) {
         if (subtabs) subtabs.style.display = 'flex';
         if (hasPerm('creatAcco')) document.getElementById('CreatAccCard').style.display = 'block';
         if (hasPerm('showAcco')) document.getElementById('ViewAccCard').style.display = 'block';
+     
+     setupTabs(content, '.subtabs .tab', 'data-subtab', true);
+     
       }
       break;
 
@@ -1639,12 +1651,16 @@ function showSubElementsByPerm(tabName) {
       if (hasPerm('employEd')) {
         if (hasPerm('addEmploy')) document.getElementById('addEmployeeCard').style.display = 'block';
         if (hasPerm('updateEploy')) document.getElementById('editEmployeeCard').style.display = 'block';
+     
+     
+     
       }
       break;
 
     case 'permissions':
       if (hasPerm('permPerms') && hasPerm('permEditpass')) {
         document.getElementById('ChangPassCard').style.display = 'block';
+    
       }
       break;
 
