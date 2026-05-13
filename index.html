@@ -2359,6 +2359,7 @@ setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab', tru
     const data = snap.val();
     if (!data) continue;
 
+    // فلترة الموظف فقط
     const filteredData = Object.values(data).filter(log => {
       if (window.currentRole === 'employee') {
         return log.by === window.currentUser;
