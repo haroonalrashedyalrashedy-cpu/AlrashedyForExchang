@@ -1435,6 +1435,22 @@ const SETTINGS_PATH = 'app/settings';
 const CURRENCY_PATH = 'settings/activeCurrencies';
  
  
+ 
+ 
+ function resetAllSelects() {
+  document.querySelectorAll('select').forEach(sel => {
+    sel.selectedIndex = 0; // يرجعها للخيار الأول اللي هو "اختر..."
+  });
+
+  // امسح محتوى الجداول عشان ما يفضل بيانات قديمة
+  document.querySelectorAll('tbody').forEach(tbody => {
+    tbody.innerHTML = "";
+  });
+}
+ 
+ 
+ 
+ 
 
 let hideTimer = null;
 
@@ -2065,6 +2081,8 @@ btnLogin?.addEventListener('click', async () => {
   if (user.active === false) { alert('الحساب موقف'); return; }
   if (user.password !== password) { alert('كلمة المرور خطأ'); return; }
 
+  
+  resetAllSelects();
   window.currentUser = username;
   window.currentRole = user.role;
   loginScreen.classList.remove('active');
@@ -2091,6 +2109,8 @@ btnLogin?.addEventListener('click', async () => {
 
 // 5. خروج
 btnLogoutAdmin?.addEventListener('click', () => {
+    
+    resetAllSelects();
   window.currentUser = null;
   window.currentRole = null;
   window.userPerms = {}; 
