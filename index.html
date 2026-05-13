@@ -1524,61 +1524,100 @@ function showSubElementsByPerm(tabName) {
   const content = document.getElementById(tabName);
   if (!content) return;
 
+  // اخفي كل شي داخل التبويب اول
   content.querySelectorAll('.subtabs, .card, .tab-content').forEach(el => {
     el.classList.remove('active');
+    el.style.display = 'none';
   });
 
   if (window.currentRole === 'admin') {
-    content.querySelectorAll('.subtabs, .card').forEach(el => el.classList.add('active'));
+    content.querySelectorAll('.subtabs, .card').forEach(el => {
+      el.classList.add('active');
+      el.style.display = el.classList.contains('subtabs') ? 'flex' : 'block';
+    });
     return;
   }
 
   switch(tabName) {
     case 'employees':
       if (hasPerm('employEd')) {
-        if (hasPerm('addEmploy')) document.getElementById('addEmployeeCard')?.classList.add('active');
-        if (hasPerm('updateEploy')) document.getElementById('editEmployeeCard')?.classList.add('active');
+        if (hasPerm('addEmploy')) {
+          document.getElementById('addEmployeeCard').classList.add('active');
+          document.getElementById('addEmployeeCard').style.display = 'block';
+        }
+        if (hasPerm('updateEploy')) {
+          document.getElementById('editEmployeeCard').classList.add('active');
+          document.getElementById('editEmployeeCard').style.display = 'block';
+        }
       }
       break;
 
     case 'operations':
       if (hasPerm('permOperat')) {
-        content.querySelector('.subtabs')?.classList.add('active');
-        document.getElementById('BuyCard')?.classList.add('active');
-        document.getElementById('SellCard')?.classList.add('active');
-        document.getElementById('DeposCard')?.classList.add('active');
-        document.getElementById('WithCard')?.classList.add('active');
+        const subtabs = content.querySelector('.subtabs');
+        if (subtabs) {
+          subtabs.classList.add('active');
+          subtabs.style.display = 'flex';
+        }
+        ['BuyCard', 'SellCard', 'DeposCard', 'WithCard'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.classList.add('active');
+            el.style.display = 'block';
+          }
+        });
       }
       break;
 
     case 'transfers':
       if (hasPerm('permTrans')) {
-        content.querySelector('.subtabs')?.classList.add('active');
-        document.getElementById('SendCard')?.classList.add('active');
-        document.getElementById('RecCard')?.classList.add('active');
-        document.getElementById('PayCard')?.classList.add('active');
+        const subtabs = content.querySelector('.subtabs');
+        if (subtabs) {
+          subtabs.classList.add('active');
+          subtabs.style.display = 'flex';
+        }
+        ['SendCard', 'RecCard', 'PayCard'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.classList.add('active');
+            el.style.display = 'block';
+          }
+        });
       }
       break;
 
     case 'accounts':
       if (hasPerm('permAcc')) {
-        content.querySelector('.subtabs')?.classList.add('active');
-        if (hasPerm('creatAcco')) document.getElementById('CreatAccCard')?.classList.add('active');
-        if (hasPerm('showAcco')) document.getElementById('ViewAccCard')?.classList.add('active');
+        const subtabs = content.querySelector('.subtabs');
+        if (subtabs) {
+          subtabs.classList.add('active');
+          subtabs.style.display = 'flex';
+        }
+        if (hasPerm('creatAcco')) {
+          document.getElementById('CreatAccCard').classList.add('active');
+          document.getElementById('CreatAccCard').style.display = 'block';
+        }
+        if (hasPerm('showAcco')) {
+          document.getElementById('ViewAccCard').classList.add('active');
+          document.getElementById('ViewAccCard').style.display = 'block';
+        }
       }
       break;
 
     case 'permissions':
       if (hasPerm('permPerms')) {
-        content.querySelector('.subtabs')?.classList.add('active');
-        if (hasPerm('permEditRate')) document.getElementById('RateCurrCard')?.classList.add('active');
-        if (hasPerm('selectCurr')) document.getElementById('SelectcurrCard')?.classList.add('active');
-        if (hasPerm('permEditpass')) document.getElementById('ChangPassCard')?.classList.add('active');
+        if (hasPerm('permEditpass')) {
+          document.getElementById('ChangPassCard').classList.add('active');
+          document.getElementById('ChangPassCard').style.display = 'block';
+        }
       }
       break;
 
     case 'matchs':
-      if (hasPerm('permMach')) document.getElementById('MatchCard')?.classList.add('active');
+      if (hasPerm('permMach')) {
+        document.getElementById('MatchCard').classList.add('active');
+        document.getElementById('MatchCard').style.display = 'block';
+      }
       break;
   }
 }
