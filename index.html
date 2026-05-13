@@ -2345,24 +2345,47 @@ setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab', tru
     loadRateLogs();
 }
   async function loadRateLogs() {
-    const from = document.getElementById('rateLogFrom')?.value || getToday();
-    const to = document.getElementById('rateLogTo')?.value || getToday();
-    const tbody = document.querySelector('#rateLogTable tbody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    for (let d = new Date(from); d <= new Date(to); d.setDate(d.getDate() + 1)) {
-      const day = d.toISOString().split('T')[0];
-      const snap = await get(ref(db, `${RATE_LOGS_PATH}/${day}`));
-      const data = snap.val();
-      if (!data) continue;
-      Object.values(data).forEach(log => {
+  const from = document.getElementById('rateLogFrom')?.value || getToday();
+  const to = document.getElementById('rateLogTo')?.value || getToday();
+  const tbody = document.querySelector('#rateLogTable tbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+  let found = false;
+
+  for (let d = new Date(from); d <= new Date(to); d.setDate(d.getDate() + 1)) {
+    const day = d.toISOString().split('T')[0];
+    const snap = await get(ref(db, `${RATE_LOGS_PATH}/${day}`));
+    const data = snap.val();
+    if (!data) continue;
+
+    const filteredData = Object.values(data).filter(log => {
+      if (window.currentRole === 'employee') {
+        return log.by === window.currentUser;
+      }
+      return true;
+    });
+
+    if (filteredData.length > 0) {
+      found = true;
+      filteredData.reverse().forEach(log => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${log.currency}</td><td>${log.type}</td><td>${log.rate}</td>
-          <td>${new Date(log.time).toLocaleString('ar-EG')}</td><td>${log.by}</td>`;
+        tr.innerHTML = `
+          <td>${log.currency}</td>
+          <td>${log.type}</td>
+          <td>${log.rate}</td>
+          <td>${new Date(log.time).toLocaleString('ar-EG')}</td>
+          <td>${log.by}</td>
+        `;
         tbody.appendChild(tr);
       });
     }
   }
+
+  if (!found) {
+    tbody.innerHTML = '<tr><td colspan="5">لا توجد بيانات لليوم المحدد</td></tr>';
+  }
+}
 
   document.getElementById('btnSaveBuyRate')?.addEventListener('click', async () => {
     const cur = document.getElementById('rateCurrency').value;
@@ -2832,8 +2855,19 @@ async function filterTable(tableId) {
     const snap = await get(ref(db, path));
     const data = snap.val();
     if (data) {
-      found = true; // لقينا بيانات
-      Object.values(data).reverse().forEach(op => appendRow(tableId, op));
+
+      // فلترة حسب الموظف
+      const filteredData = Object.values(data).filter(op => {
+        if (window.currentRole === 'employee') {
+          return op.emp === window.currentUser;
+        }
+        return true;
+      });
+
+      if (filteredData.length > 0) {
+        found = true;
+        filteredData.reverse().forEach(op => appendRow(tableId, op));
+      }
     }
   }
 
