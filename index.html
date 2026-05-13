@@ -1486,36 +1486,33 @@ function renderTabsByPerms() {
 
 
 // 1. دالة الضغط على التبويبات - آمنة
-function setupTabClickHandlers(){
-  document.querySelectorAll('.tabs.tab').forEach(tab => {
-    // امسح الـ onclick القديم عشان ما يتكرر
-    tab.onclick = null;
-    
-    tab.onclick = function(e) {
-      e.preventDefault();
-      const tabName = this.getAttribute('data-tab');
+function setupTabClickHandlers() {
+  // التبويبات الرئيسية
+  document.querySelectorAll('#adminScreen > .tabs > .tab').forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      
+      const tabName = tab.getAttribute('data-tab');
+      const targetSection = document.getElementById(tabName);
+      if (!targetSection) return;
 
-      // اخفي الكل
-      document.querySelectorAll('.tab-content,.subtabs,.card').forEach(el => {
-        if(el) {
-          el.style.display = 'none';
-          el.classList.remove('active');
-        }
+      document.querySelectorAll('#adminScreen > .tab-content').forEach(c => {
+        c.classList.remove('active');
+        c.style.display = 'none';
       });
-      document.querySelectorAll('.tabs.tab').forEach(t => {
-        if(t) t.classList.remove('active');
+      document.querySelectorAll('#adminScreen > .tabs > .tab').forEach(t => {
+        t.classList.remove('active');
       });
 
-      // اظهر التبويب المحدد
-      const targetContent = document.getElementById(tabName);
-      if(targetContent) {
-        targetContent.style.display = 'block';
-        targetContent.classList.add('active');
-        showSubElementsByPerm(tabName); // هذا اللي يظهر الكروت والتبويبات الفرعية
-      }
+      tab.classList.add('active');
+      targetSection.classList.add('active');
+      targetSection.style.display = 'block';
 
-      if(this) this.classList.add('active');
-    };
+      showSubElementsByPerm(tabName);
+      
+      // بعد ما تظهر العناصر الفرعية، فعل الكليك عليها
+      setupTabs(targetSection, '.subtabs .tab', 'data-subtab');
+    });
   });
 }
 
@@ -1812,51 +1809,64 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
   function setupTabs(container, tabSelector, contentAttr, isSub = false) {
-    if (!container) return;
-    const tabs = container.querySelectorAll(tabSelector);
-    const contents = container.querySelectorAll(':scope >.tab-content');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        const targetId = tab.getAttribute(contentAttr);
-        const target = document.getElementById(targetId);
-        if (!target) return;
-        const isActive = tab.classList.contains('active');
-        tabs.forEach(t => t.classList.remove('active'));
-        contents.forEach(c => c.classList.remove('active'));
-        if (!isActive) {
-          tab.classList.add('active');
-          target.classList.add('active');
-        }
-        if (isSub) resetHideTimer();
+  if (!container) return;
+  const tabs = container.querySelectorAll(tabSelector);
+
+  // عدل هنا: خله يجيب الكروت كمان
+  const contents = container.querySelectorAll(':scope >.tab-content, :scope >.card');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const targetId = tab.getAttribute(contentAttr);
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      const isActive = tab.classList.contains('active');
+
+      tabs.forEach(t => t.classList.remove('active'));
+
+      // امسح active و display من الكل اول
+      contents.forEach(c => {
+        c.classList.remove('active');
+        c.removeAttribute('style');
       });
 
-      if (isSub) {
-        let startX = 0, startY = 0;
-        const contentEl = document.getElementById(tab.getAttribute(contentAttr));
-        if (!contentEl) return;
-        contentEl.addEventListener('touchstart', e => {
-          startX = e.touches[0].clientX;
-          startY = e.touches[0].clientY;
-        }, {passive: true});
-        contentEl.addEventListener('touchend', e => {
-          const diffX = e.changedTouches[0].clientX - startX;
-          const diffY = e.changedTouches[0].clientY - startY;
-          if (Math.abs(diffY) > Math.abs(diffX) || Math.abs(diffX) < 50) return;
-          const parent = contentEl.parentElement;
-          const contentList = [...parent.querySelectorAll(':scope >.tab-content')];
-          const idx = contentList.findIndex(c => c.classList.contains('active'));
-          if (idx === -1) return;
-          let nextIdx = diffX > 0? idx - 1 : idx + 1;
-          if (nextIdx < 0) nextIdx = contentList.length - 1;
-          if (nextIdx >= contentList.length) nextIdx = 0;
-          const nextTab = [...tabs].find(t => t.getAttribute(contentAttr) === contentList[nextIdx].id);
-          if (nextTab) nextTab.click();
-        });
+      if (!isActive) {
+        tab.classList.add('active');
+        target.classList.add('active');
+        target.style.display = target.classList.contains('subtabs')? 'flex' : 'block';
       }
+
+      if (isSub) resetHideTimer();
     });
-  }
+
+    if (isSub) {
+      let startX = 0, startY = 0;
+      const contentEl = document.getElementById(tab.getAttribute(contentAttr));
+      if (!contentEl) return;
+      contentEl.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      }, {passive: true});
+      contentEl.addEventListener('touchend', e => {
+        const diffX = e.changedTouches[0].clientX - startX;
+        const diffY = e.changedTouches[0].clientY - startY;
+        if (Math.abs(diffY) > Math.abs(diffX) || Math.abs(diffX) < 50) return;
+        const parent = contentEl.parentElement;
+        const contentList = [...parent.querySelectorAll(':scope >.tab-content, :scope >.card')];
+        const idx = contentList.findIndex(c => c.classList.contains('active'));
+        if (idx === -1) return;
+        let nextIdx = diffX > 0? idx - 1 : idx + 1;
+        if (nextIdx < 0) nextIdx = contentList.length - 1;
+        if (nextIdx >= contentList.length) nextIdx = 0;
+        const nextTab = [...tabs].find(t => t.getAttribute(contentAttr) === contentList[nextIdx].id);
+        if (nextTab) nextTab.click();
+      });
+    }
+  });
+}
 
   setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab');
   setupTabs(document.getElementById('operations'), '.subtabs .tab', 'data-subtab', false);
