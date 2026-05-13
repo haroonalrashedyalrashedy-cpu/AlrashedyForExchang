@@ -704,6 +704,29 @@ button, .btn, input[type="submit"], .btn-primary {
 
 
 
+.match-controls {
+  display: grid;
+  grid-template-columns: 1fr 140px auto;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 12px;
+}
+
+.match-controls .field label {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.match-controls select,
+.match-controls input,
+.match-controls button {
+  width: 100%;
+  height: 36px;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+
 
   </style>
 </head>
@@ -1083,6 +1106,7 @@ button, .btn, input[type="submit"], .btn-primary {
 
     <div class="match-toolbar">
       <div class="field">
+       
         <label>التاريخ</label>
         <input type="date" id="matchDate">
       </div>
@@ -3941,7 +3965,7 @@ matchDate.addEventListener('change', () => {
 });
 
 // شغل هذا اول ما يتحمل
-initMatchRows();
+loadCurrenciesToMatchSelect();
 
 }); // نهاية DOMContentLoaded
 
