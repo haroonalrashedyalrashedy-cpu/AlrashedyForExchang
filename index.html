@@ -2273,77 +2273,82 @@ setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab', tru
       if (sellCur && rates[sellCur]) document.getElementById('sellRate').value = rates[sellCur].sell || '';
     });
   }
-  function initRateLogFilter() {
-    const card = document.querySelector('#permissions.card:has(#rateLogTable)');
-    if (!card || document.getElementById('rateLogFilter')) return;
 
-    // 1. حط الستايل في الهيد مرة وحدة عشان يغلب كل الستايلات الثانية
-    if (!document.getElementById('rateLogFilterStyle')) {
-        const s = document.createElement('style');
-        s.id = 'rateLogFilterStyle';
-        s.textContent = `
-          #rateLogFilter {
-            display: flex !important;
-            flex-wrap: nowrap !important;
-            gap: 4px !important;
-            margin-bottom: 8px !important;
-            width: 100% !important;
-          }
-          #rateLogFilter input,
-          #rateLogFilter button {
-            all: unset !important; /* يلغي width: 100% و min-width: 100% */
-            box-sizing: border-box !important;
-            height: 32px !important;
-            font-size: 12px !important;
-            text-align: center !important;
-            border-radius: 6px !important;
-          }
-          #rateLogFilter input[type="date"] {
-            flex: 1 1 0 !important; /* يتمدد ويتقلص */
-            min-width: 0 !important;
-            width: 0 !important; /* يخليه يتقلص بقوة */
-            background: var(--bg-panel) !important;
-            color: var(--text-primary) !important;
-            border: 1px solid var(--border-color) !important;
-            padding: 0 4px !important;
-          }
-          #rateLogFilter button {
-            flex: 0 0 auto !important; /* ما يتقلص */
-            background: var(--accent-green) !important;
-            color: var(--bg-dark) !important;
-            font-weight: 600 !important;
-            padding: 0 8px !important;
-            white-space: nowrap !important;
-          }
-        `;
-        document.head.appendChild(s);
-    }
+function initRateLogFilter() {
+  const card = document.querySelector('#permissions.card:has(#rateLogTable)');
+  if (!card || document.getElementById('rateLogFilter')) return;
 
-    // 2. حط الديف مباشرة في الكارد، لا تخليه داخل .row
-    card.insertAdjacentHTML('afterbegin', `
-     
-      <div id="rateLogFilter">
-       <div class="row-inline">
-        <input type="date" id="rateLogFrom">
-        <input type="date" id="rateLogTo">
-        <button id="btnRateLogFilter">فلترة</button>
-        <button id="btnRateLogClear">مسح</button>
-     </div>
-      </div>
-      
-    `);
+  // 1. الستايل خليه زي ما هو
+  if (!document.getElementById('rateLogFilterStyle')) {
+      const s = document.createElement('style');
+      s.id = 'rateLogFilterStyle';
+      s.textContent = `
+        #rateLogFilter {
+          display: flex !important;
+          flex-wrap: nowrap !important;
+          gap: 4px !important;
+          margin-bottom: 8px !important;
+          width: 100% !important;
+        }
+        #rateLogFilter input,
+        #rateLogFilter button {
+          all: unset !important;
+          box-sizing: border-box !important;
+          height: 32px !important;
+          font-size: 12px !important;
+          text-align: center !important;
+          border-radius: 6px !important;
+        }
+        #rateLogFilter input[type="date"] {
+          flex: 1 1 0 !important;
+          min-width: 0 !important;
+          width: 0 !important;
+          background: var(--bg-panel) !important;
+          color: var(--text-primary) !important;
+          border: 1px solid var(--border-color) !important;
+          padding: 0 4px !important;
+        }
+        #rateLogFilter button {
+          flex: 0 0 auto !important;
+          background: var(--accent-green) !important;
+          color: var(--bg-dark) !important;
+          font-weight: 600 !important;
+          padding: 0 8px !important;
+          white-space: nowrap !important;
+        }
+      `;
+      document.head.appendChild(s);
+  }
 
-    // 3. الكود حقك العادي
+  // 2. الفلتر خليه زي ما هو
+  card.insertAdjacentHTML('afterbegin', `
+    <div id="rateLogFilter">
+     <div class="row-inline">
+      <input type="date" id="rateLogFrom">
+      <input type="date" id="rateLogTo">
+      <button id="btnRateLogFilter">فلترة</button>
+      <button id="btnRateLogClear">مسح</button>
+   </div>
+    </div>
+  `);
+
+  // 3. التعديل هنا فقط
+  document.getElementById('rateLogFrom').value = getToday();
+  document.getElementById('rateLogTo').value = getToday();
+  
+  document.getElementById('btnRateLogFilter').onclick = () => filterTable('rateLogTable'); // كان loadRateLogs
+  
+  document.getElementById('btnRateLogClear').onclick = () => {
     document.getElementById('rateLogFrom').value = getToday();
     document.getElementById('rateLogTo').value = getToday();
-    document.getElementById('btnRateLogFilter').onclick = () => loadRateLogs();
-    document.getElementById('btnRateLogClear').onclick = () => {
-      document.getElementById('rateLogFrom').value = getToday();
-      document.getElementById('rateLogTo').value = getToday();
-      loadRateLogs();
-    };
-    loadRateLogs();
+    filterTable('rateLogTable'); // كان loadRateLogs
+  };
+  
+  filterTable('rateLogTable'); // كان loadRateLogs
 }
+
+
+
   async function loadRateLogs() {
   const from = document.getElementById('rateLogFrom')?.value || getToday();
   const to = document.getElementById('rateLogTo')?.value || getToday();
@@ -2410,7 +2415,10 @@ setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab', tru
       ]);
       document.getElementById('buyRateInput').value = '';
       alert('تم حفظ سعر الشراء بنجاح');
-      loadRateLogs();
+      
+     filterTable('rateLogTable'); 
+      
+   //   loadRateLogs();
     } catch (e) {
       alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل الحفظ: ' + e.message);
     } finally {
@@ -2440,7 +2448,11 @@ setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab', tru
       ]);
       document.getElementById('sellRateInput').value = '';
       alert('تم حفظ سعر البيع بنجاح');
-      loadRateLogs();
+    
+    
+    filterTable('rateLogTable');
+    
+    //  loadRateLogs();
     } catch (e) {
       alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل الحفظ: ' + e.message);
     } finally {
@@ -2881,19 +2893,19 @@ async function filterTable(tableId) {
 }
   
 
-  function getPathForTable(tableId, day) {
-    const map = {
-      buyTable: `${OPS_PATH}/${day}/buy`,
-      sellTable: `${OPS_PATH}/${day}/sell`,
-      depositTable: `${OPS_PATH}/${day}/deposit`,
-      withdrawTable: `${OPS_PATH}/${day}/withdraw`,
-      sendTable: `${OPS_PATH}/${day}/sendTransfer`,
-      RecTable: `${OPS_PATH}/${day}/receiveTransfer`,
-      payTable: `${OPS_PATH}/${day}/payTransfer`,
-      rateLogTable: RATE_LOGS_PATH
-    };
-    return map[tableId];
-  }
+function getPathForTable(tableId, day) {
+  const map = {
+    buyTable: `${OPS_PATH}/${day}/buy`,
+    sellTable: `${OPS_PATH}/${day}/sell`,
+    depositTable: `${OPS_PATH}/${day}/deposit`,
+    withdrawTable: `${OPS_PATH}/${day}/withdraw`,
+    sendTable: `${OPS_PATH}/${day}/sendTransfer`,
+    RecTable: `${OPS_PATH}/${day}/receiveTransfer`,
+    payTable: `${OPS_PATH}/${day}/payTransfer`,
+    rateLogTable: `${RATE_LOGS_PATH}/${day}` // عدّل هنا فقط
+  };
+  return map[tableId];
+}
 
   // دالة واحدة فقط لاضافة الصفوف
   function appendRow(tableId, op) {
