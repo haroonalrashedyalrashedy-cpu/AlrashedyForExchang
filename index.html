@@ -1521,18 +1521,16 @@ function setupTabClickHandlers(){
 
 // 2. دالة اظهار الكروت والفرعي - آمنة لكل التبويبات
 function showSubElementsByPerm(tabName) {
-  console.log("فتح:", tabName); // شيله بعد ما تتأكد انها شغالة
-  
   const content = document.getElementById(tabName);
   if (!content) return;
 
-  // 1. امسح كل الـ style القديم من العناصر الداخلية
+  // 1. امسح display: none من كل الكروت والتبويبات الفرعية
   content.querySelectorAll('.subtabs, .card').forEach(el => {
     el.classList.remove('active');
     el.removeAttribute('style');
   });
 
-  // 2. لو ادمن، اظهر الكل
+  // 2. لو ادمن اظهر الكل
   if (window.currentRole === 'admin') {
     content.querySelectorAll('.subtabs, .card').forEach(el => {
       el.classList.add('active');
@@ -1541,7 +1539,7 @@ function showSubElementsByPerm(tabName) {
     return;
   }
 
-  // 3. لو موظف، اظهر حسب الصلاحية
+  // 3. لو موظف اظهر حسب الصلاحية
   switch(tabName) {
     case 'operations':
       if (hasPerm('permOperat')) {
@@ -1865,19 +1863,34 @@ document.addEventListener('DOMContentLoaded', () => {
   setupTabs(document.getElementById('transfers'), '.subtabs .tab', 'data-subtab', false);
   setupTabs(document.getElementById('accounts'), '.subtabs .tab', 'data-subtab', false);
 
-  document.querySelectorAll('#adminScreen >.tabs >.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      const targetSection = document.getElementById(tab.getAttribute('data-tab'));
-      if (!targetSection) return;
-      const subtabs = targetSection.querySelector('.subtabs');
-      if (subtabs) {
-        subtabs.style.display = 'flex';
-        const firstSub = subtabs.querySelector('.tab');
-        if (firstSub) firstSub.click();
-        resetHideTimer();
-      }
+  document.querySelectorAll('#adminScreen > .tabs > .tab').forEach(tab => {
+  tab.addEventListener('click', (e) => {
+    e.stopPropagation();
+    
+    const tabName = tab.getAttribute('data-tab');
+    const targetSection = document.getElementById(tabName);
+    if (!targetSection) return;
+
+    // اخفي كل التبويبات الرئيسية
+    document.querySelectorAll('#adminScreen > .tab-content').forEach(c => {
+      c.classList.remove('active');
+      c.style.display = 'none';
     });
+    document.querySelectorAll('#adminScreen > .tabs > .tab').forEach(t => {
+      t.classList.remove('active');
+    });
+
+    // اظهر التبويب المختار
+    tab.classList.add('active');
+    targetSection.classList.add('active');
+    targetSection.style.display = 'block';
+
+    // اهم سطر - نادي الدالة اللي تظهر الكروت حسب الصلاحية
+    showSubElementsByPerm(tabName);
+
+    resetHideTimer();
   });
+});
 
   ['click', 'touchstart', 'scroll', 'keydown'].forEach(evt => {
     document.addEventListener(evt, resetHideTimer, {passive: true});
