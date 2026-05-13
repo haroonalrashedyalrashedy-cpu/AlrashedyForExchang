@@ -739,7 +739,7 @@ button, .btn, input[type="submit"], .btn-primary {
 
 
     <div id="employees" class="tab-content active">
-      <div class="card">
+      <div class="card"  id="addEmployeeCard">
         <h3>اضافة موظف</h3>
         <div class="row">
           <input type="text" id="newEmpName" placeholder="اسم الموظف">
@@ -747,7 +747,7 @@ button, .btn, input[type="submit"], .btn-primary {
           <button id="btnAddEmp">اضافة</button>
         </div>
       </div>
-      <div class="card">
+      <div class="card"  id="editEmployeeCard">
         <h3>تعديل/ايقاف/حذف موظف</h3>
         <div class="row">
           <select id="empSelect"></select>
@@ -768,7 +768,7 @@ button, .btn, input[type="submit"], .btn-primary {
       </div>
 
       <div id="buy" class="tab-content active">
-        <div class="card">
+        <div class="card"  id="BuyCard">
           <div class="buy-form">
             <input type="number" id="buyAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
             <div class="row-inline">
@@ -802,7 +802,7 @@ button, .btn, input[type="submit"], .btn-primary {
       </div>
 
       <div id="sell" class="tab-content">
-        <div class="card">
+        <div class="card" id="SellCard">
           <div class="sell-form">
             <input type="number" id="sellAmount" placeholder="ادخل المبلغ هنا" inputmode="numeric">
             <div class="row-inline">
@@ -832,7 +832,7 @@ button, .btn, input[type="submit"], .btn-primary {
       </div>
 
       <div id="deposit" class="tab-content">
-        <div class="card">
+        <div class="card" id="DeposCard">
           <div class="row">
             <select id="depositAccount" class="searchable"></select>
             <div class="row-inline">
@@ -862,7 +862,7 @@ button, .btn, input[type="submit"], .btn-primary {
       </div>
 
       <div id="withdraw" class="tab-content">
-        <div class="card">
+        <div class="card" id="WithCard">
           <div class="row">
             <select id="withdrawAccount" class="searchable"></select>
             <div class="row-inline">
@@ -901,7 +901,7 @@ button, .btn, input[type="submit"], .btn-primary {
       </div>
 
       <div id="sendTransfers" class="tab-content active">
-        <div class="card">
+        <div class="card" id="SendCard">
           <div class="sendTrans-form">
             <input type="text" id="recNam" placeholder="إدخل إسم المستلم" inputmode="text">
             <input type="text" id="sendNam" placeholder="إدخل إسم المرسل" inputmode="text">
@@ -933,7 +933,7 @@ button, .btn, input[type="submit"], .btn-primary {
       </div>
 
       <div id="receTransfers" class="tab-content ">
-        <div class="card">
+        <div class="card" id="RecCard">
           <div class="recev-form">
             <div class="row-inline">
               <input type="number" id="numRec" placeholder="إدخل رقم الحوالة" inputmode="numeric">
@@ -966,7 +966,7 @@ button, .btn, input[type="submit"], .btn-primary {
       </div>
 
       <div id="payTransfers" class="tab-content ">
-        <div class="card">
+        <div class="card"  id="PayCard">
           <div class="pay-form">
             <input type="text" id="payNum" placeholder="إدخل رقم الحوالة" inputmode="numeric">
             <div class="row-inline">
@@ -1006,7 +1006,7 @@ button, .btn, input[type="submit"], .btn-primary {
         <div class="tab" data-subtab="deleteAcc">ايقاف/حذف</div>
       </div>
       <div id="createAcc" class="tab-content active">
-        <div class="card">
+        <div class="card" id="CreatAccCard">
           <div class="row">
             <input type="text" id="accName" placeholder="اسم العميل">
             <input type="number" id="accPhone" placeholder="رقم الهاتف" inputmode="numeric">
@@ -1022,7 +1022,7 @@ button, .btn, input[type="submit"], .btn-primary {
         </div>
       </div>
       <div id="viewAcc" class="tab-content">
-        <div class="card">
+        <div class="card" id="ViewAccCard">
           <div class="row">
             <select id="viewAccSelect" class="searchable"></select>
             <button id="btnViewAcc">عرض</button>
@@ -1037,7 +1037,7 @@ button, .btn, input[type="submit"], .btn-primary {
         </div>
       </div>
       <div id="editAcc" class="tab-content">
-        <div class="card">
+        <div class="card" id="EditAccCard">
           <div class="row">
             <select id="editAccSelect" class="searchable"></select>
             <input type="text" id="editAccName" placeholder="اسم العميل">
@@ -1054,7 +1054,7 @@ button, .btn, input[type="submit"], .btn-primary {
         </div>
       </div>
       <div id="deleteAcc" class="tab-content">
-        <div class="card">
+        <div class="card" id="DeletAccCard">
           <div class="row">
             <select id="deleteAccSelect" class="searchable"></select>
             <button id="btnSuspendAcc">ايقاف</button>
@@ -1070,7 +1070,7 @@ button, .btn, input[type="submit"], .btn-primary {
     
     
  <div id="matchs" class="tab-content">
-  <div class="card match-card">
+  <div class="card match-card" id="MatchCard">
     <h3>مطابقة الموظف</h3>
 
     <div class="match-toolbar">
@@ -1118,7 +1118,7 @@ button, .btn, input[type="submit"], .btn-primary {
     
 
     <div id="permissions" class="tab-content">
-      <div class="card">
+      <div class="card" id="RateCurrCard">
         <h3>تعديل الاسعار</h3>
         <div class="row">
 <select id="rateCurrency" data-role="currency"></select>
@@ -1136,7 +1136,7 @@ button, .btn, input[type="submit"], .btn-primary {
         </table>
       </div>
   </div>
-      <div class="card">
+      <div class="card" id="SelectcurrCard">
         <h3>تحديد العملات</h3>
         <div class="row">
           <label><input type="checkbox" value="يمني" class="activeCurrency"> ريال يمني</label>
@@ -1199,7 +1199,7 @@ button, .btn, input[type="submit"], .btn-primary {
         </div>
       </div>
 
-      <div class="card">
+      <div class="card"  id="ChangPassCard">
         <h3>تغيير كلمة المرور</h3>
         <div class="row">
           <input type="password" id="adminNewPass" placeholder="كلمة مرور المدير الجديدة" inputmode="numeric">
@@ -1522,78 +1522,62 @@ function showSubElementsByPerm(tabName) {
   const content = document.getElementById(tabName);
   if (!content) return;
 
-  // اخفي كل السبتابات والكروت في هذا التبويب اول
-  content.querySelectorAll('.subtabs,.card,.tab-content').forEach(el => {
-    if(el) el.style.display = 'none';
-    if(el) el.classList.remove('active');
+  content.querySelectorAll('.subtabs, .card, .tab-content').forEach(el => {
+    el.classList.remove('active');
   });
 
-  // لو ادمن اظهر الكل واخرج
   if (window.currentRole === 'admin') {
-    content.querySelectorAll('.subtabs,.card,.tab-content').forEach(el => {
-      if(el) {
-        el.style.display = '';
-        el.classList.add('active');
-      }
-    });
+    content.querySelectorAll('.subtabs, .card').forEach(el => el.classList.add('active'));
     return;
   }
 
-  // موظف: اظهر حسب الصلاحية
   switch(tabName) {
-    case 'accounts':
-      if (hasPerm('permAcc')) {
-        const subTabs = content.querySelector('.subtabs');
-        if(subTabs) {
-          subTabs.style.display = 'flex';
-          subTabs.classList.add('active');
-        }
-
-        // اظهر سبتاب انشاء لو عنده صلاحية
-        if (hasPerm('creatAcco')) {
-          const createAcc = content.querySelector('#createAcc');
-          if(createAcc) {
-            createAcc.style.display = 'block';
-            createAcc.classList.add('active');
-          }
-        }
-
-        // اظهر سبتاب عرض لو عنده صلاحية
-        if (hasPerm('showAcco')) {
-          const viewAcc = content.querySelector('#viewAcc');
-          if(viewAcc) {
-            viewAcc.style.display = 'block';
-            viewAcc.classList.add('active');
-          }
-        }
-      }
-      break;
-
     case 'employees':
       if (hasPerm('employEd')) {
-        const cards = content.querySelectorAll('.card');
-        if (hasPerm('addEmploy') && cards[0]) {
-          cards[0].style.display = 'block';
-          cards[0].classList.add('active');
-        }
-        if (hasPerm('updateEploy') && cards[1]) {
-          cards[1].style.display = 'block';
-          cards[1].classList.add('active');
-        }
+        if (hasPerm('addEmploy')) document.getElementById('addEmployeeCard')?.classList.add('active');
+        if (hasPerm('updateEploy')) document.getElementById('editEmployeeCard')?.classList.add('active');
       }
       break;
 
-    default:
-      // للتبويبات الثانية اظهر الكروت لو عنده الصلاحية الرئيسية
-      const mainPerm = 'perm' + tabName.charAt(0).toUpperCase() + tabName.slice(1);
-      if (hasPerm(mainPerm) || hasPerm('permMach')) {
-        content.querySelectorAll('.card,.tab-content').forEach(el => {
-          if(el) {
-            el.style.display = 'block';
-            el.classList.add('active');
-          }
-        });
+    case 'operations':
+      if (hasPerm('permOperat')) {
+        content.querySelector('.subtabs')?.classList.add('active');
+        document.getElementById('BuyCard')?.classList.add('active');
+        document.getElementById('SellCard')?.classList.add('active');
+        document.getElementById('DeposCard')?.classList.add('active');
+        document.getElementById('WithCard')?.classList.add('active');
       }
+      break;
+
+    case 'transfers':
+      if (hasPerm('permTrans')) {
+        content.querySelector('.subtabs')?.classList.add('active');
+        document.getElementById('SendCard')?.classList.add('active');
+        document.getElementById('RecCard')?.classList.add('active');
+        document.getElementById('PayCard')?.classList.add('active');
+      }
+      break;
+
+    case 'accounts':
+      if (hasPerm('permAcc')) {
+        content.querySelector('.subtabs')?.classList.add('active');
+        if (hasPerm('creatAcco')) document.getElementById('CreatAccCard')?.classList.add('active');
+        if (hasPerm('showAcco')) document.getElementById('ViewAccCard')?.classList.add('active');
+      }
+      break;
+
+    case 'permissions':
+      if (hasPerm('permPerms')) {
+        content.querySelector('.subtabs')?.classList.add('active');
+        if (hasPerm('permEditRate')) document.getElementById('RateCurrCard')?.classList.add('active');
+        if (hasPerm('selectCurr')) document.getElementById('SelectcurrCard')?.classList.add('active');
+        if (hasPerm('permEditpass')) document.getElementById('ChangPassCard')?.classList.add('active');
+      }
+      break;
+
+    case 'matchs':
+      if (hasPerm('permMach')) document.getElementById('MatchCard')?.classList.add('active');
+      break;
   }
 }
 
@@ -1739,16 +1723,62 @@ btnLogoutAdmin?.addEventListener('click', () => {
 // 6. تغيير كلمة مرور الادمن
 document.getElementById('btnChangeAdminPass')?.addEventListener('click', async () => {
   const newPass = document.getElementById('adminNewPass').value.trim();
-  if (!newPass) { alert('ادخل كلمة المرور الجديدة'); return; }
-  if (!/^\d{3,8}$/.test(newPass)) { alert('كلمة المرور لازم تكون ارقام 3-8 خانات'); return; }
-  await update(ref(db, `users/${window.currentUser}`), { password: newPass });
-  alert('تم تغيير كلمة المرور بنجاح');
-  document.getElementById('adminNewPass').value = '';
+  
+  if (!newPass) { 
+    alert('ادخل كلمة المرور الجديدة'); 
+    return; 
+  }
+  if (!/^\d{3,8}$/.test(newPass)) { 
+    alert('كلمة المرور لازم تكون ارقام 3-8 خانات'); 
+    return; 
+  }
+
+  try {
+    // لو ادمن: يغير كلمة مرور admin
+    // لو موظف: يغير كلمة مروره هو
+    const targetUser = window.currentRole === 'admin' ? 'admin' : window.currentUser;
+    
+    await update(ref(db, `users/${targetUser}`), { password: newPass });
+    
+    alert('تم تغيير كلمة المرور بنجاح');
+    document.getElementById('adminNewPass').value = '';
+    
+  } catch (e) {
+    alert('فشل التغيير: ' + e.message);
+  }
 });
 
 // ===== كل كود التبويبات والعمليات داخل DOMContentLoaded =====
 document.addEventListener('DOMContentLoaded', () => {
   let hideTimer = null;
+  
+  
+  
+  
+  
+  document.getElementById('permEmpSelect')?.addEventListener('change', async (e) => {
+  const uid = e.target.value;
+  if (!uid) return;
+
+  const snap = await get(ref(db, `perms/${uid}`));
+  const perms = snap.val() || {};
+
+  document.getElementById('employEd').checked = !!perms.employEd;
+  document.getElementById('addEmploy').checked = !!perms.addEmploy;
+  document.getElementById('updateEploy').checked = !!perms.updateEploy;
+  document.getElementById('permOperat').checked = !!perms.permOperat;
+  document.getElementById('permTrans').checked = !!perms.permTrans;
+  document.getElementById('permAcc').checked = !!perms.permAcc;
+  document.getElementById('creatAcco').checked = !!perms.creatAcco;
+  document.getElementById('showAcco').checked = !!perms.showAcco;
+  document.getElementById('permMach').checked = !!perms.permMach;
+  document.getElementById('permPerms').checked = !!perms.permPerms;
+  document.getElementById('permEditRate').checked = !!perms.permEditRate;
+  document.getElementById('selectCurr').checked = !!perms.selectCurr;
+  document.getElementById('permEditpass').checked = !!perms.permEditpass;
+});
+
+
 
   function resetHideTimer() {
   if (hideTimer) clearTimeout(hideTimer);
@@ -2124,22 +2154,32 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function listenBuyOps() {
-    const today = getToday();
-    const tbody = document.querySelector('#buyTable tbody');
-    if (!tbody) return;
+  const today = getToday();
+  const tbody = document.querySelector('#buyTable tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  onValue(ref(db, `${OPS_PATH}/${today}/buy`), (snap) => {
     tbody.innerHTML = '';
-    onValue(ref(db, `${OPS_PATH}/${today}/buy`), (snap) => {
-      tbody.innerHTML = '';
-      const data = snap.val();
-      if (!data) return;
-      Object.values(data).reverse().forEach(op => {
+    const data = snap.val();
+    if (!data) return;
+
+    Object.values(data)
+      .filter(op => {
+        if (window.currentRole === 'employee') {
+          return op.emp === window.currentUser;
+        }
+        return true;
+      })
+      .reverse()
+      .forEach(op => {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td>
           <td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
         tbody.appendChild(tr);
       });
-    });
-  }
+  });
+}
   listenBuyOps();
 
   // ===== عمليات البيع =====
@@ -2176,21 +2216,31 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function listenSellOps() {
-    const today = getToday();
-    const tbody = document.querySelector('#sellTable tbody');
-    if (!tbody) return;
-    onValue(ref(db, `${OPS_PATH}/${today}/sell`), (snap) => {
-      tbody.innerHTML = '';
-      const data = snap.val();
-      if (!data) return;
-      Object.values(data).reverse().forEach(op => {
+  const today = getToday();
+  const tbody = document.querySelector('#sellTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/sell`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    Object.values(data)
+      .filter(op => {
+        if (window.currentRole === 'employee') {
+          return op.emp === window.currentUser;
+        }
+        return true;
+      })
+      .reverse()
+      .forEach(op => {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td>
           <td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
         tbody.appendChild(tr);
       });
-    });
-  }
+  });
+}
   listenSellOps();
 
   // ===== القبض والصرف =====
@@ -2270,26 +2320,37 @@ document.getElementById('btnSaveDeposit')?.addEventListener('click', async () =>
   });
 
   function listenDepositOps() {
-    const today = getToday();
-    const tbody = document.querySelector('#depositTable tbody');
-    if (!tbody) return;
-    onValue(ref(db, `${OPS_PATH}/${today}/deposit`), (snap) => {
+  const today = getToday();
+  const tbody = document.querySelector('#depositTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/deposit`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    onValue(ref(db, ACCOUNTS_PATH), (accSnap) => {
+      const accounts = accSnap.val() || {};
       tbody.innerHTML = '';
-      const data = snap.val();
-      if (!data) return;
-      onValue(ref(db, ACCOUNTS_PATH), (accSnap) => {
-        const accounts = accSnap.val() || {};
-        tbody.innerHTML = '';
-        Object.values(data).reverse().forEach(op => {
+
+      Object.values(data)
+        .filter(op => {
+          if (window.currentRole === 'employee') {
+            return op.emp === window.currentUser;
+          }
+          return true;
+        })
+        .reverse()
+        .forEach(op => {
           const accName = accounts[op.accountId]?.name || 'محذوف';
           const tr = document.createElement('tr');
           tr.innerHTML = `<td>${accName}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td>
             <td>${op.depositor}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
           tbody.appendChild(tr);
         });
-      }, {onlyOnce: true});
-    });
-  }
+    }, {onlyOnce: true});
+  });
+}
 
 document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () => {
     const accId = document.getElementById('withdrawAccount').value;
@@ -2336,26 +2397,37 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
   });
 
   function listenWithdrawOps() {
-    const today = getToday();
-    const tbody = document.querySelector('#withdrawTable tbody');
-    if (!tbody) return;
-    onValue(ref(db, `${OPS_PATH}/${today}/withdraw`), (snap) => {
+  const today = getToday();
+  const tbody = document.querySelector('#withdrawTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/withdraw`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    onValue(ref(db, ACCOUNTS_PATH), (accSnap) => {
+      const accounts = accSnap.val() || {};
       tbody.innerHTML = '';
-      const data = snap.val();
-      if (!data) return;
-      onValue(ref(db, ACCOUNTS_PATH), (accSnap) => {
-        const accounts = accSnap.val() || {};
-        tbody.innerHTML = '';
-        Object.values(data).reverse().forEach(op => {
+
+      Object.values(data)
+        .filter(op => {
+          if (window.currentRole === 'employee') {
+            return op.emp === window.currentUser;
+          }
+          return true;
+        })
+        .reverse()
+        .forEach(op => {
           const accName = accounts[op.accountId]?.name || 'محذوف';
           const tr = document.createElement('tr');
           tr.innerHTML = `<td>${accName}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td>
             <td>${op.receiver}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
           tbody.appendChild(tr);
         });
-      }, {onlyOnce: true});
-    });
-  }
+    }, {onlyOnce: true});
+  });
+}
   
   listenAccounts();
   listenDepositOps();
@@ -2409,14 +2481,24 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
 
   // عرض حوالات الارسال لحظي
   function listenSendTransfers() {
-    const today = getToday();
-    const tbody = document.querySelector('#sendTable tbody');
-    if (!tbody) return;
-    onValue(ref(db, `${OPS_PATH}/${today}/sendTransfer`), (snap) => {
-      tbody.innerHTML = '';
-      const data = snap.val();
-      if (!data) return;
-      Object.values(data).reverse().forEach(op => {
+  const today = getToday();
+  const tbody = document.querySelector('#sendTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/sendTransfer`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    Object.values(data)
+      .filter(op => {
+        if (window.currentRole === 'employee') {
+          return op.emp === window.currentUser;
+        }
+        return true;
+      })
+      .reverse()
+      .forEach(op => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${op.number}</td>
@@ -2429,8 +2511,8 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
         `;
         tbody.appendChild(tr);
       });
-    });
-  }
+  });
+}
   listenSendTransfers();
 
   // استلام الحوالة
@@ -2500,14 +2582,24 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
 
   // عرض جدول الاستلام لحظي
   function listenReceiveTransfers() {
-    const today = getToday();
-    const tbody = document.querySelector('#RecTable tbody');
-    if (!tbody) return;
-    onValue(ref(db, `${OPS_PATH}/${today}/receiveTransfer`), (snap) => {
-      tbody.innerHTML = '';
-      const data = snap.val();
-      if (!data) return;
-      Object.values(data).reverse().forEach(op => {
+  const today = getToday();
+  const tbody = document.querySelector('#RecTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/receiveTransfer`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    Object.values(data)
+      .filter(op => {
+        if (window.currentRole === 'employee') {
+          return op.emp === window.currentUser;
+        }
+        return true;
+      })
+      .reverse()
+      .forEach(op => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${op.number}</td>
@@ -2520,8 +2612,8 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
         `;
         tbody.appendChild(tr);
       });
-    });
-  }
+  });
+}
   listenReceiveTransfers();
 
   ////////////////// دفع الحوالات يدوي
@@ -2569,14 +2661,25 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
 
   // عرض جدول الدفع اليدوي لحظي
   function listenPayTransfers() {
-    const today = getToday();
-    const tbody = document.querySelector('#payTable tbody');
-    if (!tbody) return;
-    onValue(ref(db, `${OPS_PATH}/${today}/payTransfer`), (snap) => {
-      tbody.innerHTML = '';
-      const data = snap.val();
-      if (!data) return;
-      Object.values(data).reverse().forEach(op => {
+  const today = getToday();
+  const tbody = document.querySelector('#payTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/payTransfer`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    Object.values(data)
+      .filter(op => {
+        // لو موظف يشوف عملياته هو بس، لو ادمن يشوف الكل
+        if (window.currentRole === 'employee') {
+          return op.emp === window.currentUser;
+        }
+        return true;
+      })
+      .reverse()
+      .forEach(op => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${op.number}</td>
@@ -2588,8 +2691,8 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
         `;
         tbody.appendChild(tr);
       });
-    });
-  }
+  });
+}
   listenPayTransfers();
 
   // ===== الفلترة والتواريخ والترتيب =====
@@ -3410,11 +3513,18 @@ document.getElementById('btnSaveColors')?.addEventListener('click', async () => 
 // ===== عرض الرصيد فقط =====
 // ===== عرض الرصيد =====
 async function viewEmployeeBalance() {
-  const empUsername = document.getElementById('matchEmpSelect').value;
+  let empUsername = document.getElementById('matchEmpSelect').value;
   const currency = document.getElementById('matchCurrencySelect').value;
   const table = document.getElementById('matchsTables');
   const thead = table.querySelector('thead tr');
   const tbody = table.querySelector('tbody');
+
+  // إجبار الموظف يشوف رصيده هو فقط
+  if (window.currentRole === 'employee') {
+    empUsername = window.currentUser;
+    document.getElementById('matchEmpSelect').value = window.currentUser;
+    document.getElementById('matchEmpSelect').disabled = true;
+  }
 
   if (!empUsername) {
     alert('اختر الموظف أولاً');
@@ -3428,7 +3538,7 @@ async function viewEmployeeBalance() {
     const snap = await get(ref(db, `accounts/${empId}/currencies`));
     const allCurrBals = snap.val() || {};
 
-    let currenciesToShow = currency? [currency] : Object.keys(allCurrBals);
+    let currenciesToShow = currency ? [currency] : Object.keys(allCurrBals);
 
     if (currenciesToShow.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4">لا يوجد أرصدة مسجلة</td></tr>';
