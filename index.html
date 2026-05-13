@@ -1415,15 +1415,21 @@ const db = getDatabase(app);
 window.db = db;
 
 
+
+const SYSTEM_BAL_PATH = 'systemBalance';
+  const ACCOUNTS_PATH = 'accounts';
+  const TRANSFERS_PENDING = 'transfers/pending';
+  const TRANSFERS_RECEIVED = 'transfers/received';
+  const OPS_PATH = 'ops';
+  const RATES_PATH = 'rates';
+  const RATE_LOGS_PATH = 'rateLogs';
+  const CURRENCIES_AR = ["يمني", "سعودي شبكة", "سعودي نقد", "دولار", "يورو"];
+  const getToday = () => new Date().toISOString().split('T')[0];
  
  
- function getToday() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+ const EMP_PATH = 'users';
+const SETTINGS_PATH = 'app/settings';
+const CURRENCY_PATH = 'settings/activeCurrencies';
  
  
 
@@ -2213,16 +2219,7 @@ setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab', tru
   };
 
   // ===== الثوابت والمسارات =====
-  const SYSTEM_BAL_PATH = 'systemBalance';
-  const ACCOUNTS_PATH = 'accounts';
-  const TRANSFERS_PENDING = 'transfers/pending';
-  const TRANSFERS_RECEIVED = 'transfers/received';
-  const OPS_PATH = 'ops';
-  const RATES_PATH = 'rates';
-  const RATE_LOGS_PATH = 'rateLogs';
-  const CURRENCIES_AR = ["يمني", "سعودي شبكة", "سعودي نقد", "دولار", "يورو"];
-  const getToday = () => new Date().toISOString().split('T')[0];
-
+  
   // ===== دوال الرصيد =====
   async function getSystemBalance(currency) {
     const snap = await get(ref(db, `${SYSTEM_BAL_PATH}/${currency}`));
@@ -3016,7 +3013,7 @@ setupTabClickHandlers();
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  const EMP_PATH = 'users';
+  
   const empSelect = document.getElementById('empSelect');
   const permEmpSelect = document.getElementById('permEmpSelect');
   const matchEmpSelect = document.getElementById('matchEmpSelect');
@@ -3426,7 +3423,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-const CURRENCY_PATH = 'settings/activeCurrencies';
+
 
 // 1. يعبّي اي select عنده data-role="currency"
 function fillCurrencySelect(sel, activeCurrencies) {
@@ -3502,7 +3499,7 @@ obs.observe(document.body, { childList: true, subtree: true });
 
 
 
-const SETTINGS_PATH = 'app/settings'; // مسار الاعدادات في قاعدة البيانات
+ // مسار الاعدادات في قاعدة البيانات
 
 // تحميل الاعدادات وتطبيقها لحظيًا
 function listenSettings() {
