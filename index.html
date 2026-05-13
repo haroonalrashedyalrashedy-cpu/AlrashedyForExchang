@@ -1439,8 +1439,7 @@ function renderTabsByPerms() {
       if(el) el.style.removeProperty('display');
       if(el) el.classList.add('active');
     });
-    setupTabClickHandlers();
-    return;
+    return; // شلت setupTabClickHandlers من هنا
   }
 
   // موظف: اخفي الكل اول وشيل active
@@ -1457,7 +1456,7 @@ function renderTabsByPerms() {
     const tab = document.querySelector(`.tab[data-tab="${tabName}"]`);
     if (tab) {
       tab.style.removeProperty('display');
-      return true; // رجع true لو ظهر
+      return true;
     }
     return false;
   };
@@ -1470,8 +1469,8 @@ function renderTabsByPerms() {
   showTab('matchs', 'permMach');
   showTab('permissions', 'permPerms');
 
-  // شغل الكليك هندلر
-  setupTabClickHandlers();
+  // شغل الكليك هندلر - شلتها من هنا
+  // setupTabClickHandlers();
 
   // فعل اول تبويب ظاهر تلقائياً
   setTimeout(() => {
@@ -1489,11 +1488,14 @@ function renderTabsByPerms() {
 // 1. دالة الضغط على التبويبات - آمنة
 function setupTabClickHandlers(){
   document.querySelectorAll('.tabs.tab').forEach(tab => {
+    // امسح الـ onclick القديم عشان ما يتكرر
+    tab.onclick = null;
+    
     tab.onclick = function(e) {
       e.preventDefault();
       const tabName = this.getAttribute('data-tab');
 
-      // اخفي الكل بأمان
+      // اخفي الكل
       document.querySelectorAll('.tab-content,.subtabs,.card').forEach(el => {
         if(el) {
           el.style.display = 'none';
@@ -1509,7 +1511,7 @@ function setupTabClickHandlers(){
       if(targetContent) {
         targetContent.style.display = 'block';
         targetContent.classList.add('active');
-        showSubElementsByPerm(tabName); // هذا يشغل الكروت لكل التبويبات
+        showSubElementsByPerm(tabName); // هذا اللي يظهر الكروت والتبويبات الفرعية
       }
 
       if(this) this.classList.add('active');
@@ -2921,7 +2923,7 @@ document.getElementById('btnSavePerm')?.addEventListener('click', async ()=>{
 
 
 
-
+setupTabClickHandlers();
 
 }); // نهاية DOMContentLoaded
 
