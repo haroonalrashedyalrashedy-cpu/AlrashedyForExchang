@@ -1415,7 +1415,7 @@ const db = getDatabase(app);
 window.db = db;
 
 
-
+const EMPLOYEE_BAL_PATH = 'employeeBalances';
 const SYSTEM_BAL_PATH = 'systemBalance';
   const ACCOUNTS_PATH = 'accounts';
   const TRANSFERS_PENDING = 'transfers/pending';
@@ -2229,6 +2229,27 @@ setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab', tru
     const snap = await get(ref(db, `${ACCOUNTS_PATH}/${accId}/currencies/${currency}`));
     return snap.val() || 0;
   }
+  
+  
+  async function getEmployeeBalance(emp, currency) {
+  const snap = await get(ref(db, `${EMPLOYEE_BAL_PATH}/${emp}/${currency}`));
+  return snap.val() || 0;
+}
+
+async function updateEmployeeBalance(emp, updates) {
+  const updatesObj = {};
+  for (const [cur, val] of Object.entries(updates)) {
+    const current = await getEmployeeBalance(emp, cur);
+    const newVal = current + val;
+    if (newVal < 0) throw new Error(`رصيدك من ${cur} لا يسمح`);
+    updatesObj[`${EMPLOYEE_BAL_PATH}/${emp}/${cur}`] = newVal;
+  }
+  await update(ref(db), updatesObj);
+}
+  
+  
+  
+  
   async function updateSystemBalance(updates) {
     const updatesObj = {};
     for (const [cur, val] of Object.entries(updates)) {
@@ -2503,9 +2524,13 @@ function initRateLogFilter() {
     btn.disabled = true;
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
     try {
-      const yemenBalance = await getSystemBalance('يمني');
-      if (yemenBalance < result) { alert('رصيد اليمني لا يسمح'); return; }
-      await Promise.race([updateSystemBalance({ 'يمني': -result, [currency]: amount }), timeoutPromise]);
+      // 1. غيّر getSystemBalance لـ getEmployeeBalance
+      const yemenBalance = await getEmployeeBalance(window.currentUser, 'يمني');
+      if (yemenBalance < result) { alert('رصيدك من اليمني لا يسمح'); return; }
+
+      // 2. غيّر updateSystemBalance لـ updateEmployeeBalance وضيف window.currentUser
+      await Promise.race([updateEmployeeBalance(window.currentUser, { 'يمني': -result, [currency]: amount }), timeoutPromise]);
+
       const today = getToday();
       const buyId = `buy_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
       await set(ref(db, `${OPS_PATH}/${today}/buy/${buyId}`), {
@@ -2525,7 +2550,8 @@ function initRateLogFilter() {
 
   
   // ===== عمليات البيع =====
-  document.getElementById('btnSaveSell')?.addEventListener('click', async () => {
+  
+document.getElementById('btnSaveSell')?.addEventListener('click', async () => {
     const amount = parseFloat(document.getElementById('sellAmount').value);
     const currency = document.getElementById('sellCurrency').value;
     const rate = parseFloat(document.getElementById('sellRate').value);
@@ -2537,9 +2563,13 @@ function initRateLogFilter() {
     btn.disabled = true;
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
     try {
-      const curBalance = await getSystemBalance(currency);
-      if (curBalance < amount) { alert(`رصيد ${currency} لا يسمح`); return; }
-      await Promise.race([updateSystemBalance({ [currency]: -amount, 'يمني': result }), timeoutPromise]);
+      // 1. غيّر getSystemBalance لـ getEmployeeBalance وضيف window.currentUser
+      const curBalance = await getEmployeeBalance(window.currentUser, currency);
+      if (curBalance < amount) { alert(`رصيدك من ${currency} لا يسمح`); return; }
+
+      // 2. غيّر updateSystemBalance لـ updateEmployeeBalance وضيف window.currentUser
+      await Promise.race([updateEmployeeBalance(window.currentUser, { [currency]: -amount, 'يمني': result }), timeoutPromise]);
+
       const today = getToday();
       const sellId = `sell_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
       await set(ref(db, `${OPS_PATH}/${today}/sell/${sellId}`), {
@@ -2556,7 +2586,6 @@ function initRateLogFilter() {
       setTimeout(() => btn.disabled = false, 500);
     }
   });
-
   
   // ===== القبض والصرف =====
   
@@ -2582,8 +2611,9 @@ document.getElementById('btnSaveDeposit')?.addEventListener('click', async () =>
     btn.disabled = true;
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
     try {
+      // غيّر updateSystemBalance لـ updateEmployeeBalance وضيف window.currentUser
       await Promise.race([
-        Promise.all([updateSystemBalance({ [currency]: amount }), updateAccountBalance(accId, currency, amount)]),
+        Promise.all([updateEmployeeBalance(window.currentUser, { [currency]: amount }), updateAccountBalance(accId, currency, amount)]),
         timeoutPromise
       ]);
       const today = getToday();
@@ -2601,8 +2631,6 @@ document.getElementById('btnSaveDeposit')?.addEventListener('click', async () =>
       setTimeout(() => btn.disabled = false, 500);
     }
   });
-
-  
 
 document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () => {
     const accId = document.getElementById('withdrawAccount').value;
@@ -2624,12 +2652,13 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
     btn.disabled = true;
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
     try {
-      const sysBal = await getSystemBalance(currency);
+      // غيّر getSystemBalance و updateSystemBalance لـ employee versions
+      const sysBal = await getEmployeeBalance(window.currentUser, currency);
       const accBal = await getAccountBalance(accId, currency);
-      if (sysBal < amount) { alert('رصيد النظام غير كافي'); return; }
+      if (sysBal < amount) { alert('رصيدك غير كافي'); return; }
       if (accBal < amount) { alert('رصيد الحساب غير كافي'); return; }
       await Promise.race([
-        Promise.all([updateSystemBalance({ [currency]: -amount }), updateAccountBalance(accId, currency, -amount)]),
+        Promise.all([updateEmployeeBalance(window.currentUser, { [currency]: -amount }), updateAccountBalance(accId, currency, -amount)]),
         timeoutPromise
       ]);
       const today = getToday();
@@ -2677,7 +2706,10 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
     try {
       const transferNumber = await generateTransferNumber();
-      await Promise.race([updateSystemBalance({ [currency]: amount }), timeoutPromise]);
+
+      // 1. غيّر updateSystemBalance لـ updateEmployeeBalance
+      await Promise.race([updateEmployeeBalance(window.currentUser, { [currency]: amount }), timeoutPromise]);
+
       const transferData = {number: transferNumber, amount, currency, receiver, sender, status: 'متاحة', emp: window.currentUser || 'مجهول', time: Date.now()};
       await Promise.race([set(ref(db, `${TRANSFERS_PENDING}/${transferNumber}`), transferData), timeoutPromise]);
       const today = getToday();
@@ -2694,7 +2726,6 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
       setTimeout(() => btn.disabled = false, 500);
     }
   });
-
 
   // استلام الحوالة
   let currentTransfer = null;
@@ -2731,12 +2762,14 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
 
     try {
       const { number, amount, currency } = currentTransfer;
-      const sysBal = await getSystemBalance(currency);
-      if (sysBal < amount) { alert('رصيد النظام غير كافي'); return; }
+
+      // 2. غيّر getSystemBalance و updateSystemBalance لـ employee versions
+      const sysBal = await getEmployeeBalance(window.currentUser, currency);
+      if (sysBal < amount) { alert('رصيدك غير كافي'); return; }
 
       await Promise.race([
         Promise.all([
-          updateSystemBalance({ [currency]: -amount }),
+          updateEmployeeBalance(window.currentUser, { [currency]: -amount }),
           set(ref(db, `${TRANSFERS_RECEIVED}/${number}`), {...currentTransfer, status: 'مستلمة', receiveTime: Date.now(), receivedBy: window.currentUser || 'مجهول'}),
           remove(ref(db, `${TRANSFERS_PENDING}/${number}`))
         ]),
@@ -2746,7 +2779,7 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
       const today = getToday();
       const recId = `rec_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
       await set(ref(db, `${OPS_PATH}/${today}/receiveTransfer/${recId}`), {
-      ...currentTransfer, type: 'استلام', emp: window.currentUser || 'مجهول', time: Date.now()
+     ...currentTransfer, type: 'استلام', emp: window.currentUser || 'مجهول', time: Date.now()
       });
 
       document.getElementById('numRec').value = '';
@@ -2760,7 +2793,6 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
       setTimeout(() => btn.disabled = false, 500);
     }
   });
-
 
   ////////////////// دفع الحوالات يدوي
   document.getElementById('paybtn')?.addEventListener('click', async () => {
@@ -2781,10 +2813,11 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
     );
 
     try {
-      const sysBal = await getSystemBalance(currency);
-      if (sysBal < amount) { alert('رصيد النظام غير كافي'); return; }
+      // 3. غيّر getSystemBalance و updateSystemBalance لـ employee versions
+      const sysBal = await getEmployeeBalance(window.currentUser, currency);
+      if (sysBal < amount) { alert('رصيدك غير كافي'); return; }
 
-      await Promise.race([updateSystemBalance({ [currency]: -amount }), timeoutPromise]);
+      await Promise.race([updateEmployeeBalance(window.currentUser, { [currency]: -amount }), timeoutPromise]);
 
       const today = getToday();
       const payId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
@@ -3659,11 +3692,11 @@ async function viewEmployeeBalance() {
   tbody.innerHTML = '<tr><td colspan="4">جاري التحميل...</td></tr>';
 
   try {
-    const empId = empUsername;
-    const snap = await get(ref(db, `accounts/${empId}/currencies`));
+    // 1. غيّر المسار من accounts لـ employeeBalances
+    const snap = await get(ref(db, `${EMPLOYEE_BAL_PATH}/${empUsername}`));
     const allCurrBals = snap.val() || {};
 
-    let currenciesToShow = currency ? [currency] : Object.keys(allCurrBals);
+    let currenciesToShow = currency? [currency] : Object.keys(allCurrBals);
 
     if (currenciesToShow.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4">لا يوجد أرصدة مسجلة</td></tr>';
