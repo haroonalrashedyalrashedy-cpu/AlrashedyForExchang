@@ -2909,21 +2909,25 @@ function getPathForTable(tableId, day) {
 
   // دالة واحدة فقط لاضافة الصفوف
   function appendRow(tableId, op) {
-    const tbody = document.querySelector(`#${tableId} tbody`);
-    if (!tbody) return;
-    const tr = document.createElement('tr');
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  if (!tbody) return;
+  const tr = document.createElement('tr');
 
-    if (tableId === 'payTable') {
-      tr.innerHTML = `<td>${op.number}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.receiver}</td><td>${op.type}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
-    } else if (tableId === 'buyTable' || tableId === 'sellTable') {
-      tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td><td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
-    } else if (tableId === 'depositTable' || tableId === 'withdrawTable') {
-      tr.innerHTML = `<td>${op.accountId}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td><td>${op.depositor || op.receiver}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
-    } else if (tableId === 'sendTable' || tableId === 'RecTable') {
-      tr.innerHTML = `<td>${op.number}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.receiver}</td><td>${op.sender}</td><td>${op.type}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
-    }
-    tbody.appendChild(tr);
+  if (tableId === 'payTable') {
+    tr.innerHTML = `<td>${op.number}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.receiver}</td><td>${op.type}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
+  } else if (tableId === 'buyTable' || tableId === 'sellTable') {
+    tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td><td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
+  } else if (tableId === 'depositTable' || tableId === 'withdrawTable') {
+    tr.innerHTML = `<td>${op.accountId}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td><td>${op.depositor || op.receiver}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
+  } else if (tableId === 'sendTable' || tableId === 'RecTable') {
+    tr.innerHTML = `<td>${op.number}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.receiver}</td><td>${op.sender}</td><td>${op.type}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
+  } else if (tableId === 'rateLogTable') { // هذا اللي ناقص
+    tr.innerHTML = `<td>${op.currency}</td><td>${op.type}</td><td>${op.rate}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td><td>${op.by}</td>`;
   }
+  
+  tbody.appendChild(tr);
+}
+
 
   // ترتيب الجدول
   document.querySelectorAll('th').forEach((th, i) => {
