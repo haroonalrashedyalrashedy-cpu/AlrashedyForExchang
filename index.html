@@ -726,6 +726,123 @@ button, .btn, input[type="submit"], .btn-primary {
 
 
 
+
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1e293b;
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+  z-index: 9999;
+}
+
+.bottom-bar button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-refresh {
+  background: #3b82f6;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-refresh.loading {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  display: none;
+  animation: spin 0.8s linear infinite;
+}
+
+.btn-refresh.loading .spinner {
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.btn-print {
+  background: #10b981;
+  color: white;
+}
+
+/* مسافة تحت عشان الشريط ما يغطي المحتوى */
+body {
+  padding-bottom: 70px;
+}
+
+/* ستايل الطباعة */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printArea, #printArea * {
+    visibility: visible;
+  }
+  #printArea {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+  }
+  .print-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .print-header img {
+    max-height: 60px;
+    margin-bottom: 10px;
+  }
+  .print-header h2 {
+    margin: 5px 0;
+    font-size: 22px;
+  }
+  .print-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-size: 14px;
+  }
+  .print-footer {
+    margin-top: 40px;
+    text-align: left;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  table, th, td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: center;
+  }
+}
+
+
+
+
   </style>
 </head>
 
@@ -3969,6 +4086,91 @@ loadCurrenciesToMatchSelect();
 
 
 
+// 1. زر التحديث - يعيد جلب كل البيانات
+document.getElementById('btnRefresh').addEventListener('click', async () => {
+  const btn = document.getElementById('btnRefresh');
+  btn.classList.add('loading');
+  btn.querySelector('.btn-text').textContent = 'جار التحديث...';
+
+  try {
+    // شغل كل دوال التحميل اللي عندك من جديد
+    // عدّل الأسماء حسب اللي عندك
+    if (typeof loadCurrenciesToMatchSelect === 'function') await loadCurrenciesToMatchSelect();
+    if (typeof loadEmployees === 'function') await loadEmployees();
+    if (typeof loadMatchesForDate === 'function' && matchDate && matchDate.value) await loadMatchesForDate(matchDate.value);
+    
+    // أو لو تبغى حل سريع: اعمل ريفرش للصفحة
+    // location.reload();
+
+    alert('تم التحديث');
+  } catch (e) {
+    alert('فشل التحديث: ' + e.message);
+  } finally {
+    btn.classList.remove('loading');
+    btn.querySelector('.btn-text').textContent = 'تحديث';
+  }
+});
+
+// 2. تحديد جدول عند الضغط على أول خانة
+let selectedTable = null;
+document.addEventListener('click', (e) => {
+  if (e.target.matches('table tbody tr td:first-child')) {
+    document.querySelectorAll('table tbody tr.selected').forEach(r => r.classList.remove('selected'));
+    const row = e.target.closest('tr');
+    row.classList.add('selected');
+    selectedTable = row.closest('table');
+  }
+});
+
+// ستايل الصف المحدد
+const style = document.createElement('style');
+style.innerHTML = 'table tbody tr.selected { background: #fef3c7 !important; }';
+document.head.appendChild(style);
+
+// 3. زر الطباعة
+document.getElementById('btnPrint').addEventListener('click', () => {
+  if (!selectedTable) {
+    alert('اضغط على أول خانة في أي صف لتحديد الجدول');
+    return;
+  }
+
+  const now = new Date();
+  const employeeName = window.currentUser || 'غير معروف';
+  
+  const printContent = `
+    <div id="printArea">
+      <div class="print-header">
+        <img src="logo.png" alt="الشعار"> <!-- غيّر مسار الشعار -->
+        <h2>الراشدي للصرافة والتحويلات</h2>
+      </div>
+      
+      <div class="print-meta">
+        <span>الموظف: ${employeeName}</span>
+        <span>التاريخ: ${now.toLocaleDateString('ar-SA')}</span>
+        <span>الوقت: ${now.toLocaleTimeString('ar-SA')}</span>
+      </div>
+      
+      ${selectedTable.outerHTML}
+      
+      <div class="print-footer">
+        التوقيع: ...................
+      </div>
+    </div>
+  `;
+
+  const printWindow = window.open('', '', 'height=700,width=900');
+  printWindow.document.write('<html><head><title>طباعة</title>');
+  printWindow.document.write('<style>' + document.querySelector('style:last-of-type').innerHTML + '</style>');
+  printWindow.document.write('</head><body>');
+  printWindow.document.write(printContent);
+  printWindow.document.write('</body></html>');
+  printWindow.document.close();
+  
+  setTimeout(() => {
+    printWindow.print();
+  }, 500);
+});
+
 
 
 </script>
@@ -3978,7 +4180,14 @@ loadCurrenciesToMatchSelect();
 
 
 
-
+<div class="bottom-bar">
+  <button id="btnRefresh" class="btn-refresh">
+    <span class="spinner"></span>
+    <span class="btn-text">تحديث</span>
+  </button>
+  
+  <button id="btnPrint" class="btn-print">طباعة</button>
+</div>
 
 </body>
 </html>
