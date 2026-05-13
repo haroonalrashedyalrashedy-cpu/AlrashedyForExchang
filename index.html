@@ -1583,7 +1583,6 @@ function showSubElementsByPerm(tabName) {
   const content = document.getElementById(tabName);
   if (!content) return;
 
-  // اخفي كل الكروت والسبتابات داخل التبويب
   content.querySelectorAll('.subtabs, .card').forEach(el => {
     el.style.display = 'none';
     el.classList.remove('active');
@@ -1598,7 +1597,6 @@ function showSubElementsByPerm(tabName) {
     return;
   }
 
-  // دالة مساعدة لعرض الكرت
   const showCard = (id) => {
     const el = document.getElementById(id);
     if (el) {
@@ -1616,8 +1614,11 @@ function showSubElementsByPerm(tabName) {
     case 'operations':
       if (hasPerm('permOperat')) {
         content.querySelector('.subtabs').style.display = 'flex';
-        content.querySelector('.subtabs').classList.add('active');
         ['BuyCard', 'SellCard', 'DeposCard', 'WithCard'].forEach(showCard);
+        listenBuyOps();
+        listenSellOps();
+        listenDepositOps();
+        listenWithdrawOps();
         setupTabs(content, '.subtabs .tab', 'data-subtab', true);
       }
       break;
@@ -1625,8 +1626,10 @@ function showSubElementsByPerm(tabName) {
     case 'transfers':
       if (hasPerm('permTrans')) {
         content.querySelector('.subtabs').style.display = 'flex';
-        content.querySelector('.subtabs').classList.add('active');
         ['SendCard', 'RecCard', 'PayCard'].forEach(showCard);
+        listenSendTransfers();
+        listenReceiveTransfers();
+        listenPayTransfers();
         setupTabs(content, '.subtabs .tab', 'data-subtab', true);
       }
       break;
@@ -1634,9 +1637,9 @@ function showSubElementsByPerm(tabName) {
     case 'accounts':
       if (hasPerm('permAcc')) {
         content.querySelector('.subtabs').style.display = 'flex';
-        content.querySelector('.subtabs').classList.add('active');
         if (hasPerm('creatAcco')) showCard('CreatAccCard');
         if (hasPerm('showAcco')) showCard('ViewAccCard');
+        listenAccounts();
         setupTabs(content, '.subtabs .tab', 'data-subtab', true);
       }
       break;
@@ -2211,7 +2214,7 @@ setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab', tru
       });
   });
 }
-  listenBuyOps();
+ // listenBuyOps();
 
   // ===== عمليات البيع =====
   document.getElementById('btnSaveSell')?.addEventListener('click', async () => {
@@ -2272,7 +2275,7 @@ setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab', tru
       });
   });
 }
-  listenSellOps();
+ // listenSellOps();
 
   // ===== القبض والصرف =====
   function listenAccounts() {
@@ -2460,9 +2463,9 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
   });
 }
   
-  listenAccounts();
-  listenDepositOps();
-  listenWithdrawOps();
+ // listenAccounts();
+  // listenDepositOps();
+  // listenWithdrawOps();
 
   // ===== الحوالات =====
   async function generateTransferNumber() {
@@ -2544,7 +2547,7 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
       });
   });
 }
-  listenSendTransfers();
+ // listenSendTransfers();
 
   // استلام الحوالة
   let currentTransfer = null;
@@ -2645,7 +2648,7 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
       });
   });
 }
-  listenReceiveTransfers();
+ // listenReceiveTransfers();
 
   ////////////////// دفع الحوالات يدوي
   document.getElementById('paybtn')?.addEventListener('click', async () => {
@@ -2724,7 +2727,7 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
       });
   });
 }
-  listenPayTransfers();
+ // listenPayTransfers();
 
   // ===== الفلترة والتواريخ والترتيب =====
   function addDateFiltersToTables() {
