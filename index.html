@@ -668,7 +668,30 @@ button, .btn, input[type="submit"], .btn-primary {
 
 
 
+.subtabs {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+  gap: 10px;
+  padding-bottom: 5px;
+}
 
+.subtabs.tab {
+  flex: 0 0 auto;
+}
+
+/* مهم: اخفي كل السبتابات افتراضياً */
+.subtabs,.tab-content,.card {
+  display: none;
+}
+
+.subtabs.active,.tab-content.active,.card.active,.tabs.tab.active {
+  display: block;
+}
+
+.subtabs.active {
+  display: flex;
+}
 
 
 
@@ -1407,10 +1430,10 @@ function hasPerm(key) {
 // 4. دالة اخفاء التبويبات حسب الصلاحية
 
 
-
 function renderTabsByPerms() {
-  const all = document.querySelectorAll('.tabs.tab,.tab-content,.subtabs,.card');
-
+  const all = document.querySelectorAll('.tabs.tab, .tab-content, .subtabs, .card');
+  
+  // ادمن: امسح inline style + فعل الكل
   if (window.currentRole === 'admin') {
     all.forEach(el => {
       if(el) el.style.removeProperty('display');
@@ -1420,7 +1443,7 @@ function renderTabsByPerms() {
     return;
   }
 
-  // اخفي الكل
+  // موظف: اخفي الكل اول وشيل active
   all.forEach(el => {
     if(el) {
       el.style.display = 'none';
@@ -1428,13 +1451,18 @@ function renderTabsByPerms() {
     }
   });
 
-  // اظهر التبويبات المسموحة
+  // اظهر المسموح فقط - بدون active
   const showTab = (tabName, perm) => {
-    if (!hasPerm(perm)) return;
+    if (!hasPerm(perm)) return false;
     const tab = document.querySelector(`.tab[data-tab="${tabName}"]`);
-    if (tab) tab.style.removeProperty('display');
+    if (tab) {
+      tab.style.removeProperty('display');
+      return true; // رجع true لو ظهر
+    }
+    return false;
   };
 
+  // اظهر التبويبات المسموحة
   showTab('operations', 'permOperat');
   showTab('transfers', 'permTrans');
   showTab('accounts', 'permAcc');
@@ -1442,18 +1470,22 @@ function renderTabsByPerms() {
   showTab('matchs', 'permMach');
   showTab('permissions', 'permPerms');
 
+  // شغل الكليك هندلر
   setupTabClickHandlers();
 
-  // ★★★ التعديل المهم: انتظر شوي قبل ما تضغط ★★★
+  // فعل اول تبويب ظاهر تلقائياً
   setTimeout(() => {
     const firstVisible = document.querySelector('.tabs.tab:not([style*="display: none"])');
     if(firstVisible) firstVisible.click();
-  }, 100); // 100 ملي ثانية بس
+  }, 50);
 }
 
 
 
-// ★★★ دالة جديدة: تشغل الضغط على التبويبات ★★★
+
+
+
+
 // 1. دالة الضغط على التبويبات - آمنة
 function setupTabClickHandlers(){
   document.querySelectorAll('.tabs.tab').forEach(tab => {
@@ -1490,67 +1522,81 @@ function showSubElementsByPerm(tabName) {
   const content = document.getElementById(tabName);
   if (!content) return;
 
-  // لو ادمن اظهر كل شي داخل التبويب
+  // اخفي كل السبتابات والكروت في هذا التبويب اول
+  content.querySelectorAll('.subtabs,.card,.tab-content').forEach(el => {
+    if(el) el.style.display = 'none';
+    if(el) el.classList.remove('active');
+  });
+
+  // لو ادمن اظهر الكل واخرج
   if (window.currentRole === 'admin') {
-    content.querySelectorAll('.subtabs,.card').forEach(el => {
-      if(el) el.style.removeProperty('display');
+    content.querySelectorAll('.subtabs,.card,.tab-content').forEach(el => {
+      if(el) {
+        el.style.display = '';
+        el.classList.add('active');
+      }
     });
     return;
   }
 
-  // للموظف: نشيك على كل تبويب لحاله
-  const cards = content.querySelectorAll('.card');
-  const subTabs = content.querySelector('.subtabs');
-
+  // موظف: اظهر حسب الصلاحية
   switch(tabName) {
-    case 'operations':
-      if (hasPerm('permOperat')) {
-        cards.forEach(el => { if(el) el.style.display = ''; });
-        if(subTabs) subTabs.style.display = '';
-      }
-      break;
-
-    case 'transfers':
-      if (hasPerm('permTrans')) {
-        cards.forEach(el => { if(el) el.style.display = ''; });
-        if(subTabs) subTabs.style.display = '';
-      }
-      break;
-
-    case 'matchs':
-      if (hasPerm('permMach')) {
-        cards.forEach(el => { if(el) el.style.display = ''; });
-      }
-      break;
-
     case 'accounts':
       if (hasPerm('permAcc')) {
-        if(subTabs) subTabs.style.display = '';
+        const subTabs = content.querySelector('.subtabs');
+        if(subTabs) {
+          subTabs.style.display = 'flex';
+          subTabs.classList.add('active');
+        }
+
+        // اظهر سبتاب انشاء لو عنده صلاحية
         if (hasPerm('creatAcco')) {
           const createAcc = content.querySelector('#createAcc');
-          if(createAcc) createAcc.style.display = '';
+          if(createAcc) {
+            createAcc.style.display = 'block';
+            createAcc.classList.add('active');
+          }
         }
+
+        // اظهر سبتاب عرض لو عنده صلاحية
         if (hasPerm('showAcco')) {
           const viewAcc = content.querySelector('#viewAcc');
-          if(viewAcc) viewAcc.style.display = '';
+          if(viewAcc) {
+            viewAcc.style.display = 'block';
+            viewAcc.classList.add('active');
+          }
         }
       }
       break;
 
     case 'employees':
       if (hasPerm('employEd')) {
-        if (hasPerm('addEmploy') && cards[0]) cards[0].style.display = '';
-        if (hasPerm('updateEploy') && cards[1]) cards[1].style.display = '';
+        const cards = content.querySelectorAll('.card');
+        if (hasPerm('addEmploy') && cards[0]) {
+          cards[0].style.display = 'block';
+          cards[0].classList.add('active');
+        }
+        if (hasPerm('updateEploy') && cards[1]) {
+          cards[1].style.display = 'block';
+          cards[1].classList.add('active');
+        }
       }
       break;
 
-    case 'permissions':
-      if (hasPerm('permPerms')) {
-        cards.forEach(el => { if(el) el.style.display = ''; });
+    default:
+      // للتبويبات الثانية اظهر الكروت لو عنده الصلاحية الرئيسية
+      const mainPerm = 'perm' + tabName.charAt(0).toUpperCase() + tabName.slice(1);
+      if (hasPerm(mainPerm) || hasPerm('permMach')) {
+        content.querySelectorAll('.card,.tab-content').forEach(el => {
+          if(el) {
+            el.style.display = 'block';
+            el.classList.add('active');
+          }
+        });
       }
-      break;
   }
 }
+
 
 
 
@@ -3309,219 +3355,7 @@ document.getElementById('btnSaveColors')?.addEventListener('click', async () => 
 // ===== Module: Permissions + Data Isolation + Dynamic Tabs =====
 // لا يعدل على كودك. يشتغل فوقه ويخفي/يظهر ويعزل البيانات حسب الصلاحيات
 
-(function PermsModule(){
-  const PERMS_PATH = 'perms';
-  const OPS_PATH = 'ops';
-  const DB = window.db; // نفس db اللي انت معرفه فوق
 
-  // 1. ستايت عام للصلاحيات
-  window.userPerms = {};
-  const isAdmin = () => window.currentRole === 'admin';
-  const hasPerm = (key) => isAdmin() ||!!window.userPerms[key];
-
-  // 2. حمل صلاحيات الموظف من Firebase
-  async function loadUserPerms(uid){
-    if(isAdmin()) return;
-    const snap = await get(ref(DB, `${PERMS_PATH}/${uid}`));
-    window.userPerms = snap.val() || {};
-  }
-
-  // 3. ارسم التبويبات والكروت حسب الصلاحيات
-  function applyPermsUI(){
-    // لو ادمن اخرج - خلي كل شي ظاهر
-    if(isAdmin()){
-      document.querySelectorAll('.tabs.tab,.subtabs.tab,.tab-content,.card')
-       .forEach(el => el.style.display = '');
-      return;
-    }
-
-    // خفي كل التبويبات الرئيسية اول
-    const tabs = {
-      employees: document.querySelector('.tab[data-tab="employees"]'),
-      operations: document.querySelector('.tab[data-tab="operations"]'),
-      transfers: document.querySelector('.tab[data-tab="transfers"]'),
-      matchs: document.querySelector('.tab[data-tab="matchs"]'),
-      accounts: document.querySelector('.tab[data-tab="accounts"]'),
-      permissions: document.querySelector('.tab[data-tab="permissions"]'),
-    };
-
-    Object.values(tabs).forEach(t => t && (t.style.display = 'none'));
-    document.querySelectorAll('.tab-content,.subtabs,.card').forEach(el => el.style.display = 'none');
-
-    // اظهر التبويبات المسموحه
-    if(hasPerm('employEd')) tabs.employees.style.display = '';
-    if(hasPerm('permOperat')) tabs.operations.style.display = '';
-    if(hasPerm('permTrans')) tabs.transfers.style.display = '';
-    if(hasPerm('permMach')) tabs.matchs.style.display = '';
-    if(hasPerm('permAcc')) tabs.accounts.style.display = '';
-    if(hasPerm('permPerms')) tabs.permissions.style.display = '';
-
-    // اظهر اول تبويب متاح
-    const firstVisible = document.querySelector('.tabs.tab:not([style*="display: none"])');
-    if(firstVisible) firstVisible.click();
-
-    // تبويب ادارة الموظفين: اظهر الكروت حسب الصلاحيه
-    if(hasPerm('employEd')){
-      document.getElementById('employees').style.display = 'block';
-      const cards = document.querySelectorAll('#employees.card');
-      if(hasPerm('addEmploy')) cards[0].style.display = '';
-      if(hasPerm('updateEploy')) cards[1].style.display = '';
-    }
-
-    // تبويب الحسابات: اظهر التبويبات الفرعيه
-    if(hasPerm('permAcc')){
-      document.getElementById('accounts').style.display = 'block';
-      if(hasPerm('creatAcco')){
-        document.querySelector('.subtabs.tab[data-subtab="createAcc"]').style.display = '';
-        document.getElementById('createAcc').style.display = '';
-      }
-      if(hasPerm('showAcco')){
-        document.querySelector('.subtabs.tab[data-subtab="viewAcc"]').style.display = '';
-        document.getElementById('viewAcc').style.display = '';
-      }
-    }
-
-    // تبويب الصلاحيات: اظهر الكروت
-    if(hasPerm('permPerms')){
-      document.getElementById('permissions').style.display = 'block';
-      const pCards = document.querySelectorAll('#permissions.card');
-      if(hasPerm('permEditRate')) pCards[0].style.display = '';
-      if(hasPerm('selectCurr')) pCards[1].style.display = '';
-      if(hasPerm('permEditpass')) pCards[6].style.display = '';
-    }
-
-    // العمليات والحوالات: لو مفعل يظهر كل التبويبات الفرعيه حقته
-    if(hasPerm('permOperat')) document.getElementById('operations').style.display = 'block';
-    if(hasPerm('permTrans')) document.getElementById('transfers').style.display = 'block';
-    if(hasPerm('permMach')) document.getElementById('matchs').style.display = 'block';
-  }
-
-  // 4. راقب تغير الصلاحيات لحظيا
-  function watchPerms(uid){
-    onValue(ref(DB, `${PERMS_PATH}/${uid}`), (snap) => {
-      window.userPerms = snap.val() || {};
-      applyPermsUI();
-    });
-  }
-
-  // 5. لف دوال الحفظ حقك عشان تعزل البيانات تلقائيا
-  // الفكره: نعمل wrapper يحفظ تحت uid حق الموظف
-  // ما نعدل كودك، نعمل Hook على DOMContentLoaded ونبدل دوال onClick
-
-  function wrapSaveButtons(){
-    // قبض/ايداع
-    const btnDep = document.getElementById('btnSaveDeposit');
-    if(btnDep){
-      const oldClick = btnDep.onclick;
-      btnDep.onclick = null;
-      btnDep.addEventListener('click', async (e)=>{
-        if(!hasPerm('permOperat') &&!isAdmin()){ alert('ما عندك صلاحيه'); return; }
-        // لو كودك شغال على onclick خليه، لو شغال addEventListener خلي القديم يشتغل
-        if(oldClick) oldClick(e);
-      });
-    }
-
-    // صرف
-    const btnWith = document.getElementById('btnSaveWithdraw');
-    if(btnWith){
-      const oldClick = btnWith.onclick;
-      btnWith.onclick = null;
-      btnWith.addEventListener('click', async (e)=>{
-        if(!hasPerm('permOperat') &&!isAdmin()){ alert('ما عندك صلاحيه'); return; }
-        if(oldClick) oldClick(e);
-      });
-    }
-
-    // باقي الازرار بنفس الفكره: permOperat للعمليات، permTrans للحوالات، etc
-  }
-
-  // 6. عدل دوال القراءه عشان تعرض عمليات الموظف فقط
-  // بدل ما تغير دوالك، نعمل Filter على البيانات بعد ما تجي
-  const originalOnValue = onValue;
-  window.onValue = function(ref, cb){
-    return originalOnValue(ref, (snap)=>{
-      // لو المسار فيه ops واليوزر مو ادمن، فلتر على uid
-      if(!isAdmin() && ref.path.includes('ops/') && window.currentUser){
-        const data = snap.val();
-        if(!data) return cb(snap);
-        const filtered = {};
-        Object.keys(data).forEach(date=>{
-          Object.keys(data[date]).forEach(type=>{
-            Object.keys(data[date][type]).forEach(uid=>{
-              if(uid === window.currentUser){
-                if(!filtered[date]) filtered[date] = {};
-                if(!filtered[date][type]) filtered[date][type] = {};
-                filtered[date][type][uid] = data[date][type][uid];
-              }
-            });
-          });
-        });
-        // ارجع سناب وهمي بنفس الشكل
-        cb({val: ()=> filtered, exists: ()=>!!filtered});
-        return;
-      }
-      cb(snap);
-    });
-  };
-
-  // 7. Hook على تسجيل الدخول عشان نحمل الصلاحيات ونطبق الواجهه
-  const origLoginClick = document.getElementById('btnLogin')?.onclick;
-  document.getElementById('btnLogin')?.addEventListener('click', async ()=>{
-    setTimeout(async ()=>{
-      if(window.currentUser){
-        await loadUserPerms(window.currentUser);
-        watchPerms(window.currentUser);
-        applyPermsUI();
-      }
-    }, 500);
-  });
-
-  // 8. حفظ الصلاحيات من كرت الصلاحيات - هذا ما يتعارض مع كودك
-  document.getElementById('btnSavePerm')?.addEventListener('click', async ()=>{
-    if(!isAdmin()){ alert('صلاحيه مدير فقط'); return; }
-    const uid = document.getElementById('permEmpSelect').value;
-    if(!uid){ alert('اختر الموظف'); return; }
-
-    const perms = {
-      employEd: document.getElementById('employEd').checked,
-      addEmploy: document.getElementById('addEmploy').checked,
-      updateEploy: document.getElementById('updateEploy').checked,
-      permOperat: document.getElementById('permOperat').checked,
-      permTrans: document.getElementById('permTrans').checked,
-      permAcc: document.getElementById('permAcc').checked,
-      creatAcco: document.getElementById('creatAcco').checked,
-      showAcco: document.getElementById('showAcco').checked,
-      permMach: document.getElementById('permMach').checked,
-      permPerms: document.getElementById('permPerms').checked,
-      permEditRate: document.getElementById('permEditRate').checked,
-      selectCurr: document.getElementById('selectCurr').checked,
-      permEditpass: document.getElementById('permEditpass').checked,
-    };
-
-    await set(ref(DB, `${PERMS_PATH}/${uid}`), perms);
-    alert('تم حفظ الصلاحيات');
-  });
-
-  // 9. تغيير كلمة المرور للموظف نفسه فقط
-  document.getElementById('btnChangeAdminPass')?.addEventListener('click', async ()=>{
-    if(!hasPerm('permEditpass') &&!isAdmin()){ alert('ما عندك صلاحيه'); return; }
-    const newPass = document.getElementById('adminNewPass').value.trim();
-    if(!newPass){ alert('ادخل كلمة المرور'); return; }
-    await update(ref(DB, `users/${window.currentUser}`), {password: newPass});
-    alert('تم تغيير كلمة المرور');
-    document.getElementById('adminNewPass').value = '';
-  });
-
-  // 10. شغل الواجهه اول ما يفتح لو اليوزر موجود
-  document.addEventListener('DOMContentLoaded', ()=>{
-    if(window.currentUser && window.currentRole){
-      loadUserPerms(window.currentUser).then(applyPermsUI);
-      watchPerms(window.currentUser);
-    }
-    wrapSaveButtons();
-  });
-
-})();
 
 
 
@@ -3536,7 +3370,71 @@ document.getElementById('btnSaveColors')?.addEventListener('click', async () => 
 // ===== عرض الرصيد فقط =====
 // ===== عرض الرصيد فقط =====
 // ===== عرض الرصيد =====
+async function viewEmployeeBalance() {
+  const empUsername = document.getElementById('matchEmpSelect').value;
+  const currency = document.getElementById('matchCurrencySelect').value;
+  const table = document.getElementById('matchsTables');
+  const thead = table.querySelector('thead tr');
+  const tbody = table.querySelector('tbody');
 
+  if (!empUsername) {
+    alert('اختر الموظف أولاً');
+    return;
+  }
+
+  tbody.innerHTML = '<tr><td colspan="4">جاري التحميل...</td></tr>';
+
+  try {
+    const empId = empUsername;
+    const snap = await get(ref(db, `accounts/${empId}/currencies`));
+    const allCurrBals = snap.val() || {};
+
+    let currenciesToShow = currency? [currency] : Object.keys(allCurrBals);
+
+    if (currenciesToShow.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4">لا يوجد أرصدة مسجلة</td></tr>';
+      return;
+    }
+
+    thead.children[2].style.display = 'none';
+    thead.children[3].style.display = 'none';
+
+    let rows = '';
+    for (const cur of currenciesToShow) {
+      const bal = allCurrBals[cur] || 0;
+      rows += `
+        <tr>
+          <td>${cur}</td>
+          <td>${bal.toFixed(2)}</td>
+          <td style="display:none;"></td>
+          <td style="display:none;"></td>
+        </tr>
+      `;
+    }
+    tbody.innerHTML = rows;
+
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="4">خطأ: ${e.message}</td></tr>`;
+  }
+}
+
+document.getElementById('btnViewBalance')?.addEventListener('click', viewEmployeeBalance);
+
+// ===== اضافة الادمن بدون ما نلمس loadEmployees =====
+setTimeout(() => {
+  const matchEmpSelect = document.getElementById('matchEmpSelect');
+  if (matchEmpSelect &&!matchEmpSelect.querySelector('option[value="هارون الراشدي"]')) {
+    get(ref(db, 'users/هارون الراشدي')).then(snap => {
+      if (snap.exists()) {
+        const admin = snap.val();
+        const status = admin.active === false? ' [موقف]' : '';
+        matchEmpSelect.innerHTML += `<option value="هارون الراشدي" data-status="${admin.active}">
+          هارون الراشدي [مدير]${status}
+        </option>`;
+      }
+    });
+  }
+}, 1500);
 
 
 
