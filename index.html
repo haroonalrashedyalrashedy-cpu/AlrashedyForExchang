@@ -1413,6 +1413,30 @@ window.db = db;
 
 
 
+
+
+function resetHideTimer() {
+  if (hideTimer) clearTimeout(hideTimer);
+  
+  hideTimer = setTimeout(() => {
+    // شيك: هل فيه تبويب فرعي مفتوح؟
+    const subtabOpen = document.querySelector('.subtabs .tab.active');
+    
+    // لو مافيه تبويب مفتوح، اخفي الشريط. لو فيه، خله زي ماهو
+    if (!subtabOpen) {
+      document.querySelectorAll('.subtabs').forEach(sub => {
+        sub.style.display = 'none';
+        sub.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      });
+      document.querySelectorAll('#operations >.tab-content, #transfers >.tab-content, #accounts >.tab-content')
+       .forEach(c => c.classList.remove('active'));
+    }
+  }, 15000);
+}
+
+
+
+
 function setupTabs(container, tabSelector, contentAttr, isSub = false) {
   if (!container) return;
   const tabs = container.querySelectorAll(tabSelector);
@@ -1871,24 +1895,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-  function resetHideTimer() {
-  if (hideTimer) clearTimeout(hideTimer);
   
-  hideTimer = setTimeout(() => {
-    // شيك: هل فيه تبويب فرعي مفتوح؟
-    const subtabOpen = document.querySelector('.subtabs .tab.active');
-    
-    // لو مافيه تبويب مفتوح، اخفي الشريط. لو فيه، خله زي ماهو
-    if (!subtabOpen) {
-      document.querySelectorAll('.subtabs').forEach(sub => {
-        sub.style.display = 'none';
-        sub.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      });
-      document.querySelectorAll('#operations >.tab-content, #transfers >.tab-content, #accounts >.tab-content')
-       .forEach(c => c.classList.remove('active'));
-    }
-  }, 15000);
-}
 
   
 
