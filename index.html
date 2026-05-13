@@ -1507,50 +1507,41 @@ function hasPerm(key) {
 
 
 function renderTabsByPerms() {
-  const all = document.querySelectorAll('.tabs.tab, .tab-content, .subtabs, .card');
-  
-  // ادمن: امسح inline style + فعل الكل
-  if (window.currentRole === 'admin') {
-    all.forEach(el => {
-      if(el) el.style.removeProperty('display');
-      if(el) el.classList.add('active');
-    });
-    return; // شلت setupTabClickHandlers من هنا
-  }
-
-  // موظف: اخفي الكل اول وشيل active
-  all.forEach(el => {
-    if(el) {
+  // 1. اخفي كل التبويبات الرئيسية والكروت والسبتابات اول شي
+  document.querySelectorAll('.tabs .tab, .tab-content, .subtabs, .card')
+    .forEach(el => {
       el.style.display = 'none';
       el.classList.remove('active');
-    }
-  });
+    });
 
-  // اظهر المسموح فقط - بدون active
-  const showTab = (tabName, perm) => {
+  // 2. اعرض التبويبات الرئيسية المسموحة فقط
+  const showMainTab = (tabName, perm) => {
     if (!hasPerm(perm)) return false;
     const tab = document.querySelector(`.tab[data-tab="${tabName}"]`);
     if (tab) {
-      tab.style.removeProperty('display');
+      tab.style.display = 'inline-block';
       return true;
     }
     return false;
   };
 
-  // اظهر التبويبات المسموحة
-  showTab('operations', 'permOperat');
-  showTab('transfers', 'permTrans');
-  showTab('accounts', 'permAcc');
-  showTab('employees', 'employEd');
-  showTab('matchs', 'permMach');
-  showTab('permissions', 'permPerms');
+  if (window.currentRole === 'admin') {
+    // الادمن يشوف الكل
+    document.querySelectorAll('.tabs .tab, .tab-content, .subtabs, .card')
+      .forEach(el => el.style.removeProperty('display'));
+  } else {
+    // الموظف يشوف اللي عنده صلاحية فقط
+    showMainTab('employees', 'employEd');
+    showMainTab('operations', 'permOperat');
+    showMainTab('transfers', 'permTrans');
+    showMainTab('accounts', 'permAcc');
+    showMainTab('matchs', 'permMach');
+    showMainTab('permissions', 'permPerms');
+  }
 
-  // شغل الكليك هندلر - شلتها من هنا
-  // setupTabClickHandlers();
-
-  // فعل اول تبويب ظاهر تلقائياً
+  // 3. فعل اول تبويب ظاهر تلقائياً
   setTimeout(() => {
-    const firstVisible = document.querySelector('.tabs.tab:not([style*="display: none"])');
+    const firstVisible = document.querySelector('.tabs .tab[style*="display: inline-block"], .tabs .tab:not([style*="display"])');
     if(firstVisible) firstVisible.click();
   }, 50);
 }
@@ -1597,86 +1588,100 @@ function showSubElementsByPerm(tabName) {
   const content = document.getElementById(tabName);
   if (!content) return;
 
-  // 1. امسح display: none من كل الكروت والتبويبات الفرعية
+  // اخفي كل الكروت والسبتابات داخل التبويب اول شي
   content.querySelectorAll('.subtabs, .card').forEach(el => {
+    el.style.display = 'none';
     el.classList.remove('active');
-    el.removeAttribute('style');
   });
 
-  // 2. لو ادمن اظهر الكل
   if (window.currentRole === 'admin') {
+    // الادمن يشوف الكل
     content.querySelectorAll('.subtabs, .card').forEach(el => {
-      el.classList.add('active');
       el.style.display = el.classList.contains('subtabs') ? 'flex' : 'block';
+      el.classList.add('active');
     });
-    
-    
     setupTabs(content, '.subtabs .tab', 'data-subtab', true);
     return;
   }
 
-  // 3. لو موظف اظهر حسب الصلاحية
+  // الموظف: اعرض حسب الصلاحية فقط
   switch(tabName) {
+    case 'employees':
+      if (hasPerm('addEmploy')) {
+        document.getElementById('addEmployeeCard').style.display = 'block';
+        document.getElementById('addEmployeeCard').classList.add('active');
+      }
+      if (hasPerm('updateEploy')) {
+        document.getElementById('editEmployeeCard').style.display = 'block';
+        document.getElementById('editEmployeeCard').classList.add('active');
+      }
+      break;
+
     case 'operations':
       if (hasPerm('permOperat')) {
-        const subtabs = content.querySelector('.subtabs');
-        if (subtabs) subtabs.style.display = 'flex';
+        content.querySelector('.subtabs').style.display = 'flex';
+        content.querySelector('.subtabs').classList.add('active');
         ['BuyCard', 'SellCard', 'DeposCard', 'WithCard'].forEach(id => {
           const el = document.getElementById(id);
-          if (el) el.style.display = 'block';
+          if (el) {
+            el.style.display = 'block';
+            el.classList.add('active');
+          }
         });
-      
-         setupTabs(content, '.subtabs .tab', 'data-subtab', true); 
-          
+        setupTabs(content, '.subtabs .tab', 'data-subtab', true);
       }
       break;
 
     case 'transfers':
       if (hasPerm('permTrans')) {
-        const subtabs = content.querySelector('.subtabs');
-        if (subtabs) subtabs.style.display = 'flex';
+        content.querySelector('.subtabs').style.display = 'flex';
+        content.querySelector('.subtabs').classList.add('active');
         ['SendCard', 'RecCard', 'PayCard'].forEach(id => {
           const el = document.getElementById(id);
-          if (el) el.style.display = 'block';
+          if (el) {
+            el.style.display = 'block';
+            el.classList.add('active');
+          }
         });
-      
-         setupTabs(content, '.subtabs .tab', 'data-subtab', true); 
-          
+        setupTabs(content, '.subtabs .tab', 'data-subtab', true);
       }
       break;
 
     case 'accounts':
       if (hasPerm('permAcc')) {
-        const subtabs = content.querySelector('.subtabs');
-        if (subtabs) subtabs.style.display = 'flex';
-        if (hasPerm('creatAcco')) document.getElementById('CreatAccCard').style.display = 'block';
-        if (hasPerm('showAcco')) document.getElementById('ViewAccCard').style.display = 'block';
-     
-     setupTabs(content, '.subtabs .tab', 'data-subtab', true);
-     
-      }
-      break;
-
-    case 'employees':
-      if (hasPerm('employEd')) {
-        if (hasPerm('addEmploy')) document.getElementById('addEmployeeCard').style.display = 'block';
-        if (hasPerm('updateEploy')) document.getElementById('editEmployeeCard').style.display = 'block';
-     
-     
-     
+        content.querySelector('.subtabs').style.display = 'flex';
+        content.querySelector('.subtabs').classList.add('active');
+        if (hasPerm('creatAcco')) {
+          document.getElementById('CreatAccCard').style.display = 'block';
+          document.getElementById('CreatAccCard').classList.add('active');
+        }
+        if (hasPerm('showAcco')) {
+          document.getElementById('ViewAccCard').style.display = 'block';
+          document.getElementById('ViewAccCard').classList.add('active');
+        }
+        setupTabs(content, '.subtabs .tab', 'data-subtab', true);
       }
       break;
 
     case 'permissions':
-      if (hasPerm('permPerms') && hasPerm('permEditpass')) {
+      if (hasPerm('permEditRate')) {
+        document.getElementById('RateCurrCard').style.display = 'block';
+        document.getElementById('RateCurrCard').classList.add('active');
+      }
+      if (hasPerm('selectCurr')) {
+        document.getElementById('SelectcurrCard').style.display = 'block';
+        document.getElementById('SelectcurrCard').classList.add('active');
+      }
+      if (hasPerm('permEditpass')) {
         document.getElementById('ChangPassCard').style.display = 'block';
-    
+        document.getElementById('ChangPassCard').classList.add('active');
       }
       break;
 
     case 'matchs':
       if (hasPerm('permMach')) {
         document.getElementById('MatchCard').style.display = 'block';
+        document.getElementById('MatchCard').classList.add('active');
       }
       break;
   }
