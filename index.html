@@ -1445,10 +1445,18 @@ function setupTabs(container, tabSelector, contentAttr, isSub = false) {
   if (!container) return;
   const tabs = container.querySelectorAll(tabSelector);
 
-  // عدل هنا: خله يجيب الكروت كمان
   const contents = container.querySelectorAll(':scope >.tab-content, :scope >.card');
 
   tabs.forEach(tab => {
+    // هذا السطر الجديد يمسح الاحداث القديمة
+    const newTab = tab.cloneNode(true);
+    tab.parentNode.replaceChild(newTab, tab);
+  });
+
+  // بعد الكلون لازم نجيب العناصر من جديد
+  const newTabs = container.querySelectorAll(tabSelector);
+
+  newTabs.forEach(tab => {
     tab.addEventListener('click', (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -1458,9 +1466,7 @@ function setupTabs(container, tabSelector, contentAttr, isSub = false) {
 
       const isActive = tab.classList.contains('active');
 
-      tabs.forEach(t => t.classList.remove('active'));
-
-      // امسح active و display من الكل اول
+      newTabs.forEach(t => t.classList.remove('active'));
       contents.forEach(c => {
         c.classList.remove('active');
         c.removeAttribute('style');
@@ -1469,35 +1475,11 @@ function setupTabs(container, tabSelector, contentAttr, isSub = false) {
       if (!isActive) {
         tab.classList.add('active');
         target.classList.add('active');
-        target.style.display = target.classList.contains('subtabs')? 'flex' : 'block';
+        target.style.display = target.classList.contains('subtabs') ? 'flex' : 'block';
       }
 
       if (isSub) resetHideTimer();
     });
-
-    if (isSub) {
-      let startX = 0, startY = 0;
-      const contentEl = document.getElementById(tab.getAttribute(contentAttr));
-      if (!contentEl) return;
-      contentEl.addEventListener('touchstart', e => {
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-      }, {passive: true});
-      contentEl.addEventListener('touchend', e => {
-        const diffX = e.changedTouches[0].clientX - startX;
-        const diffY = e.changedTouches[0].clientY - startY;
-        if (Math.abs(diffY) > Math.abs(diffX) || Math.abs(diffX) < 50) return;
-        const parent = contentEl.parentElement;
-        const contentList = [...parent.querySelectorAll(':scope >.tab-content, :scope >.card')];
-        const idx = contentList.findIndex(c => c.classList.contains('active'));
-        if (idx === -1) return;
-        let nextIdx = diffX > 0? idx - 1 : idx + 1;
-        if (nextIdx < 0) nextIdx = contentList.length - 1;
-        if (nextIdx >= contentList.length) nextIdx = 0;
-        const nextTab = [...tabs].find(t => t.getAttribute(contentAttr) === contentList[nextIdx].id);
-        if (nextTab) nextTab.click();
-      });
-    }
   });
 }
 
