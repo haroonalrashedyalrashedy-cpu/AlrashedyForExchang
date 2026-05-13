@@ -1097,22 +1097,50 @@ button, .btn, input[type="submit"], .btn-primary {
     </div>
 
     <div class="table-wrap">
-      <table id="matchTable">
-        <thead>
-          <tr>
-          
-           
-   <th>العملة</th>
-     <th>الرصيد الفعلي</th>
      
- <th>رصيد النظام</th>
-       
-    <th>نتيجة المطابقة</th>
- 
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <table id="matchTable">
+  <thead>
+    <tr>
+      <th>العملة</th>
+      <th>الرصيد الفعلي</th>
+      <th>رصيد النظام</th>
+      <th>النتيجة</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><select class="matchCurrency"><option value="">العملة</option></select></td>
+      <td><input type="number" class="matchActual" placeholder="0"></td>
+      <td class="matchSystem"></td>
+      <td class="matchResult"></td>
+    </tr>
+    <tr>
+      <td><select class="matchCurrency"><option value="">العملة</option></select></td>
+      <td><input type="number" class="matchActual" placeholder="0"></td>
+      <td class="matchSystem"></td>
+      <td class="matchResult"></td>
+    </tr>
+    <tr>
+      <td><select class="matchCurrency"><option value="">العملة</option></select></td>
+      <td><input type="number" class="matchActual" placeholder="0"></td>
+      <td class="matchSystem"></td>
+      <td class="matchResult"></td>
+    </tr>
+    <tr>
+      <td><select class="matchCurrency"><option value="">العملة</option></select></td>
+      <td><input type="number" class="matchActual" placeholder="0"></td>
+      <td class="matchSystem"></td>
+      <td class="matchResult"></td>
+    </tr>
+    <tr>
+      <td><select class="matchCurrency"><option value="">العملة</option></select></td>
+      <td><input type="number" class="matchActual" placeholder="0"></td>
+      <td class="matchSystem"></td>
+      <td class="matchResult"></td>
+    </tr>
+  </tbody>
+</table>
+    
     </div>
 
     <button id="btnRunMatch" class="btn-green">مطابقة</button>
@@ -3777,140 +3805,143 @@ setTimeout(() => {
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  const matchTbody = document.querySelector('#matchTable tbody');
-  const matchDate = document.getElementById('matchDate');
-  const matchSelect = document.getElementById('matchSelect');
-  const btnLoadMatch = document.getElementById('btnLoadMatch');
-  const btnRunMatch = document.getElementById('btnRunMatch');
+const matchTbody = document.querySelector('#matchTable tbody');
+const matchDate = document.getElementById('matchDate');
+const matchSelect = document.getElementById('matchSelect');
+const btnLoadMatch = document.getElementById('btnLoadMatch');
+const btnRunMatch = document.getElementById('btnRunMatch');
 
-  // 1. انشئ 5 صفوف فاضية - بدون رصيد نظام ولا نتيجة
-  function initMatchRows() {
-    let rows = '';
-    for (let i = 0; i < 5; i++) {
-      rows += `
-        <tr>
-          <td><select class="matchCurrency"><option value="">العملة</option></select></td>
-          <td><input type="number" class="matchActual" placeholder="0"></td>
-          <td class="matchSystem"></td>
-          <td class="matchResult"></td>
-        </tr>
-      `;
-    }
-    matchTbody.innerHTML = rows;
-    loadCurrenciesToMatchSelect();
+// 1. انشئ 5 صفوف فاضية - بدون رصيد نظام ولا نتيجة
+function initMatchRows() {
+  let rows = '';
+  for (let i = 0; i < 5; i++) {
+    rows += `
+      <tr>
+        <td><select class="matchCurrency"><option value="">العملة</option></select></td>
+        <td><input type="number" class="matchActual" placeholder="0"></td>
+        <td class="matchSystem"></td>
+        <td class="matchResult"></td>
+      </tr>
+    `;
   }
+  matchTbody.innerHTML = rows;
+  loadCurrenciesToMatchSelect();
+}
 
-  // 2. عبئ العملات
-  async function loadCurrenciesToMatchSelect() {
-    const snap = await get(ref(db, 'currencies'));
-    const currencies = snap.val() || {};
-    document.querySelectorAll('.matchCurrency').forEach(sel => {
-      sel.innerHTML = '<option value="">العملة</option>';
-      Object.keys(currencies).forEach(cur => {
-        sel.innerHTML += `<option value="${cur}">${cur}</option>`;
-      });
-    });
-  }
-
-  // 3. تكبير الخلية
-  matchTbody.addEventListener('click', (e) => {
-    if (e.target.tagName === 'TD' &&!e.target.querySelector('select,input')) {
-      document.querySelectorAll('#matchTable td.zoom').forEach(td => td.classList.remove('zoom'));
-      e.target.classList.add('zoom');
-    }
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('#matchTable')) {
-      document.querySelectorAll('#matchTable td.zoom').forEach(td => td.classList.remove('zoom'));
-    }
-  });
-
-  // 4. زر مطابقة - هنا يصير الحساب والحفظ
-  btnRunMatch.addEventListener('click', async () => {
-    const date = matchDate.value || new Date().toISOString().split('T')[0];
-    const rows = [];
-    let hasData = false;
-
-    for (const tr of matchTbody.querySelectorAll('tr')) {
-      const cur = tr.querySelector('.matchCurrency').value;
-      if (!cur) continue;
-
-      hasData = true;
-      const actual = parseFloat(tr.querySelector('.matchActual').value) || 0;
-
-      const snap = await get(ref(db, `${EMPLOYEE_BAL_PATH}/${window.currentUser}/${cur}`));
-      const system = snap.val() || 0;
-      const diff = actual - system;
-
-      tr.querySelector('.matchSystem').textContent = system.toFixed(2);
-      const resultCell = tr.querySelector('.matchResult');
-      resultCell.textContent = diff.toFixed(2);
-      resultCell.className = 'matchResult';
-      if (diff > 0) resultCell.classList.add('pos');
-      else if (diff < 0) resultCell.classList.add('neg');
-      else resultCell.classList.add('zero');
-
-      rows.push({ currency: cur, actual, system, diff });
-    }
-
-    if (!hasData) {
-      alert('اختر عملة واحدة على الأقل');
-      return;
-    }
-
-    const matchRef = push(ref(db, `matches/${window.currentUser}/${date}`));
-    await set(matchRef, { rows, timestamp: Date.now() });
-
-    await loadMatchesForDate(date);
-    alert('تمت المطابقة وحفظها');
-  });
-
-  // 5. جيب ارقام المطابقات لتاريخ معين
-  async function loadMatchesForDate(date) {
-    const snap = await get(ref(db, `matches/${window.currentUser}/${date}`));
-    const matches = snap.val() || {};
-
-    matchSelect.innerHTML = '<option value="">جديدة</option>';
-    Object.keys(matches).forEach(key => {
-      matchSelect.innerHTML += `<option value="${key}">مطابقة ${key.slice(-4)}</option>`;
-    });
-  }
-
-  // 6. عرض مطابقة محفوظة
-  btnLoadMatch.addEventListener('click', async () => {
-    const date = matchDate.value;
-    const matchId = matchSelect.value;
-    if (!date ||!matchId) return;
-
-    const snap = await get(ref(db, `matches/${window.currentUser}/${date}/${matchId}`));
-    const data = snap.val();
-    if (!data) return;
-
-    initMatchRows();
-
-    data.rows.forEach((rowData, i) => {
-      const tr = matchTbody.querySelectorAll('tr')[i];
-      if (!tr) return;
-      tr.querySelector('.matchCurrency').value = rowData.currency;
-      tr.querySelector('.matchActual').value = rowData.actual;
-      tr.querySelector('.matchSystem').textContent = rowData.system.toFixed(2);
-      const resultCell = tr.querySelector('.matchResult');
-      resultCell.textContent = rowData.diff.toFixed(2);
-      resultCell.className = 'matchResult';
-      if (rowData.diff > 0) resultCell.classList.add('pos');
-      else if (rowData.diff < 0) resultCell.classList.add('neg');
-      else resultCell.classList.add('zero');
+// 2. عبئ العملات
+async function loadCurrenciesToMatchSelect() {
+  const snap = await get(ref(db, 'currencies'));
+  const currencies = snap.val() || {};
+  document.querySelectorAll('.matchCurrency').forEach(sel => {
+    sel.innerHTML = '<option value="">العملة</option>';
+    Object.keys(currencies).forEach(cur => {
+      sel.innerHTML += `<option value="${cur}">${cur}</option>`;
     });
   });
+}
 
-  // 7. لما تغير التاريخ حدث القائمة
-  matchDate.addEventListener('change', () => {
-    if (matchDate.value) loadMatchesForDate(matchDate.value);
+// 3. تكبير الخلية
+matchTbody.addEventListener('click', (e) => {
+  if (e.target.tagName === 'TD' &&!e.target.querySelector('select,input')) {
+    document.querySelectorAll('#matchTable td.zoom').forEach(td => td.classList.remove('zoom'));
+    e.target.classList.add('zoom');
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#matchTable')) {
+    document.querySelectorAll('#matchTable td.zoom').forEach(td => td.classList.remove('zoom'));
+  }
+});
+
+// 4. زر مطابقة - هنا يصير الحساب والحفظ
+btnRunMatch.addEventListener('click', async () => {
+  const date = matchDate.value || new Date().toISOString().split('T')[0];
+  const rows = [];
+  let hasData = false;
+
+  for (const tr of matchTbody.querySelectorAll('tr')) {
+    const cur = tr.querySelector('.matchCurrency').value;
+    if (!cur) continue;
+
+    hasData = true;
+    const actual = parseFloat(tr.querySelector('.matchActual').value) || 0;
+
+    // جيب رصيد الموظف الحالي من النظام لهذه العملة
+    const snap = await get(ref(db, `${EMPLOYEE_BAL_PATH}/${window.currentUser}/${cur}`));
+    const system = snap.val() || 0;
+    const diff = actual - system;
+
+    // اعرض النتيجة في الجدول
+    tr.querySelector('.matchSystem').textContent = system.toFixed(2);
+    const resultCell = tr.querySelector('.matchResult');
+    resultCell.textContent = diff.toFixed(2);
+    resultCell.className = 'matchResult';
+    if (diff > 0) resultCell.classList.add('pos');
+    else if (diff < 0) resultCell.classList.add('neg');
+    else resultCell.classList.add('zero');
+
+    rows.push({ currency: cur, actual, system, diff });
+  }
+
+  if (!hasData) {
+    alert('اختر عملة واحدة على الأقل');
+    return;
+  }
+
+  // احفظ المطابقة
+  const matchRef = push(ref(db, `matches/${window.currentUser}/${date}`));
+  await set(matchRef, { rows, timestamp: Date.now() });
+
+  await loadMatchesForDate(date);
+  alert('تمت المطابقة وحفظها');
+});
+
+// 5. جيب ارقام المطابقات لتاريخ معين
+async function loadMatchesForDate(date) {
+  const snap = await get(ref(db, `matches/${window.currentUser}/${date}`));
+  const matches = snap.val() || {};
+
+  matchSelect.innerHTML = '<option value="">جديدة</option>';
+  Object.keys(matches).forEach(key => {
+    matchSelect.innerHTML += `<option value="${key}">مطابقة ${key.slice(-4)}</option>`;
   });
+}
 
-  // شغل هذا اول ما يتحمل
+// 6. عرض مطابقة محفوظة
+btnLoadMatch.addEventListener('click', async () => {
+  const date = matchDate.value;
+  const matchId = matchSelect.value;
+  if (!date ||!matchId) return;
+
+  const snap = await get(ref(db, `matches/${window.currentUser}/${date}/${matchId}`));
+  const data = snap.val();
+  if (!data) return;
+
   initMatchRows();
+
+  data.rows.forEach((rowData, i) => {
+    const tr = matchTbody.querySelectorAll('tr')[i];
+    if (!tr) return;
+    tr.querySelector('.matchCurrency').value = rowData.currency;
+    tr.querySelector('.matchActual').value = rowData.actual;
+    tr.querySelector('.matchSystem').textContent = rowData.system.toFixed(2);
+    const resultCell = tr.querySelector('.matchResult');
+    resultCell.textContent = rowData.diff.toFixed(2);
+    resultCell.className = 'matchResult';
+    if (rowData.diff > 0) resultCell.classList.add('pos');
+    else if (rowData.diff < 0) resultCell.classList.add('neg');
+    else resultCell.classList.add('zero');
+  });
+});
+
+// 7. لما تغير التاريخ حدث القائمة
+matchDate.addEventListener('change', () => {
+  if (matchDate.value) loadMatchesForDate(matchDate.value);
+});
+
+// شغل هذا اول ما يتحمل
+initMatchRows();
 
 }); // نهاية DOMContentLoaded
 
