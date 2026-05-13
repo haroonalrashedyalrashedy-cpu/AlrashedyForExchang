@@ -1578,6 +1578,296 @@ function setupTabClickHandlers() {
   });
 }
 
+
+// القبض والصرف
+
+function listenAccounts() {
+  const selects = ['depositAccount', 'withdrawAccount', 'viewAccSelect', 'editAccSelect', 'deleteAccSelect'];
+  onValue(ref(db, ACCOUNTS_PATH), (snap) => {
+    const accounts = snap.val() || {};
+    selects.forEach(selId => {
+      const select = document.getElementById(selId);
+      if (!select) return;
+      const currentVal = select.value;
+
+      // رتب: المفعلة اول، الموقفة اخر
+      const sortedAccounts = Object.entries(accounts).sort((a, b) => {
+        const aInactive = a[1].active === false? 1 : 0;
+        const bInactive = b[1].active === false? 1 : 0;
+        return aInactive - bInactive;
+      });
+
+      select.innerHTML = '<option value="">اختر الحساب</option>';
+
+      sortedAccounts.forEach(([id, acc]) => {
+        const isInactive = acc.active === false;
+        const status = isInactive? ' [موقف]' : '';
+        const styleAttr = isInactive? 'style="color:#999"' : '';
+
+        // شلت disabled عشان تقدر تختاره وتلغي الايقاف
+        select.innerHTML += `<option value="${id}" ${styleAttr}>
+          ${acc.name} - ${acc.phone || ''}${status}
+        </option>`;
+      });
+
+      if (accounts[currentVal]) select.value = currentVal;
+    });
+  });
+}
+
+
+
+
+  // عرض جدول الدفع اليدوي لحظي
+  function listenPayTransfers() {
+  const today = getToday();
+  const tbody = document.querySelector('#payTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/payTransfer`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    Object.values(data)
+      .filter(op => {
+        // لو موظف يشوف عملياته هو بس، لو ادمن يشوف الكل
+        if (window.currentRole === 'employee') {
+          return op.emp === window.currentUser;
+        }
+        return true;
+      })
+      .reverse()
+      .forEach(op => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${op.number}</td>
+          <td>${op.amount}</td>
+          <td>${op.currency}</td>
+          <td>${op.receiver}</td>
+          <td>${op.type}</td>
+          <td>${new Date(op.time).toLocaleString('ar-EG')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+  });
+}
+ // listenPayTransfers();
+
+
+  // عرض جدول الاستلام لحظي
+  function listenReceiveTransfers() {
+  const today = getToday();
+  const tbody = document.querySelector('#RecTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/receiveTransfer`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    Object.values(data)
+      .filter(op => {
+        if (window.currentRole === 'employee') {
+          return op.emp === window.currentUser;
+        }
+        return true;
+      })
+      .reverse()
+      .forEach(op => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${op.number}</td>
+          <td>${op.amount}</td>
+          <td>${op.currency}</td>
+          <td>${op.receiver}</td>
+          <td>${op.sender}</td>
+          <td>${op.type}</td>
+          <td>${new Date(op.time).toLocaleString('ar-EG')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+  });
+}
+ // listenReceiveTransfers();
+
+
+
+  // عرض حوالات الارسال لحظي
+  function listenSendTransfers() {
+  const today = getToday();
+  const tbody = document.querySelector('#sendTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/sendTransfer`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    Object.values(data)
+      .filter(op => {
+        if (window.currentRole === 'employee') {
+          return op.emp === window.currentUser;
+        }
+        return true;
+      })
+      .reverse()
+      .forEach(op => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${op.number}</td>
+          <td>${op.amount}</td>
+          <td>${op.currency}</td>
+          <td>${op.receiver}</td>
+          <td>${op.sender}</td>
+          <td>${op.type}</td>
+          <td>${new Date(op.time).toLocaleString('ar-EG')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+  });
+}
+ // listenSendTransfers();
+
+
+
+function listenWithdrawOps() {
+  const today = getToday();
+  const tbody = document.querySelector('#withdrawTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/withdraw`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    onValue(ref(db, ACCOUNTS_PATH), (accSnap) => {
+      const accounts = accSnap.val() || {};
+      tbody.innerHTML = '';
+
+      Object.values(data)
+        .filter(op => {
+          if (window.currentRole === 'employee') {
+            return op.emp === window.currentUser;
+          }
+          return true;
+        })
+        .reverse()
+        .forEach(op => {
+          const accName = accounts[op.accountId]?.name || 'محذوف';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${accName}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td>
+            <td>${op.receiver}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
+          tbody.appendChild(tr);
+        });
+    }, {onlyOnce: true});
+  });
+}
+  
+ // listenAccounts();
+  // listenDepositOps();
+  // listenWithdrawOps();
+
+
+
+
+function listenDepositOps() {
+  const today = getToday();
+  const tbody = document.querySelector('#depositTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/deposit`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    onValue(ref(db, ACCOUNTS_PATH), (accSnap) => {
+      const accounts = accSnap.val() || {};
+      tbody.innerHTML = '';
+
+      Object.values(data)
+        .filter(op => {
+          if (window.currentRole === 'employee') {
+            return op.emp === window.currentUser;
+          }
+          return true;
+        })
+        .reverse()
+        .forEach(op => {
+          const accName = accounts[op.accountId]?.name || 'محذوف';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${accName}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td>
+            <td>${op.depositor}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
+          tbody.appendChild(tr);
+        });
+    }, {onlyOnce: true});
+  });
+}
+
+
+function listenSellOps() {
+  const today = getToday();
+  const tbody = document.querySelector('#sellTable tbody');
+  if (!tbody) return;
+
+  onValue(ref(db, `${OPS_PATH}/${today}/sell`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    Object.values(data)
+      .filter(op => {
+        if (window.currentRole === 'employee') {
+          return op.emp === window.currentUser;
+        }
+        return true;
+      })
+      .reverse()
+      .forEach(op => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td>
+          <td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
+        tbody.appendChild(tr);
+      });
+  });
+}
+ // listenSellOps();
+
+
+
+
+function listenBuyOps() {
+  const today = getToday();
+  const tbody = document.querySelector('#buyTable tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  onValue(ref(db, `${OPS_PATH}/${today}/buy`), (snap) => {
+    tbody.innerHTML = '';
+    const data = snap.val();
+    if (!data) return;
+
+    Object.values(data)
+      .filter(op => {
+        if (window.currentRole === 'employee') {
+          return op.emp === window.currentUser;
+        }
+        return true;
+      })
+      .reverse()
+      .forEach(op => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td>
+          <td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
+        tbody.appendChild(tr);
+      });
+  });
+}
+ // listenBuyOps();
+
+
+
+
 // 2. دالة اظهار الكروت والفرعي - آمنة لكل التبويبات
 function showSubElementsByPerm(tabName) {
   const content = document.getElementById(tabName);
@@ -2187,35 +2477,7 @@ setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab', tru
     }
   });
 
-  function listenBuyOps() {
-  const today = getToday();
-  const tbody = document.querySelector('#buyTable tbody');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-
-  onValue(ref(db, `${OPS_PATH}/${today}/buy`), (snap) => {
-    tbody.innerHTML = '';
-    const data = snap.val();
-    if (!data) return;
-
-    Object.values(data)
-      .filter(op => {
-        if (window.currentRole === 'employee') {
-          return op.emp === window.currentUser;
-        }
-        return true;
-      })
-      .reverse()
-      .forEach(op => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td>
-          <td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
-        tbody.appendChild(tr);
-      });
-  });
-}
- // listenBuyOps();
-
+  
   // ===== عمليات البيع =====
   document.getElementById('btnSaveSell')?.addEventListener('click', async () => {
     const amount = parseFloat(document.getElementById('sellAmount').value);
@@ -2249,68 +2511,9 @@ setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab', tru
     }
   });
 
-  function listenSellOps() {
-  const today = getToday();
-  const tbody = document.querySelector('#sellTable tbody');
-  if (!tbody) return;
-
-  onValue(ref(db, `${OPS_PATH}/${today}/sell`), (snap) => {
-    tbody.innerHTML = '';
-    const data = snap.val();
-    if (!data) return;
-
-    Object.values(data)
-      .filter(op => {
-        if (window.currentRole === 'employee') {
-          return op.emp === window.currentUser;
-        }
-        return true;
-      })
-      .reverse()
-      .forEach(op => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${op.amount}</td><td>${op.rate}</td><td>${op.currency}</td><td>${op.result}</td>
-          <td>${op.type}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
-        tbody.appendChild(tr);
-      });
-  });
-}
- // listenSellOps();
-
+  
   // ===== القبض والصرف =====
-  function listenAccounts() {
-  const selects = ['depositAccount', 'withdrawAccount', 'viewAccSelect', 'editAccSelect', 'deleteAccSelect'];
-  onValue(ref(db, ACCOUNTS_PATH), (snap) => {
-    const accounts = snap.val() || {};
-    selects.forEach(selId => {
-      const select = document.getElementById(selId);
-      if (!select) return;
-      const currentVal = select.value;
-
-      // رتب: المفعلة اول، الموقفة اخر
-      const sortedAccounts = Object.entries(accounts).sort((a, b) => {
-        const aInactive = a[1].active === false? 1 : 0;
-        const bInactive = b[1].active === false? 1 : 0;
-        return aInactive - bInactive;
-      });
-
-      select.innerHTML = '<option value="">اختر الحساب</option>';
-
-      sortedAccounts.forEach(([id, acc]) => {
-        const isInactive = acc.active === false;
-        const status = isInactive? ' [موقف]' : '';
-        const styleAttr = isInactive? 'style="color:#999"' : '';
-
-        // شلت disabled عشان تقدر تختاره وتلغي الايقاف
-        select.innerHTML += `<option value="${id}" ${styleAttr}>
-          ${acc.name} - ${acc.phone || ''}${status}
-        </option>`;
-      });
-
-      if (accounts[currentVal]) select.value = currentVal;
-    });
-  });
-}
+  
 
   
 document.getElementById('btnSaveDeposit')?.addEventListener('click', async () => {
@@ -2353,38 +2556,7 @@ document.getElementById('btnSaveDeposit')?.addEventListener('click', async () =>
     }
   });
 
-  function listenDepositOps() {
-  const today = getToday();
-  const tbody = document.querySelector('#depositTable tbody');
-  if (!tbody) return;
-
-  onValue(ref(db, `${OPS_PATH}/${today}/deposit`), (snap) => {
-    tbody.innerHTML = '';
-    const data = snap.val();
-    if (!data) return;
-
-    onValue(ref(db, ACCOUNTS_PATH), (accSnap) => {
-      const accounts = accSnap.val() || {};
-      tbody.innerHTML = '';
-
-      Object.values(data)
-        .filter(op => {
-          if (window.currentRole === 'employee') {
-            return op.emp === window.currentUser;
-          }
-          return true;
-        })
-        .reverse()
-        .forEach(op => {
-          const accName = accounts[op.accountId]?.name || 'محذوف';
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${accName}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td>
-            <td>${op.depositor}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
-          tbody.appendChild(tr);
-        });
-    }, {onlyOnce: true});
-  });
-}
+  
 
 document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () => {
     const accId = document.getElementById('withdrawAccount').value;
@@ -2430,43 +2602,7 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
     }
   });
 
-  function listenWithdrawOps() {
-  const today = getToday();
-  const tbody = document.querySelector('#withdrawTable tbody');
-  if (!tbody) return;
-
-  onValue(ref(db, `${OPS_PATH}/${today}/withdraw`), (snap) => {
-    tbody.innerHTML = '';
-    const data = snap.val();
-    if (!data) return;
-
-    onValue(ref(db, ACCOUNTS_PATH), (accSnap) => {
-      const accounts = accSnap.val() || {};
-      tbody.innerHTML = '';
-
-      Object.values(data)
-        .filter(op => {
-          if (window.currentRole === 'employee') {
-            return op.emp === window.currentUser;
-          }
-          return true;
-        })
-        .reverse()
-        .forEach(op => {
-          const accName = accounts[op.accountId]?.name || 'محذوف';
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${accName}</td><td>${op.amount}</td><td>${op.currency}</td><td>${op.type}</td>
-            <td>${op.receiver}</td><td>${op.emp}</td><td>${new Date(op.time).toLocaleString('ar-EG')}</td>`;
-          tbody.appendChild(tr);
-        });
-    }, {onlyOnce: true});
-  });
-}
   
- // listenAccounts();
-  // listenDepositOps();
-  // listenWithdrawOps();
-
   // ===== الحوالات =====
   async function generateTransferNumber() {
     let number, exists = true, attempts = 0;
@@ -2513,41 +2649,6 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
     }
   });
 
-  // عرض حوالات الارسال لحظي
-  function listenSendTransfers() {
-  const today = getToday();
-  const tbody = document.querySelector('#sendTable tbody');
-  if (!tbody) return;
-
-  onValue(ref(db, `${OPS_PATH}/${today}/sendTransfer`), (snap) => {
-    tbody.innerHTML = '';
-    const data = snap.val();
-    if (!data) return;
-
-    Object.values(data)
-      .filter(op => {
-        if (window.currentRole === 'employee') {
-          return op.emp === window.currentUser;
-        }
-        return true;
-      })
-      .reverse()
-      .forEach(op => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${op.number}</td>
-          <td>${op.amount}</td>
-          <td>${op.currency}</td>
-          <td>${op.receiver}</td>
-          <td>${op.sender}</td>
-          <td>${op.type}</td>
-          <td>${new Date(op.time).toLocaleString('ar-EG')}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-  });
-}
- // listenSendTransfers();
 
   // استلام الحوالة
   let currentTransfer = null;
@@ -2614,41 +2715,6 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
     }
   });
 
-  // عرض جدول الاستلام لحظي
-  function listenReceiveTransfers() {
-  const today = getToday();
-  const tbody = document.querySelector('#RecTable tbody');
-  if (!tbody) return;
-
-  onValue(ref(db, `${OPS_PATH}/${today}/receiveTransfer`), (snap) => {
-    tbody.innerHTML = '';
-    const data = snap.val();
-    if (!data) return;
-
-    Object.values(data)
-      .filter(op => {
-        if (window.currentRole === 'employee') {
-          return op.emp === window.currentUser;
-        }
-        return true;
-      })
-      .reverse()
-      .forEach(op => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${op.number}</td>
-          <td>${op.amount}</td>
-          <td>${op.currency}</td>
-          <td>${op.receiver}</td>
-          <td>${op.sender}</td>
-          <td>${op.type}</td>
-          <td>${new Date(op.time).toLocaleString('ar-EG')}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-  });
-}
- // listenReceiveTransfers();
 
   ////////////////// دفع الحوالات يدوي
   document.getElementById('paybtn')?.addEventListener('click', async () => {
@@ -2692,42 +2758,6 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
       setTimeout(() => btn.disabled = false, 500);
     }
   });
-
-  // عرض جدول الدفع اليدوي لحظي
-  function listenPayTransfers() {
-  const today = getToday();
-  const tbody = document.querySelector('#payTable tbody');
-  if (!tbody) return;
-
-  onValue(ref(db, `${OPS_PATH}/${today}/payTransfer`), (snap) => {
-    tbody.innerHTML = '';
-    const data = snap.val();
-    if (!data) return;
-
-    Object.values(data)
-      .filter(op => {
-        // لو موظف يشوف عملياته هو بس، لو ادمن يشوف الكل
-        if (window.currentRole === 'employee') {
-          return op.emp === window.currentUser;
-        }
-        return true;
-      })
-      .reverse()
-      .forEach(op => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${op.number}</td>
-          <td>${op.amount}</td>
-          <td>${op.currency}</td>
-          <td>${op.receiver}</td>
-          <td>${op.type}</td>
-          <td>${new Date(op.time).toLocaleString('ar-EG')}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-  });
-}
- // listenPayTransfers();
 
   // ===== الفلترة والتواريخ والترتيب =====
   function addDateFiltersToTables() {
