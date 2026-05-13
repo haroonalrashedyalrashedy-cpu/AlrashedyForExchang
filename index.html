@@ -1411,9 +1411,9 @@ const db = getDatabase(app);
 window.db = db;
 
 
+ 
 
-
-
+let hideTimer = null;
 
 function resetHideTimer() {
   if (hideTimer) clearTimeout(hideTimer);
@@ -1865,7 +1865,7 @@ document.getElementById('btnChangeAdminPass')?.addEventListener('click', async (
 
 // ===== كل كود التبويبات والعمليات داخل DOMContentLoaded =====
 document.addEventListener('DOMContentLoaded', () => {
-  let hideTimer = null;
+  
   
   
   
