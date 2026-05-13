@@ -2781,6 +2781,45 @@ async function filterTable(tableId) {
 addDateFiltersToTables();
 
 
+
+
+// حفظ الصلاحيات
+document.getElementById('btnSavePerm')?.addEventListener('click', async ()=>{
+  if(window.currentRole !== 'admin'){ 
+    alert('صلاحيه مدير فقط'); 
+    return; 
+  }
+  
+  const uid = document.getElementById('permEmpSelect').value;
+  if(!uid){ 
+    alert('اختر الموظف'); 
+    return; 
+  }
+
+  const perms = {
+    employEd: document.getElementById('employEd').checked,
+    addEmploy: document.getElementById('addEmploy').checked,
+    updateEploy: document.getElementById('updateEploy').checked,
+    permOperat: document.getElementById('permOperat').checked,
+    permTrans: document.getElementById('permTrans').checked,
+    permAcc: document.getElementById('permAcc').checked,
+    creatAcco: document.getElementById('creatAcco').checked,
+    showAcco: document.getElementById('showAcco').checked,
+    permMach: document.getElementById('permMach').checked,
+    permPerms: document.getElementById('permPerms').checked,
+    permEditRate: document.getElementById('permEditRate').checked,
+    selectCurr: document.getElementById('selectCurr').checked,
+    permEditpass: document.getElementById('permEditpass').checked,
+  };
+
+  await set(ref(db, `perms/${uid}`), perms);
+  alert('تم حفظ الصلاحيات');
+});
+
+
+
+
+
 }); // نهاية DOMContentLoaded
 
 
