@@ -655,44 +655,48 @@ button, .btn, input[type="submit"], .btn-primary {
 
 
 
-
-.tab-content, .subtabs, .card { 
+/* 1. القاعدة الاساسية: اخفي الكل افتراضياً */
+.tab-content, 
+.subtabs, 
+.card { 
   display: none; 
 }
-.tab-content.active, .subtabs.active, .card.active { 
+
+/* 2. لما يصير active اعرضه */
+.tab-content.active, 
+.card.active { 
   display: block; 
 }
-.tabs.tab.active { 
-  display: inline-block; 
+
+.subtabs.active {
+  display: flex; /* لازم flex عشان التبويبات الفرعية تتصف جنب بعض */
 }
 
+/* 3. التبويبات نفسها */
+.tabs .tab, 
+.subtabs .tab {
+  display: inline-block;
+  flex: 0 0 auto;
+}
 
+.tabs .tab.active, 
+.subtabs .tab.active { 
+  color: var(--accent-green);
+  border-bottom: 2px solid var(--accent-green);
+}
 
+/* 4. ستايل السبتابات */
 .subtabs {
-  display: flex;
   overflow-x: auto;
   white-space: nowrap;
   gap: 10px;
   padding-bottom: 5px;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.subtabs.tab {
-  flex: 0 0 auto;
-}
-
-/* مهم: اخفي كل السبتابات افتراضياً */
-.subtabs,.tab-content,.card {
+.subtabs::-webkit-scrollbar {
   display: none;
 }
-
-.subtabs.active,.tab-content.active,.card.active,.tabs.tab.active {
-  display: block;
-}
-
-.subtabs.active {
-  display: flex;
-}
-
 
 
 
@@ -1900,9 +1904,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
 
   setupTabs(document.getElementById('adminScreen'), '.tabs >.tab', 'data-tab');
-  setupTabs(document.getElementById('operations'), '.subtabs .tab', 'data-subtab', false);
-  setupTabs(document.getElementById('transfers'), '.subtabs .tab', 'data-subtab', false);
-  setupTabs(document.getElementById('accounts'), '.subtabs .tab', 'data-subtab', false);
+ // setupTabs(document.getElementById('operations'), '.subtabs .tab', 'data-subtab', false);
+ // setupTabs(document.getElementById('transfers'), '.subtabs .tab', 'data-subtab', false);
+ // setupTabs(document.getElementById('accounts'), '.subtabs .tab', 'data-subtab', false);
 
   document.querySelectorAll('#adminScreen > .tabs > .tab').forEach(tab => {
   tab.addEventListener('click', (e) => {
