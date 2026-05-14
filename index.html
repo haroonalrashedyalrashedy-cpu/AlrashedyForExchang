@@ -803,6 +803,39 @@ tr.row-selected {
   background: rgba(37, 211, 102, 0.25) !important;
 }
 
+
+.match-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.match-toolbar .field {
+  display: flex;
+  flex-direction: column;
+  flex: 1;           /* يخلي الحقل يتمدد وياخذ مساحة متساوية */
+  min-width: 120px;  /* أقل عرض قبل ما ينزل تحت */
+}
+
+.match-toolbar .field input,
+.match-toolbar .field select {
+  width: 100%;       /* يملأ عرض الـ field */
+  height: 34px;
+  padding: 4px 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.match-toolbar button {
+  height: 34px;
+  padding: 0 16px;
+  font-size: 14px;
+  flex-shrink: 0;    /* ما يصغر الزر */
+}
+
+
+
   </style>
 </head>
 
@@ -3958,6 +3991,8 @@ document.addEventListener('click', (e) => {
   }
 });
 
+initMatchRows() ;
+
 // 4. زر مطابقة - هنا يصير الحساب والحفظ
 btnRunMatch.addEventListener('click', async () => {
   const date = matchDate.value || getToday();
@@ -4072,6 +4107,10 @@ document.addEventListener('click', (e) => {
   });
   td.classList.add('zoom');
 });
+
+
+
+
 
 }); // نهاية DOMContentLoaded
 
