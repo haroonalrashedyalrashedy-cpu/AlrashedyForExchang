@@ -834,97 +834,47 @@ tr.row-selected {
   flex-shrink: 0;
 }
 
-
-/* ===== Recon Module ===== */
-/* ===== Recon Module ===== */
-.recon-card{
-  background:#2a2f38;
-  padding:14px;
-  border-radius:12px;
-  display:block!important;
+.match-grid{
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1fr;
+  gap: 1px;
+  background: #2a2f38;
+  border: 2px solid #d97706;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 12px;
 }
 
-.recon-bar{
-  display:flex;
-  gap:8px;
-  margin-bottom:12px;
-  flex-wrap:nowrap;
-  overflow-x:auto;
+.match-grid > *{
+  background: #3a4049;
+  padding: 10px 6px;
+  text-align: center;
+  font-size: 15px;
+  color: #fff;
 }
 
-.recon-bar input,
-.recon-bar select,
-.recon-bar button{
-  flex:0 0 auto;
-  min-width:110px;
-  height:38px;
-  font-size:14px;
-  border-radius:6px;
-  border:1px solid #444;
-  background:#1e2229;
-  color:#fff;
-  padding:0 10px;
+.match-head{
+  background: #000;
+  font-weight: bold;
 }
 
-.btn-recon{
-  background:#22c55e;
-  color:#000;
-  font-weight:bold;
-  cursor:pointer;
+.match-grid select,
+.match-grid input{
+  width: 100%;
+  height: 36px;
+  background: #3a4049;
+  border: none;
+  color: #fff;
+  text-align: center;
+  font-size: 15px;
+  outline: none;
 }
 
-.recon-wrap{
-  border:2px solid #d97706;
-  border-radius:8px;
-  overflow:auto;
-  max-height:350px;
-}
+.match-result.pos{color:#facc15; font-weight:bold;}
+.match-result.neg{color:#ef4444; font-weight:bold;}
+.match-result.zero{color:#22c55e; font-weight:bold;}
 
-#reconTable{
-  width:100%;
-  border-collapse:collapse;
-  font-size:15px;
-  color:#fff;
-}
 
-#reconTable thead{background:#000; position:sticky; top:0;}
-#reconTable th,
-#reconTable td{
-  padding:10px 6px;
-  text-align:center;
-  border:1px solid #2a2f38;
-}
-
-#reconTable td{background:#3a4049;}
-#reconTable select,
-#reconTable input{
-  width:100%;
-  height:36px;
-  background:#3a4049;
-  border:1px solid #555;
-  border-radius:6px;
-  color:#fff;
-  text-align:center;
-  font-size:14px;
-}
-
-.recon-diff.pos{color:#facc15; font-weight:bold;}
-.recon-diff.neg{color:#ef4444; font-weight:bold;}
-.recon-diff.zero{color:#22c55e; font-weight:bold;}
-/* كسر اي قاعدة تخفي صفوف الجدول */
-#reconTable tbody,
-#reconTable tbody tr,
-#reconTable tbody td{
-  display: table-row-group !important;
-}
-#reconTable tbody tr{
-  display: table-row !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-#reconTable tbody td{
-  display: table-cell !important;
-}
 
 
   </style>
@@ -959,13 +909,6 @@ tr.row-selected {
       <div class="tab active" data-tab="employees">ادارة الموظفين</div>
       <div class="tab" data-tab="operations">العمليات</div>
       <div class="tab" data-tab="transfers">الحوالات</div>
-    
-    
-    
-      <div class="tab" data-tab="reconTab">المطابقة</div>
-     
-     
-     
       <div class="tab" data-tab="matchs">المطابقات</div>
       <div class="tab" data-tab="accounts">الحسابات</div>
       <div class="tab" data-tab="permissions">الصلاحيات</div>
@@ -1305,102 +1248,51 @@ tr.row-selected {
     
     
     
-    
-    
-   <div id="reconTab" class="tab-content">
-  <div class="recon-card active">
-    <h3>مطابقة الصندوق</h3>
-
-    <div class="recon-bar">
-      <input type="date" id="reconDate">
-      <select id="reconList"><option value="">مطابقة جديدة</option></select>
-      <button id="btnReconRun" class="btn-recon">تشغيل المطابقة</button>
-    </div>
-
-    <div class="recon-wrap">
-      <table id="reconTable">
-        <thead>
-          <tr>
-            <th>العملة</th>
-            <th>المبلغ الفعلي</th>
-            <th>مبلغ النظام</th>
-            <th>الفرق</th>
-          </tr>
-        </thead>
-      <tbody style="min-height: 180px;">
-          <tr>
-            <td><select class="recon-cur"><option value="">العملة</option></select></td>
-            <td><input type="number" class="recon-actual" placeholder="0"></td>
-            <td class="recon-sys">0</td>
-            <td class="recon-diff">0</td>
-          </tr>
-          <tr>
-            <td><select class="recon-cur"><option value="">العملة</option></select></td>
-            <td><input type="number" class="recon-actual" placeholder="0"></td>
-            <td class="recon-sys">0</td>
-            <td class="recon-diff">0</td>
-          </tr>
-          <tr>
-            <td><select class="recon-cur"><option value="">العملة</option></select></td>
-            <td><input type="number" class="recon-actual" placeholder="0"></td>
-            <td class="recon-sys">0</td>
-            <td class="recon-diff">0</td>
-          </tr>
-          <tr>
-            <td><select class="recon-cur"><option value="">العملة</option></select></td>
-            <td><input type="number" class="recon-actual" placeholder="0"></td>
-            <td class="recon-sys">0</td>
-            <td class="recon-diff">0</td>
-          </tr>
-          <tr>
-            <td><select class="recon-cur"><option value="">العملة</option></select></td>
-            <td><input type="number" class="recon-actual" placeholder="0"></td>
-            <td class="recon-sys">0</td>
-            <td class="recon-diff">0</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-    
-    
-    
-    
-    
-    
-    
 <div id="matchs" class="tab-content">
   <div class="card match-card" id="MatchCard">
     <h3>مطابقة الموظف</h3>
 
     <div class="match-toolbar">
-    
-       <div class="row-inline">
+      <div class="row-inline">
         <input type="date" id="matchDate">
-     
-   
-      
         <select id="matchSelect"><option value="">مطابقة جديدة</option></select>
-     
-      <button id="btnRunMatch" class="btn-green">مطابقة</button>
-   </div>
+        <button id="btnRunMatch" class="btn-green">مطابقة</button>
+      </div>
     </div>
 
-    <div class="table-wrap">
-      <table id="matchTable">
-        <thead>
-          <tr>
-            <th>العملة</th>
-            <th>الرصيد الفعلي</th>
-            <th>رصيد النظام</th>
-            <th>النتيجة</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- الصفوف بتتبني تلقائياً بالـ JS -->
-        </tbody>
-      </table>
+    <!-- الجريد الجديد بدل الجدول -->
+    <div class="match-grid">
+      <!-- العناوين -->
+      <div class="match-head">العملة</div>
+      <div class="match-head">الرصيد الفعلي</div>
+      <div class="match-head">رصيد النظام</div>
+      <div class="match-head">النتيجة</div>
+
+      <!-- 5 صفوف ثابتة -->
+      <select class="match-cur"></select>
+      <input type="number" class="match-actual" placeholder="0">
+      <div class="match-sys">0</div>
+      <div class="match-result">0</div>
+
+      <select class="match-cur"></select>
+      <input type="number" class="match-actual" placeholder="0">
+      <div class="match-sys">0</div>
+      <div class="match-result">0</div>
+
+      <select class="match-cur"></select>
+      <input type="number" class="match-actual" placeholder="0">
+      <div class="match-sys">0</div>
+      <div class="match-result">0</div>
+
+      <select class="match-cur"></select>
+      <input type="number" class="match-actual" placeholder="0">
+      <div class="match-sys">0</div>
+      <div class="match-result">0</div>
+
+      <select class="match-cur"></select>
+      <input type="number" class="match-actual" placeholder="0">
+      <div class="match-sys">0</div>
+      <div class="match-result">0</div>
     </div>
   </div>
 </div>
@@ -2206,6 +2098,7 @@ function listenBuyOps() {
 
 
 // 2. دالة اظهار الكروت والفرعي - آمنة لكل التبويبات
+
 function showSubElementsByPerm(tabName) {
   const content = document.getElementById(tabName);
   if (!content) return;
@@ -2278,11 +2171,13 @@ function showSubElementsByPerm(tabName) {
       break;
 
     case 'matchs':
-      if (hasPerm('permMach')) showCard('MatchCard');
+      if (hasPerm('permMach')) {
+        showCard('MatchCard');
+        initMatchRows(); // هذا السطر الجديد
+      }
       break;
   }
 }
-
 
 
 
@@ -4101,100 +3996,95 @@ setTimeout(() => {
 
 
 
-
-
-document.addEventListener('DOMContentLoaded', () => {
-
-const matchTbody = document.querySelector('#matchTable tbody');
+const matchRows = document.querySelectorAll('.match-grid select.match-cur');
 const matchDate = document.getElementById('matchDate');
 const matchSelect = document.getElementById('matchSelect');
 
 const btnRunMatch = document.getElementById('btnRunMatch');
 
+
+document.addEventListener('DOMContentLoaded', () => {
+
+
 // 1. انشئ 5 صفوف فاضية - بدون رصيد نظام ولا نتيجة
 function initMatchRows() {
   console.log('[initMatchRows] started');
 
-  if (!matchTbody) {
-    console.error('[initMatchRows] matchTbody is null. Check if document.querySelector("#matchTable tbody") ran before this function');
+  const matchRows = document.querySelectorAll('.match-grid select.match-cur');
+
+  if (matchRows.length === 0) {
+    console.error('[initMatchRows] ما لقيت أي صف في.match-grid. تأكد انك نسخت HTML الجريد صح');
     return;
   }
 
-  console.log('[initMatchRows] tbody found:', matchTbody);
+  console.log('[initMatchRows] لقيت', matchRows.length, 'صف');
 
-  let rows = '';
-  for (let i = 0; i < 5; i++) {
-    rows += `
-      <tr>
-        <td><select class="matchCurrency"><option value="">العملة</option></select></td>
-        <td><input type="number" class="matchActual" placeholder="0"></td>
-        <td class="matchSystem"></td>
-        <td class="matchResult"></td>
-      </tr>
-    `;
-  }
-
-  matchTbody.innerHTML = rows;
-  console.log('[initMatchRows] inserted 5 rows into tbody');
-
+  // املأ قوائم العملات في كل select
   loadCurrenciesToMatchSelect();
+
   console.log('[initMatchRows] finished');
 }
 
 // 2. عبئ العملات
 async function loadCurrenciesToMatchSelect() {
-  const snap = await get(ref(db, 'currencies'));
-  const currencies = snap.val() || {};
-  document.querySelectorAll('.matchCurrency').forEach(sel => {
+  const snap = await get(ref(db, CURRENCY_PATH));
+  const currencies = snap.val() || [];
+  
+  document.querySelectorAll('.match-grid select.match-cur').forEach(sel => {
+    const currentVal = sel.value;
     sel.innerHTML = '<option value="">العملة</option>';
-    Object.keys(currencies).forEach(cur => {
+    currencies.forEach(cur => {
       sel.innerHTML += `<option value="${cur}">${cur}</option>`;
     });
+    sel.value = currentVal;
   });
 }
 
-// 3. تكبير الخلية
-matchTbody.addEventListener('click', (e) => {
-  if (e.target.tagName === 'TD' &&!e.target.querySelector('select,input')) {
-    document.querySelectorAll('#matchTable td.zoom').forEach(td => td.classList.remove('zoom'));
+// 3. تكبير الخلية للجريد
+document.querySelector('.match-grid').addEventListener('click', (e) => {
+  if (e.target.classList.contains('match-sys') || e.target.classList.contains('match-result')) {
+    document.querySelectorAll('.match-grid .zoom').forEach(el => el.classList.remove('zoom'));
     e.target.classList.add('zoom');
   }
 });
 
 document.addEventListener('click', (e) => {
-  if (!e.target.closest('#matchTable')) {
-    document.querySelectorAll('#matchTable td.zoom').forEach(td => td.classList.remove('zoom'));
+  if (!e.target.closest('.match-grid')) {
+    document.querySelectorAll('.match-grid .zoom').forEach(el => el.classList.remove('zoom'));
   }
 });
-
-initMatchRows() ;
-
 // 4. زر مطابقة - هنا يصير الحساب والحفظ
 btnRunMatch.addEventListener('click', async () => {
   const date = matchDate.value || getToday();
   const rows = [];
   let hasData = false;
 
-  for (const tr of matchTbody.querySelectorAll('tr')) {
-    const cur = tr.querySelector('.matchCurrency').value;
+  const matchRows = document.querySelectorAll('.match-grid select.match-cur');
+
+  for (const curSelect of matchRows) {
+    const cur = curSelect.value;
     if (!cur) continue;
 
     hasData = true;
-    const actual = parseFloat(tr.querySelector('.matchActual').value) || 0;
+    
+    const actualInput = curSelect.nextElementSibling;
+    const sysDiv = actualInput.nextElementSibling;
+    const resultDiv = sysDiv.nextElementSibling;
+
+    const actual = parseFloat(actualInput.value) || 0;
 
     // جيب رصيد الموظف الحالي من النظام لهذه العملة
     const snap = await get(ref(db, `${EMPLOYEE_BAL_PATH}/${window.currentUser}/${cur}`));
     const system = snap.val() || 0;
     const diff = actual - system;
 
-    // اعرض النتيجة في الجدول
-    tr.querySelector('.matchSystem').textContent = system.toFixed(2);
-    const resultCell = tr.querySelector('.matchResult');
-    resultCell.textContent = diff.toFixed(2);
-    resultCell.className = 'matchResult';
-    if (diff > 0) resultCell.classList.add('pos');
-    else if (diff < 0) resultCell.classList.add('neg');
-    else resultCell.classList.add('zero');
+    // اعرض النتيجة في الجريد
+    sysDiv.textContent = system.toFixed(2);
+    resultDiv.textContent = diff.toFixed(2);
+    resultDiv.className = 'match-result';
+    if (diff > 0) resultDiv.classList.add('pos');
+    else if (diff < 0) resultDiv.classList.add('neg');
+    else resultDiv.classList.add('zero');
 
     rows.push({ currency: cur, actual, system, diff });
   }
@@ -4209,7 +4099,7 @@ btnRunMatch.addEventListener('click', async () => {
   const matchKey = matchRef.key;
   await set(matchRef, { rows, timestamp: Date.now() });
 
-  // ضيف رقم المطابقة للقائمة المنسدلة بدون ما تعيد تحميل الكل
+  // ضيف رقم المطابقة للقائمة المنسدلة
   const opt = document.createElement('option');
   opt.value = matchKey;
   opt.textContent = `مطابقة ${matchKey.slice(-4)}`;
@@ -4218,7 +4108,6 @@ btnRunMatch.addEventListener('click', async () => {
 
   alert('تمت المطابقة وحفظها');
 });
-
 // 5. جيب ارقام المطابقات لتاريخ معين
 async function loadMatchesForDate(date) {
   const snap = await get(ref(db, `matches/${window.currentUser}/${date}`));
@@ -4264,26 +4153,25 @@ loadCurrenciesToMatchSelect();
 
 
 document.addEventListener('click', (e) => {
-  const td = e.target.closest('#matchTable td');
+  const cell = e.target.closest('.match-grid .match-sys, .match-grid .match-result');
   
-  if (!td) {
-    document.querySelectorAll('#matchTable td.zoom').forEach(cell => {
-      cell.classList.remove('zoom');
+  if (!cell) {
+    document.querySelectorAll('.match-grid .zoom').forEach(el => {
+      el.classList.remove('zoom');
     });
     return;
   }
 
-  if (td.classList.contains('zoom')) {
-    td.classList.remove('zoom');
+  if (cell.classList.contains('zoom')) {
+    cell.classList.remove('zoom');
     return;
   }
 
-  document.querySelectorAll('#matchTable td.zoom').forEach(cell => {
-    cell.classList.remove('zoom');
+  document.querySelectorAll('.match-grid .zoom').forEach(el => {
+    el.classList.remove('zoom');
   });
-  td.classList.add('zoom');
+  cell.classList.add('zoom');
 });
-
 
 
 
@@ -4529,82 +4417,6 @@ document.getElementById('btnPrint').addEventListener('click', () => {
   printWindow.document.close();
   printWindow.onload = () => printWindow.focus();
 });
-
-
-
-
-
-
-
-
-
-
-// ... الكود القديم كله حقك
-
-// ===== Recon Module - Isolated =====
-// ===== Recon Module - Static Table =====
-(function(){
-  const reconTbody = document.querySelector('#reconTable tbody');
-  const reconDate = document.getElementById('reconDate');
-  const reconList = document.getElementById('reconList');
-  const btnReconRun = document.getElementById('btnReconRun');
-
-  if(!reconTbody) return;
-
-  // عبئ العملات في كل select
-  async function reconLoadCurrencies(){
-    try{
-      const snap = await get(ref(db, 'currencies'));
-      const data = snap.val() || {};
-      document.querySelectorAll('.recon-cur').forEach(sel=>{
-        const oldVal = sel.value;
-        sel.innerHTML = '<option value="">العملة</option>';
-        Object.keys(data).forEach(cur=>{
-          sel.innerHTML += `<option value="${cur}">${cur}</option>`;
-        });
-        if(oldVal) sel.value = oldVal;
-      });
-    }catch(e){ console.error(e); }
-  }
-
-  // زر المطابقة
-  btnReconRun?.addEventListener('click', async ()=>{
-    const date = reconDate.value || getToday();
-    const rows = [];
-    let hasData = false;
-
-    for(const tr of reconTbody.querySelectorAll('tr')){
-      const cur = tr.querySelector('.recon-cur').value;
-      if(!cur) continue;
-
-      hasData = true;
-      const actual = parseFloat(tr.querySelector('.recon-actual').value) || 0;
-      const snap = await get(ref(db, `${EMPLOYEE_BAL_PATH}/${window.currentUser}/${cur}`));
-      const sys = snap.val() || 0;
-      const diff = actual - sys;
-
-      tr.querySelector('.recon-sys').textContent = sys.toFixed(2);
-      const diffCell = tr.querySelector('.recon-diff');
-      diffCell.textContent = diff.toFixed(2);
-      diffCell.className = 'recon-diff ' + (diff>0?'pos':diff<0?'neg':'zero');
-
-      rows.push({currency:cur, actual, sys, diff});
-    }
-
-    if(!hasData){ alert('اختر عملة واحدة على الاقل'); return; }
-
-    const newRef = push(ref(db, `recon/${window.currentUser}/${date}`));
-    await set(newRef, {rows, ts:Date.now()});
-    alert('تمت المطابقة وحفظها');
-  });
-
-  // شغلها اول ما يتحمل
-  reconLoadCurrencies();
-})();
-
-
-
-
 
 
 </script>
