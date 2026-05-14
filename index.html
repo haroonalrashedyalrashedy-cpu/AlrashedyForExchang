@@ -4342,180 +4342,104 @@ document.getElementById('btnPrint').addEventListener('click', () => {
 
 
 <script>
-// كود تنسيق الأرقام بالفواصل + التلميح بالعربي - بدون alert
 (function(){
 
-const tooltipStyle = document.createElement('style');
-tooltipStyle.innerHTML = `
-.number-tooltip {
-    position: absolute;
-    background: #1f2937;
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-family: 'Cairo', Tahoma, Arial;
-    z-index: 9999;
-    pointer-events: none;
-    display: none;
-    white-space: nowrap;
-    direction: rtl;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  }
-`;
-document.head.appendChild(tooltipStyle);
-
-const tooltip = document.createElement('div');
-tooltip.className = 'number-tooltip';
-document.body.appendChild(tooltip);
-
-
-
-
-
-
-function numberToArabicWords(num) {
-  num = parseInt(String(num).replace(/[^0-9]/g, ''));
-  if (!num && num!== 0) return '';
-  if (num === 0) return 'صفر';
-
-  const ones = ['','واحد','اثنان','ثلاثة','أربعة','خمسة','ستة','سبعة','ثمانية','تسعة','عشرة',
-                'أحد عشر','اثنا عشر','ثلاثة عشر','أربعة عشر','خمسة عشر','ستة عشر','سبعة عشر','ثمانية عشر','تسعة عشر'];
-  const tens = ['','','عشرون','ثلاثون','أربعون','خمسون','ستون','سبعون','ثمانون','تسعون'];
-  const hundreds = ['','مائة','مئتان','ثلاثمائة','أربعمائة','خمسمائة','ستمائة','سبعمائة','ثمانمائة','تسعمائة'];
-
-  function convertChunk(n) {
-    if (n === 0) return '';
-    let str = '';
-    let h = Math.floor(n / 100);
-    let t = Math.floor((n % 100) / 10);
-    let o = n % 10;
-
-    if (h > 0) str += hundreds[h] + ' ';
-    if (n % 100 < 20 && n % 100 > 0) {
-      str += ones[n % 100] + ' ';
-    } else {
-      if (t > 0) str += tens[t] + ' ';
-      if (o > 0) str += ones[o] + ' ';
-    }
-    return str.trim();
-  }
-
-  let result = '';
-
-  let billion = Math.floor(num / 1000000);
-  let million = Math.floor((num % 1000000) / 1000000);
-  let thousand = Math.floor((num % 1000000) / 1000);
-  let remainder = num % 1000;
-
-  if (billion > 0) {
-    result += (billion === 1? 'مليار ' : billion === 2? 'ملياران ' : convertChunk(billion) + ' مليار ');
-  }
-  if (million > 0) {
-    result += (million === 1? 'مليون ' : million === 2? 'مليونان ' : convertChunk(million) + ' مليون ');
-  }
-  if (thousand > 0) {
-    result += (thousand === 1? 'ألف ' : thousand === 2? 'ألفان ' : convertChunk(thousand) + ' ألف ');
-  }
-  if (remainder > 0) {
-    result += convertChunk(remainder) + ' ';
-  }
-
-  return result.trim().replace(/\s+/g, ' ');
-}
-
-
-
-
-
-
-function formatNumberWithCommas(numStr) {
-  const clean = String(numStr).replace(/[^0-9.]/g, '');
-  if (!clean) return '';
-  const parts = clean.split('.');
+function formatWithCommas(numStr) {
+  const parts = numStr.split('.');
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   return parts.join('.');
 }
 
-function unformatNumber(numStr) {
-  return String(numStr).replace(/,/g, '');
-}
-
-function applyToAllNumbers() {
+function formatNumbersLive() {
   document.querySelectorAll('input, td, span, div').forEach(el => {
-    if (el.dataset.autoFormatted) return;
+    if (el.dataset.liveFormatted) return;
 
     let val = el.value!== undefined? el.value : el.textContent;
-    if (!val) return;
+    const raw = String(val || '').replace(/,/g, '').replace(/\s/g, '');
 
-    if (/^[\d,.\s]+$/.test(val.trim())) {
-      const raw = unformatNumber(val);
-      if (/^\d+(\.\d+)?$/.test(raw) && raw.length > 3) {
+    if (!/^\d+(\.\d+)?$/.test(raw)) return;
 
-        el.dataset.rawValue = raw;
-        el.dataset.autoFormatted = 'true';
+    el.dataset.liveFormatted = 'true';
+    el.dataset.rawValue = raw;
 
-        if (el.tagName === 'INPUT') {
-          if (el.type === 'number') el.type = 'text';
-          el.inputMode = 'numeric';
+    // لو input
+    if (el.tagName === 'INPUT') {
+      if (el.type === 'number') el.type = 'text';
+      el.inputMode = 'numeric';
 
-          el.value = formatNumberWithCommas(raw);
-
-          el.addEventListener('input', (e) => {
-            const pos = e.target.selectionStart;
-            const oldVal = e.target.value;
-            const newVal = formatNumberWithCommas(unformatNumber(oldVal));
-            if (oldVal!== newVal) {
-              e.target.value = newVal;
-              const diff = newVal.length - oldVal.length;
-              e.target.setSelectionRange(pos + diff, pos + diff);
-            }
-            el.dataset.rawValue = unformatNumber(newVal);
-          });
-
-          el.addEventListener('focus', (e) => {
-            e.target.value = el.dataset.rawValue;
-          });
-
-          el.addEventListener('blur', (e) => {
-            e.target.value = formatNumberWithCommas(el.dataset.rawValue);
-          });
-        }
-        else {
-          el.textContent = formatNumberWithCommas(raw);
-        }
+      // نسق القيمة الموجودة اول ما يشتغل
+      if (raw.length >= 4) {
+        el.value = formatWithCommas(raw);
       }
+
+      // التنسيق لحظياً وقت الكتابة
+      el.addEventListener('input', (e) => {
+        let cursorPos = e.target.selectionStart;
+        let oldVal = e.target.value;
+        let cleanVal = oldVal.replace(/,/g, '');
+
+        // لو المستخدم مسح كل شيء
+        if (cleanVal === '') {
+          el.dataset.rawValue = '';
+          return;
+        }
+
+        // نسق الرقم
+        let formattedVal = formatWithCommas(cleanVal);
+
+        // حدث القيمة
+        if (oldVal!== formattedVal) {
+          e.target.value = formattedVal;
+
+          // ضبط مكان المؤشر بعد الفاصلة
+          let diff = formattedVal.length - oldVal.length;
+          let newPos = cursorPos + diff;
+          e.target.setSelectionRange(newPos, newPos);
+        }
+
+        el.dataset.rawValue = cleanVal;
+
+        // شغل حدث input الاصلي عشان الحساب يشتغل
+        e.target.dispatchEvent(new Event('input', {bubbles: true}));
+      });
+
+      // وقت التركيز شيل الفواصل عشان التعديل سهل
+      el.addEventListener('focus', (e) => {
+        e.target.value = el.dataset.rawValue || '';
+      });
+
+      // وقت الخروج رجع الفواصل
+      el.addEventListener('blur', (e) => {
+        if (el.dataset.rawValue && el.dataset.rawValue.length >= 4) {
+          e.target.value = formatWithCommas(el.dataset.rawValue);
+        }
+      });
+
+    } else {
+      // مربعات العرض: td, span, div
+      if (raw.length >= 4) {
+        el.textContent = formatWithCommas(raw);
+      }
+
+      // راقب لو تغير المحتوى وحط الفواصل مباشرة
+      const observer = new MutationObserver(() => {
+        const newRaw = el.textContent.replace(/,/g, '').replace(/\s/g, '');
+        if (/^\d{4,}$/.test(newRaw) && el.textContent!== formatWithCommas(newRaw)) {
+          el.textContent = formatWithCommas(newRaw);
+          el.dataset.rawValue = newRaw;
+        }
+      });
+      observer.observe(el, { childList: true, characterData: true, subtree: true });
     }
   });
 }
 
-// التلميح بس - بدون alert
-document.addEventListener('mouseover', (e) => {
-  const el = e.target.closest('[data-raw-value]');
-  if (!el) return;
+// شغل الكود اول ما تفتح الصفحة
+document.addEventListener('DOMContentLoaded', formatNumbersLive);
 
-  const arabicText = numberToArabicWords(el.dataset.rawValue);
-  if (arabicText) {
-    tooltip.textContent = arabicText;
-    tooltip.style.display = 'block';
-    tooltip.style.left = e.pageX + 10 + 'px';
-    tooltip.style.top = e.pageY + 10 + 'px';
-  }
-});
-
-document.addEventListener('mousemove', (e) => {
-  if (tooltip.style.display === 'block') {
-    tooltip.style.left = e.pageX + 10 + 'px';
-    tooltip.style.top = e.pageY + 10 + 'px';
-  }
-});
-
-document.addEventListener('mouseout', () => {
-  tooltip.style.display = 'none';
-});
-
-document.addEventListener('DOMContentLoaded', applyToAllNumbers);
-setInterval(applyToAllNumbers, 2000);
+// راقب الصفحة لو جات عناصر جديدة بالاجاكس
+const bodyObserver = new MutationObserver(formatNumbersLive);
+bodyObserver.observe(document.body, { childList: true, subtree: true });
 
 })();
 </script>
