@@ -3950,6 +3950,15 @@ const btnRunMatch = document.getElementById('btnRunMatch');
 
 // 1. انشئ 5 صفوف فاضية - بدون رصيد نظام ولا نتيجة
 function initMatchRows() {
+  console.log('[initMatchRows] started');
+
+  if (!matchTbody) {
+    console.error('[initMatchRows] matchTbody is null. Check if document.querySelector("#matchTable tbody") ran before this function');
+    return;
+  }
+
+  console.log('[initMatchRows] tbody found:', matchTbody);
+
   let rows = '';
   for (let i = 0; i < 5; i++) {
     rows += `
@@ -3961,8 +3970,12 @@ function initMatchRows() {
       </tr>
     `;
   }
+
   matchTbody.innerHTML = rows;
+  console.log('[initMatchRows] inserted 5 rows into tbody');
+
   loadCurrenciesToMatchSelect();
+  console.log('[initMatchRows] finished');
 }
 
 // 2. عبئ العملات
