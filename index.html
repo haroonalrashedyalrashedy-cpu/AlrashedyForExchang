@@ -2197,6 +2197,26 @@ togglePass?.addEventListener('click', () => {
   passwordInput.type = passwordInput.type === 'password'? 'text' : 'password';
 });
 
+
+
+
+
+
+
+function startListeners() {
+  listenBuyOps();
+  listenSellOps();
+  listenDepositOps();
+  listenWithdrawOps();
+  listenSendTransfers();
+  listenReceiveTransfers();
+  listenPayTransfers();
+  listenAccounts();
+}
+
+
+
+
 // 4. تسجيل الدخول
 btnLogin?.addEventListener('click', async () => {
   const username = userSelect.value.trim();
@@ -2232,6 +2252,10 @@ btnLogin?.addEventListener('click', async () => {
   renderTabsByPerms(); // بعدين طبّق العرض
   closeAllTabsOnLogin(); // بعدين اقفل التبويبات
 
+
+//openTab('operationsTab');
+
+startListeners(); 
 toggleBottomBar();
 
   passwordInput.value = '';
