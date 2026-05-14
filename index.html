@@ -4145,39 +4145,8 @@ document.getElementById('btnRefresh').addEventListener('click', async () => {
 });
 
 // 3. تحديد جدول كامل عند الضغط المزدوج على أول خانة
+
 let selectedTable = null;
-document.addEventListener('dblclick', (e) => {
-  const table = e.target.closest('table');
-  if (!table) return;
-
-  // حالة 1: ضغطتين على هيد أول عمود = تحديد الجدول كامل
-  if (e.target.matches('table thead tr th:first-child')) {
-    
-    // Toggle للجدول
-    if (table.classList.contains('table-selected')) {
-      table.classList.remove('table-selected');
-    } else {
-      document.querySelectorAll('table.table-selected').forEach(t => {
-        t.classList.remove('table-selected');
-      });
-      table.classList.add('table-selected');
-    }
-    return;
-  }
-
-  // حالة 2: ضغطتين على أي صف = تحديد الصف فقط
-  if (e.target.matches('table tbody tr td')) {
-    const row = e.target.closest('tr');
-    
-    // Toggle للصف
-    row.classList.toggle('row-selected');
-    
-    // لو حددت صف، شل تحديد الجدول كامل عشان ما يتعارضوا
-    table.classList.remove('table-selected');
-  }
-});
-
-// ستايل التحديد للجدول كامل
 
 // 1. ستايل التحديد
 const style = document.createElement('style');
@@ -4202,39 +4171,63 @@ style.innerHTML = `
 `;
 document.head.appendChild(style);
 
-// 2. التحديد بالضغطتين
+// 2. التحديد بالضغطتين والضغطة الوحدة
 document.addEventListener('dblclick', (e) => {
   const table = e.target.closest('table');
   if (!table) return;
 
-  // ضغطتين على هيد أول عمود = تحديد الجدول كامل
-  if (e.target.matches('table thead tr th:first-child')) {
-    if (table.classList.contains('table-selected')) {
-      table.classList.remove('table-selected');
-    } else {
-      document.querySelectorAll('table.table-selected').forEach(t => {
-        t.classList.remove('table-selected');
-      });
-      table.classList.add('table-selected');
-    }
-    return;
-  }
-
-  // ضغطتين على أي صف = تحديد الصف فقط
+  // ضغطتين على أي مكان بالجدول = تحديد/إلغاء الجدول كامل
   if (e.target.matches('table tbody tr td')) {
-    const row = e.target.closest('tr');
-    row.classList.toggle('row-selected');
-    table.classList.remove('table-selected'); // شل تحديد الجدول عشان ما يتعارض
+    const isSelected = table.classList.contains('table-selected');
+
+    // شل التحديد من كل الجداول والصفوف
+    document.querySelectorAll('table.table-selected').forEach(t => {
+      t.classList.remove('table-selected');
+    });
+    document.querySelectorAll('tr.row-selected').forEach(r => {
+      r.classList.remove('row-selected');
+    });
+
+    if (!isSelected) {
+      table.classList.add('table-selected');
+      selectedTable = table;
+    } else {
+      selectedTable = null;
+    }
   }
 });
 
-// 3. زر الطباعة - يطبع الصف المحدد أو الجدول كامل
+document.addEventListener('click', (e) => {
+  const table = e.target.closest('table');
+  if (!table) return;
+
+  // ضغطة وحدة على صف = تحديد الصف فقط
+  if (e.target.matches('table tbody tr td')) {
+    const row = e.target.closest('tr');
+
+    // شل التحديد من كل الجداول والصفوف
+    document.querySelectorAll('table.table-selected').forEach(t => {
+      t.classList.remove('table-selected');
+    });
+    document.querySelectorAll('tr.row-selected').forEach(r => {
+      r.classList.remove('row-selected');
+    });
+
+    row.classList.add('row-selected');
+    selectedTable = table;
+  }
+});
+
+// 3. زر الطباعة
 document.getElementById('btnPrint').addEventListener('click', () => {
   const table = document.querySelector('table.table-selected');
-  const selectedRow = table? table.querySelector('tr.row-selected') : null;
+  const selectedRow = document.querySelector('tr.row-selected');
 
-  if (!table) {
-    alert('سوي دبل كليك على رأس أول عمود لتحديد الجدول');
+  // الأولوية للصف المحدد، لو ما في صف محدد شوف الجدول المحدد
+  const targetTable = table || (selectedRow? selectedRow.closest('table') : null);
+
+  if (!targetTable) {
+    alert('اضغط على أي صف ضغطة وحدة لتحديد الصف، أو ضغطتين لتحديد الجدول كامل');
     return;
   }
 
@@ -4244,17 +4237,17 @@ document.getElementById('btnPrint').addEventListener('click', () => {
 
   // بناء الهيد
   let theadHTML = '';
-  const thead = table.querySelector('thead');
+  const thead = targetTable.querySelector('thead');
   if (thead && thead.rows[0]) {
     theadHTML = `<thead>${getRowHTML(thead.rows[0])}</thead>`;
   }
 
-  // بناء الصفوف: لو في صف محدد اطبع هو فقط، لو لا اطبع الكل
+  // بناء الصفوف
   let rowsHTML = '';
   if (selectedRow) {
     rowsHTML = getRowHTML(selectedRow);
   } else {
-    table.querySelectorAll('tbody tr').forEach(tr => {
+    targetTable.querySelectorAll('tbody tr').forEach(tr => {
       rowsHTML += getRowHTML(tr);
     });
   }
@@ -4270,19 +4263,19 @@ document.getElementById('btnPrint').addEventListener('click', () => {
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
         body { font-family: 'Cairo', Tahoma, Arial; padding: 30px; color: #333; }
-       .header { text-align: center; margin-bottom: 25px; border-bottom: 3px solid #8B4513; padding-bottom: 15px; }
-       .logo-emoji { font-size: 55px; margin-bottom: 8px; }
-       .header h1 { color: #8B4513; margin: 5px 0; font-weight: 700; font-size: 26px; }
-       .meta-info { display: flex; justify-content: space-between; background: #f9f5f0; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; font-weight: 600; }
+      .header { text-align: center; margin-bottom: 25px; border-bottom: 3px solid #8B4513; padding-bottom: 15px; }
+      .logo-emoji { font-size: 55px; margin-bottom: 8px; }
+      .header h1 { color: #8B4513; margin: 5px 0; font-weight: 700; font-size: 26px; }
+      .meta-info { display: flex; justify-content: space-between; background: #f9f5f0; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; font-weight: 600; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #333; padding: 10px; text-align: center; }
         th { background: #8B4513; color: #fff; font-weight: 600; }
         tbody tr:nth-child(even) { background: #f9f5f0; }
-       .signature { margin-top: 80px; display: flex; justify-content: space-between; font-size: 15px; }
-       .sig-box { text-align: center; width: 200px; }
-       .sig-line { border-top: 2px solid #8B4513; margin-top: 50px; }
-       .no-print { text-align: center; margin-top: 30px; }
-       .no-print button { background: #8B4513; color: white; border: none; padding: 12px 30px; font-size: 16px; border-radius: 6px; cursor: pointer; font-family: 'Cairo'; font-weight: 600; }
+      .signature { margin-top: 80px; display: flex; justify-content: space-between; font-size: 15px; }
+      .sig-box { text-align: center; width: 200px; }
+      .sig-line { border-top: 2px solid #8B4513; margin-top: 50px; }
+      .no-print { text-align: center; margin-top: 30px; }
+      .no-print button { background: #8B4513; color: white; border: none; padding: 12px 30px; font-size: 16px; border-radius: 6px; cursor: pointer; font-family: 'Cairo'; font-weight: 600; }
         @media print {.no-print { display: none; } }
       </style>
     </head>
@@ -4290,7 +4283,6 @@ document.getElementById('btnPrint').addEventListener('click', () => {
       <div class="header">
         <div class="logo-emoji">💰</div>
         <h1>الراشدي للصرافة والتحويلات</h1>
-      
       </div>
 
       <div class="meta-info">
