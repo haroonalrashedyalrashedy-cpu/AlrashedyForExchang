@@ -4342,10 +4342,9 @@ document.getElementById('btnPrint').addEventListener('click', () => {
 
 
 <script>
-// كود تنسيق الأرقام بالفواصل + التلميح بالعربي - شغله وانسى
+// كود تنسيق الأرقام بالفواصل + التلميح بالعربي - بدون alert
 (function(){
 
-// 1. ستايل التلميح
 const tooltipStyle = document.createElement('style');
 tooltipStyle.innerHTML = `
 .number-tooltip {
@@ -4370,7 +4369,6 @@ const tooltip = document.createElement('div');
 tooltip.className = 'number-tooltip';
 document.body.appendChild(tooltip);
 
-// 2. تحويل الرقم لكلام عربي
 function numberToArabicWords(num) {
   num = parseInt(String(num).replace(/[^0-9]/g, ''));
   if (!num && num!== 0) return '';
@@ -4417,7 +4415,6 @@ function numberToArabicWords(num) {
   return result.trim().replace(/\s+/g, ' ');
 }
 
-// 3. دوال التنسيق
 function formatNumberWithCommas(numStr) {
   const clean = String(numStr).replace(/[^0-9.]/g, '');
   if (!clean) return '';
@@ -4430,31 +4427,26 @@ function unformatNumber(numStr) {
   return String(numStr).replace(/,/g, '');
 }
 
-// 4. يفحص كل العناصر ويطبق التنسيق تلقائي
 function applyToAllNumbers() {
-  // كل الحقول اللي نوعها number أو فيها أرقام فقط
-  document.querySelectorAll('input[type="number"], input[type="text"], td, span, div').forEach(el => {
-
-    // نتجاهل اللي تنسق قبل
+  document.querySelectorAll('input, td, span, div').forEach(el => {
     if (el.dataset.autoFormatted) return;
 
     let val = el.value!== undefined? el.value : el.textContent;
     if (!val) return;
 
-    // لو العنصر فيه أرقام فقط أو فيها فواصل ونقاط
     if (/^[\d,.\s]+$/.test(val.trim())) {
       const raw = unformatNumber(val);
       if (/^\d+(\.\d+)?$/.test(raw) && raw.length > 3) {
 
-        // حفظ الرقم الأصلي
         el.dataset.rawValue = raw;
         el.dataset.autoFormatted = 'true';
 
-        // لو input نعرض بالفواصل
         if (el.tagName === 'INPUT') {
+          if (el.type === 'number') el.type = 'text';
+          el.inputMode = 'numeric';
+
           el.value = formatNumberWithCommas(raw);
 
-          // عند الكتابة ننسق تلقائي
           el.addEventListener('input', (e) => {
             const pos = e.target.selectionStart;
             const oldVal = e.target.value;
@@ -4467,17 +4459,14 @@ function applyToAllNumbers() {
             el.dataset.rawValue = unformatNumber(newVal);
           });
 
-          // عند التركيز نشيل الفواصل عشان التعديل
           el.addEventListener('focus', (e) => {
             e.target.value = el.dataset.rawValue;
           });
 
-          // عند الخروج نرجع الفواصل
           el.addEventListener('blur', (e) => {
             e.target.value = formatNumberWithCommas(el.dataset.rawValue);
           });
         }
-        // لو نص عادي نعرض بالفواصل
         else {
           el.textContent = formatNumberWithCommas(raw);
         }
@@ -4486,7 +4475,7 @@ function applyToAllNumbers() {
   });
 }
 
-// 5. التلميح المنبثق
+// التلميح بس - بدون alert
 document.addEventListener('mouseover', (e) => {
   const el = e.target.closest('[data-raw-value]');
   if (!el) return;
@@ -4511,16 +4500,6 @@ document.addEventListener('mouseout', () => {
   tooltip.style.display = 'none';
 });
 
-// 6. عند الضغط يطلع alert بالعربي
-document.addEventListener('click', (e) => {
-  const el = e.target.closest('[data-raw-value]');
-  if (!el) return;
-
-  const arabicText = numberToArabicWords(el.dataset.rawValue);
-  if (arabicText) alert(arabicText);
-});
-
-// 7. شغل الكود عند التحميل وكل ثانيتين لو فيه تحديث بالـ AJAX
 document.addEventListener('DOMContentLoaded', applyToAllNumbers);
 setInterval(applyToAllNumbers, 2000);
 
