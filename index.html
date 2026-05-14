@@ -1569,11 +1569,20 @@ const CURRENCY_PATH = 'settings/activeCurrencies';
  
  
  function resetAllSelects() {
+  // ارجع القوائم للخيار الأول
   document.querySelectorAll('select').forEach(sel => {
-    sel.selectedIndex = 0; // يرجعها للخيار الأول اللي هو "اختر..."
+    sel.selectedIndex = 0;
+    sel.dispatchEvent(new Event('change', {bubbles: true}));
   });
 
-  // امسح محتوى الجداول عشان ما يفضل بيانات قديمة
+  // امسح كل المربعات النصية والرقمية
+  document.querySelectorAll('input[type="text"], input[type="number"], input:not([type]), textarea').forEach(el => {
+    el.value = '';
+    el.dispatchEvent(new Event('input', {bubbles: true}));
+    el.dispatchEvent(new Event('change', {bubbles: true}));
+  });
+
+  // امسح محتوى الجداول
   document.querySelectorAll('tbody').forEach(tbody => {
     tbody.innerHTML = "";
   });
@@ -4340,74 +4349,6 @@ document.getElementById('btnPrint').addEventListener('click', () => {
 
 
 
-<script>
-(function(){
-  console.log('%cAuto dot: START','color:lime');
-
-  function formatWithDots(str){
-    str = String(str).replace(/\./g,''); // شيل النقاط القديمة
-    if(!/^\d{4,}$/.test(str)) return str;
-    return str.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-  }
-
-  function hookInput(el){
-    if(el.dataset.dotHooked) return;
-    
-    // حولها لـ text بدون ما تلمس HTML
-    if(el.type === 'number'){
-      el.type = 'text';
-      el.inputMode = 'numeric';
-      el.pattern = '[0-9]*';
-    }
-    
-    el.dataset.dotHooked = '1';
-
-    // نسق القيمة الموجودة
-    if(el.value && el.value.replace(/\./g,'').length >= 4){
-      el.value = formatWithDots(el.value);
-    }
-
-    el.addEventListener('input', function(){
-      let pos = this.selectionStart;
-      let clean = this.value.replace(/\./g,'');
-
-      if(!/^\d+(\.\d+)?$/.test(clean) && clean!=='') return;
-
-      let formatted = formatWithDots(clean);
-      if(this.value !== formatted){
-        this.value = formatted;
-        let diff = formatted.length - this.value.length;
-        this.setSelectionRange(pos + diff, pos + diff);
-      }
-      this.dataset.rawValue = clean;
-      this.dispatchEvent(new Event('input', {bubbles: true}));
-    });
-
-    el.addEventListener('focus', function(){
-      this.value = this.dataset.rawValue || '';
-    });
-
-    el.addEventListener('blur', function(){
-      if(this.dataset.rawValue && this.dataset.rawValue.length >= 4){
-        this.value = formatWithDots(this.dataset.rawValue);
-      }
-    });
-  }
-
-  function run(){
-    document.querySelectorAll('input').forEach(hookInput);
-  }
-
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', run);
-  } else {
-    run();
-  }
-
-  new MutationObserver(run).observe(document.body, {childList:true, subtree:true});
-  console.log('%cAuto dot: READY','color:lime');
-})();
-</script>
 
 
 
