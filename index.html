@@ -4340,106 +4340,62 @@ document.getElementById('btnPrint').addEventListener('click', () => {
 
 
 
-
 <script>
 (function(){
+  console.log('Auto comma script started');
 
-function formatWithCommas(numStr) {
-  const parts = numStr.split('.');
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  return parts.join('.');
-}
+  function formatWithCommas(str) {
+    str = String(str).replace(/,/g, '');
+    if (!/^\d+(\.\d+)?$/.test(str)) return str;
+    let parts = str.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  }
 
-function formatNumbersLive() {
-  document.querySelectorAll('input, td, span, div').forEach(el => {
-    if (el.dataset.liveFormatted) return;
+  function initInputs() {
+    document.querySelectorAll('input[type="text"], input:not([type])').forEach(input => {
+      if (input.dataset.commaDone) return;
+      input.dataset.commaDone = 'true';
+      console.log('Hooked input:', input);
 
-    let val = el.value!== undefined? el.value : el.textContent;
-    const raw = String(val || '').replace(/,/g, '').replace(/\s/g, '');
-
-    if (!/^\d+(\.\d+)?$/.test(raw)) return;
-
-    el.dataset.liveFormatted = 'true';
-    el.dataset.rawValue = raw;
-
-    // لو input
-    if (el.tagName === 'INPUT') {
-      if (el.type === 'number') el.type = 'text';
-      el.inputMode = 'numeric';
-
-      // نسق القيمة الموجودة اول ما يشتغل
-      if (raw.length >= 4) {
-        el.value = formatWithCommas(raw);
+      // نسق القيمة الموجودة
+      if (input.value && input.value.replace(/,/g, '').length >= 4) {
+        input.value = formatWithCommas(input.value);
       }
 
-      // التنسيق لحظياً وقت الكتابة
-      el.addEventListener('input', (e) => {
-        let cursorPos = e.target.selectionStart;
+      input.addEventListener('input', function(e) {
+        let pos = e.target.selectionStart;
         let oldVal = e.target.value;
-        let cleanVal = oldVal.replace(/,/g, '');
-
-        // لو المستخدم مسح كل شيء
-        if (cleanVal === '') {
-          el.dataset.rawValue = '';
-          return;
+        let clean = oldVal.replace(/,/g, '');
+        
+        if (!/^\d+(\.\d+)?$/.test(clean)) return;
+        
+        let formatted = formatWithCommas(clean);
+        
+        if (oldVal !== formatted) {
+          e.target.value = formatted;
+          let diff = formatted.length - oldVal.length;
+          e.target.setSelectionRange(pos + diff, pos + diff);
         }
-
-        // نسق الرقم
-        let formattedVal = formatWithCommas(cleanVal);
-
-        // حدث القيمة
-        if (oldVal!== formattedVal) {
-          e.target.value = formattedVal;
-
-          // ضبط مكان المؤشر بعد الفاصلة
-          let diff = formattedVal.length - oldVal.length;
-          let newPos = cursorPos + diff;
-          e.target.setSelectionRange(newPos, newPos);
-        }
-
-        el.dataset.rawValue = cleanVal;
-
-        // شغل حدث input الاصلي عشان الحساب يشتغل
+        
+        // احفظ القيمة بدون فواصل
+        e.target.dataset.rawValue = clean;
+        
+        // شغل الحدث الاصلي
         e.target.dispatchEvent(new Event('input', {bubbles: true}));
       });
+    });
+  }
 
-      // وقت التركيز شيل الفواصل عشان التعديل سهل
-      el.addEventListener('focus', (e) => {
-        e.target.value = el.dataset.rawValue || '';
-      });
+  // شغل الكود
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initInputs);
+  } else {
+    initInputs();
+  }
 
-      // وقت الخروج رجع الفواصل
-      el.addEventListener('blur', (e) => {
-        if (el.dataset.rawValue && el.dataset.rawValue.length >= 4) {
-          e.target.value = formatWithCommas(el.dataset.rawValue);
-        }
-      });
-
-    } else {
-      // مربعات العرض: td, span, div
-      if (raw.length >= 4) {
-        el.textContent = formatWithCommas(raw);
-      }
-
-      // راقب لو تغير المحتوى وحط الفواصل مباشرة
-      const observer = new MutationObserver(() => {
-        const newRaw = el.textContent.replace(/,/g, '').replace(/\s/g, '');
-        if (/^\d{4,}$/.test(newRaw) && el.textContent!== formatWithCommas(newRaw)) {
-          el.textContent = formatWithCommas(newRaw);
-          el.dataset.rawValue = newRaw;
-        }
-      });
-      observer.observe(el, { childList: true, characterData: true, subtree: true });
-    }
-  });
-}
-
-// شغل الكود اول ما تفتح الصفحة
-document.addEventListener('DOMContentLoaded', formatNumbersLive);
-
-// راقب الصفحة لو جات عناصر جديدة بالاجاكس
-const bodyObserver = new MutationObserver(formatNumbersLive);
-bodyObserver.observe(document.body, { childList: true, subtree: true });
+  // راقب العناصر الجديدة
+  new MutationObserver(initInputs).observe(document.body, {childList: true, subtree: true});
 
 })();
 </script>
