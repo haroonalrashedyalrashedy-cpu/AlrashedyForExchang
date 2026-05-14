@@ -4062,19 +4062,18 @@ loadCurrenciesToMatchSelect();
 // إظهار/إخفاء الشريط حسب الصفحة
 function toggleBottomBar() {
   const bar = document.getElementById('bottomBar');
-  if (!bar) {
-    console.log('bottomBar not found');
-    return;
-  }
+  if (!bar) return;
 
-  console.log('currentUser:', window.currentUser); // للتجربة
+  console.log('currentUser:', window.currentUser);
 
-  const isLoginPage = !!document.querySelector('#loginScreen.active, input[type="password"]');
+  const isLoginPage = document.getElementById('loginScreen').classList.contains('active');
   const isLoggedIn = !!window.currentUser;
+
+  console.log('isLoginPage:', isLoginPage, 'isLoggedIn:', isLoggedIn);
 
   bar.style.display = (!isLoginPage && isLoggedIn) ? 'flex' : 'none';
   
-  console.log('display set to:', bar.style.display); // للتجربة
+  console.log('display set to:', bar.style.display);
 }
 
 // ناديها بعد تسجيل الدخول وعند تحميل الصفحة
