@@ -4155,43 +4155,65 @@ async function showMatch(matchKey) {
   console.log('[LOG 3] داخل showMatch. المفتاح:', matchKey, 'التاريخ:', matchDate.value);
 
   if (!matchKey) {
-    // لو اختار "جديدة" امسح الجريد
-    document.querySelectorAll('.match-grid.match-row').forEach(rowEl => {
-      rowEl.querySelector('select.match-cur').value = '';
-      rowEl.querySelector('input.match-actual').value = '';
-      rowEl.querySelector('.match-sys').textContent = '';
-      const resultDiv = rowEl.querySelector('.match-result');
-      resultDiv.textContent = '';
+    console.log('[LOG 3] اختار جديدة، بامسح الجريد');
+    // امسح كل الصفوف - الكود الصحيح لـ HTML حقك
+    document.querySelectorAll('.match-grid select.match-cur').forEach((sel, i) => {
+      sel.value = '';
+      sel.nextElementSibling.value = '';
+      sel.nextElementSibling.nextElementSibling.textContent = '0';
+      const resultDiv = sel.nextElementSibling.nextElementSibling.nextElementSibling;
+      resultDiv.textContent = '0';
       resultDiv.className = 'match-result';
+      console.log('[LOG 3] مسحت الصف رقم:', i + 1);
     });
     return;
   }
 
   const date = matchDate.value;
-  const snap = await get(ref(db, `matches/${window.currentUser}/${date}/${matchKey}`));
-  const match = snap.val();
-  if (!match) {
-    console.log('[LOG 3] ما لقيت بيانات');
+  if (!date) {
+    console.log('[LOG 3] التاريخ فاضي، وقفت');
     return;
   }
 
-  const rows = document.querySelectorAll('.match-grid.match-row'); // <-- المسافة هنا هي التعديل
-  console.log('[LOG 3] عدد الصفوف اللي لقيتها:', rows.length);
+  const path = `matches/${window.currentUser}/${date}/${matchKey}`;
+  console.log('[LOG 3] بجيب من المسار:', path);
+
+  const snap = await get(ref(db, path));
+  const match = snap.val();
+  if (!match) {
+    console.log('[LOG 3] ما لقيت بيانات في المسار');
+    alert('ما لقيت بيانات لهذي المطابقة');
+    return;
+  }
+
+  console.log('[LOG 3] البيانات اللي رجعت:', match);
+
+  // هذا هو التعديل المهم - ما فيه.match-row في HTML حقك
+  const curSelects = document.querySelectorAll('.match-grid select.match-cur');
+  console.log('[LOG 3] عدد الصفوف اللي لقيتها:', curSelects.length);
 
   match.rows.forEach((row, i) => {
-    const rowEl = rows[i];
-    if (!rowEl) return;
+    const curSelect = curSelects[i];
+    if (!curSelect) {
+      console.log('[LOG 3] الصف رقم', i + 1, 'ما له مكان في الجريد');
+      return;
+    }
 
-    rowEl.querySelector('select.match-cur').value = row.currency;
-    rowEl.querySelector('input.match-actual').value = row.actual;
-    rowEl.querySelector('.match-sys').textContent = row.system.toFixed(2);
+    const actualInput = curSelect.nextElementSibling;
+    const sysDiv = actualInput.nextElementSibling;
+    const resultDiv = sysDiv.nextElementSibling;
 
-    const resultDiv = rowEl.querySelector('.match-result');
+    curSelect.value = row.currency;
+    actualInput.value = row.actual;
+    sysDiv.textContent = row.system.toFixed(2);
     resultDiv.textContent = row.diff.toFixed(2);
+
     resultDiv.className = 'match-result';
     if (row.diff > 0) resultDiv.classList.add('pos');
     else if (row.diff < 0) resultDiv.classList.add('neg');
     else resultDiv.classList.add('zero');
+
+    console.log('[LOG 3] عبّيت الصف رقم:', i + 1, 'العملة:', row.currency);
   });
 }
 
