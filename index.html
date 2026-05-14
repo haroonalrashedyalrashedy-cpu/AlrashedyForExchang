@@ -923,7 +923,8 @@ tr.row-selected {
 .recon-diff.zero{color:#22c55e; font-weight:bold;}
 
 
-
+#reconTab .recon-card{ display:block!important; }
+#reconTable tbody{ min-height:170px; display:table-row-group!important; }
 
   </style>
 </head>
@@ -4628,7 +4629,15 @@ document.getElementById('btnPrint').addEventListener('click', () => {
   });
 
   // شغل اول ما يتحمل
+  // شغلها لما يضغط على التبويب
+document.querySelector('[data-tab="reconTab"]')?.addEventListener('click', ()=>{
+  setTimeout(reconInitRows, 50);
+});
+
+// وشغلها برضو اول مرة لو التبويب مفتوح
+if(document.getElementById('reconTab')?.classList.contains('active')){
   reconInitRows();
+}
 })();
 
 
