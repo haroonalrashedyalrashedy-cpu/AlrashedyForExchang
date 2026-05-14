@@ -4342,61 +4342,70 @@ document.getElementById('btnPrint').addEventListener('click', () => {
 
 <script>
 (function(){
-  console.log('Auto comma script started');
+  console.log('%cAuto dot: START','color:lime');
 
-  function formatWithCommas(str) {
-    str = String(str).replace(/,/g, '');
-    if (!/^\d+(\.\d+)?$/.test(str)) return str;
-    let parts = str.split('.');
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    return parts.join('.');
+  function formatWithDots(str){
+    str = String(str).replace(/\./g,''); // شيل النقاط القديمة
+    if(!/^\d{4,}$/.test(str)) return str;
+    return str.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
   }
 
-  function initInputs() {
-    document.querySelectorAll('input[type="text"], input:not([type])').forEach(input => {
-      if (input.dataset.commaDone) return;
-      input.dataset.commaDone = 'true';
-      console.log('Hooked input:', input);
+  function hookInput(el){
+    if(el.dataset.dotHooked) return;
+    
+    // حولها لـ text بدون ما تلمس HTML
+    if(el.type === 'number'){
+      el.type = 'text';
+      el.inputMode = 'numeric';
+      el.pattern = '[0-9]*';
+    }
+    
+    el.dataset.dotHooked = '1';
 
-      // نسق القيمة الموجودة
-      if (input.value && input.value.replace(/,/g, '').length >= 4) {
-        input.value = formatWithCommas(input.value);
+    // نسق القيمة الموجودة
+    if(el.value && el.value.replace(/\./g,'').length >= 4){
+      el.value = formatWithDots(el.value);
+    }
+
+    el.addEventListener('input', function(){
+      let pos = this.selectionStart;
+      let clean = this.value.replace(/\./g,'');
+
+      if(!/^\d+(\.\d+)?$/.test(clean) && clean!=='') return;
+
+      let formatted = formatWithDots(clean);
+      if(this.value !== formatted){
+        this.value = formatted;
+        let diff = formatted.length - this.value.length;
+        this.setSelectionRange(pos + diff, pos + diff);
       }
+      this.dataset.rawValue = clean;
+      this.dispatchEvent(new Event('input', {bubbles: true}));
+    });
 
-      input.addEventListener('input', function(e) {
-        let pos = e.target.selectionStart;
-        let oldVal = e.target.value;
-        let clean = oldVal.replace(/,/g, '');
-        
-        if (!/^\d+(\.\d+)?$/.test(clean)) return;
-        
-        let formatted = formatWithCommas(clean);
-        
-        if (oldVal !== formatted) {
-          e.target.value = formatted;
-          let diff = formatted.length - oldVal.length;
-          e.target.setSelectionRange(pos + diff, pos + diff);
-        }
-        
-        // احفظ القيمة بدون فواصل
-        e.target.dataset.rawValue = clean;
-        
-        // شغل الحدث الاصلي
-        e.target.dispatchEvent(new Event('input', {bubbles: true}));
-      });
+    el.addEventListener('focus', function(){
+      this.value = this.dataset.rawValue || '';
+    });
+
+    el.addEventListener('blur', function(){
+      if(this.dataset.rawValue && this.dataset.rawValue.length >= 4){
+        this.value = formatWithDots(this.dataset.rawValue);
+      }
     });
   }
 
-  // شغل الكود
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initInputs);
-  } else {
-    initInputs();
+  function run(){
+    document.querySelectorAll('input').forEach(hookInput);
   }
 
-  // راقب العناصر الجديدة
-  new MutationObserver(initInputs).observe(document.body, {childList: true, subtree: true});
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', run);
+  } else {
+    run();
+  }
 
+  new MutationObserver(run).observe(document.body, {childList:true, subtree:true});
+  console.log('%cAuto dot: READY','color:lime');
 })();
 </script>
 
