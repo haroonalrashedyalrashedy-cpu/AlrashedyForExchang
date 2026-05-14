@@ -4058,7 +4058,7 @@ document.addEventListener('click', (e) => {
 let isRunningMatch = false; // ضيف هذا السطر فوق مع باقي المتغيرات
 
 btnRunMatch.addEventListener('click', async () => {
-  if (isRunningMatch) return; // يمنع الضغط مرتين
+  if (isRunningMatch) return;
   isRunningMatch = true;
   btnRunMatch.disabled = true;
   btnRunMatch.textContent = 'جارٍ الحفظ...';
@@ -4067,20 +4067,24 @@ btnRunMatch.addEventListener('click', async () => {
   const rows = [];
   let hasData = false;
 
+  console.log('[SAVE] بدأ الحفظ للتاريخ:', date);
   const matchRows = document.querySelectorAll('.match-grid select.match-cur');
+  console.log('[SAVE] عدد الصفوف اللي لقيتها:', matchRows.length);
 
   try {
-    for (const curSelect of matchRows) {
+    for (let i = 0; i < matchRows.length; i++) {
+      const curSelect = matchRows[i];
       const cur = curSelect.value;
       if (!cur) continue;
 
       hasData = true;
-      
+
       const actualInput = curSelect.nextElementSibling;
       const sysDiv = actualInput.nextElementSibling;
       const resultDiv = sysDiv.nextElementSibling;
-
       const actual = parseFloat(actualInput.value) || 0;
+
+      console.log(`[SAVE] بعالج الصف ${i + 1} - العملة: ${cur}, الرصيد الفعلي: ${actual}`);
 
       const snap = await get(ref(db, `${EMPLOYEE_BAL_PATH}/${window.currentUser}/${cur}`));
       const system = snap.val() || 0;
@@ -4094,13 +4098,16 @@ btnRunMatch.addEventListener('click', async () => {
       else resultDiv.classList.add('zero');
 
       rows.push({ currency: cur, actual, system, diff });
+      console.log(`[SAVE] الصف ${i + 1} جاهز - النظام: ${system}, الفرق: ${diff}`);
     }
 
     if (!hasData) {
+      console.log('[SAVE] ما في بيانات، وقفت');
       alert('اختر عملة واحدة على الأقل');
       return;
     }
 
+    console.log('[SAVE] البيانات النهائية للحفظ:', rows);
     const matchRef = push(ref(db, `matches/${window.currentUser}/${date}`));
     const matchKey = matchRef.key;
     await set(matchRef, { rows, timestamp: Date.now() });
@@ -4111,14 +4118,17 @@ btnRunMatch.addEventListener('click', async () => {
     matchSelect.appendChild(opt);
     matchSelect.value = matchKey;
 
+    console.log('[SAVE] تم الحفظ بنجاح. المفتاح:', matchKey);
     alert('تمت المطابقة وحفظها');
 
   } catch (e) {
+    console.log('[SAVE] خطأ:', e);
     alert('فشل الحفظ: ' + e.message);
   } finally {
     isRunningMatch = false;
     btnRunMatch.disabled = false;
     btnRunMatch.textContent = 'مطابقة';
+    console.log('[SAVE] انتهى الحفظ');
   }
 });
 
