@@ -2223,6 +2223,7 @@ btnLogin?.addEventListener('click', async () => {
   document.getElementById('adminName').textContent = user.name;
   document.getElementById('adminRole').textContent = currentRole === 'admin' ? 'مدير' : 'موظف';
   
+ toggleBottomBar(); 
   renderTabsByPerms(); // بعدين طبّق العرض
   closeAllTabsOnLogin(); // بعدين اقفل التبويبات
 
