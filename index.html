@@ -4124,9 +4124,10 @@ btnRunMatch.addEventListener('click', async () => {
 
 // 5. جيب ارقام المطابقات لتاريخ معين
 async function loadMatchesForDate(date) {
+    console.log('[LOG 1] جاري جلب المطابقات للتاريخ:', date);
   const snap = await get(ref(db, `matches/${window.currentUser}/${date}`));
   const matches = snap.val() || {};
-
+console.log('[LOG 1] البيانات اللي رجعت:', matches);
   matchSelect.innerHTML = '<option value="">جديدة</option>';
 
   // حولها لمصفوفة ورتبها حسب الوقت تنازلياً
@@ -4152,6 +4153,8 @@ async function loadMatchesForDate(date) {
 
 async function showMatch(matchKey) {
   if (!matchKey) {
+      
+      console.log('[LOG 3] داخل showMatch. المفتاح:', matchKey, 'التاريخ:', matchDate.value);
     // لو اختار "جديدة" امسح الجريد
     document.querySelectorAll('.match-grid select.match-cur').forEach(sel => {
       sel.value = '';
@@ -4198,6 +4201,8 @@ async function showMatch(matchKey) {
 
 
 matchSelect.addEventListener('change', () => {
+    
+    console.log('[LOG 2] اخترت مطابقة:', matchSelect.value);
   showMatch(matchSelect.value);
 });
 // 6. عرض مطابقة محفوظة
