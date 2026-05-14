@@ -3912,7 +3912,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const matchTbody = document.querySelector('#matchTable tbody');
 const matchDate = document.getElementById('matchDate');
 const matchSelect = document.getElementById('matchSelect');
-const btnLoadMatch = document.getElementById('btnLoadMatch');
+
 const btnRunMatch = document.getElementById('btnRunMatch');
 
 // 1. انشئ 5 صفوف فاضية - بدون رصيد نظام ولا نتيجة
@@ -4035,31 +4035,7 @@ async function loadMatchesForDate(date) {
 }
 
 // 6. عرض مطابقة محفوظة
-btnLoadMatch.addEventListener('click', async () => {
-  const date = matchDate.value;
-  const matchId = matchSelect.value;
-  if (!date ||!matchId) return;
 
-  const snap = await get(ref(db, `matches/${window.currentUser}/${date}/${matchId}`));
-  const data = snap.val();
-  if (!data) return;
-
-  initMatchRows();
-
-  data.rows.forEach((rowData, i) => {
-    const tr = matchTbody.querySelectorAll('tr')[i];
-    if (!tr) return;
-    tr.querySelector('.matchCurrency').value = rowData.currency;
-    tr.querySelector('.matchActual').value = rowData.actual;
-    tr.querySelector('.matchSystem').textContent = rowData.system.toFixed(2);
-    const resultCell = tr.querySelector('.matchResult');
-    resultCell.textContent = rowData.diff.toFixed(2);
-    resultCell.className = 'matchResult';
-    if (rowData.diff > 0) resultCell.classList.add('pos');
-    else if (rowData.diff < 0) resultCell.classList.add('neg');
-    else resultCell.classList.add('zero');
-  });
-});
 
 // 7. لما تغير التاريخ حدث القائمة
 matchDate.addEventListener('change', () => {
