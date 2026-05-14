@@ -2213,7 +2213,7 @@ btnLogin?.addEventListener('click', async () => {
   
   resetAllSelects();
   window.currentUser = username;
-  toggleBottomBar();
+  
   window.currentRole = user.role;
   
   loginScreen.classList.remove('active');
@@ -2232,7 +2232,7 @@ btnLogin?.addEventListener('click', async () => {
   renderTabsByPerms(); // بعدين طبّق العرض
   closeAllTabsOnLogin(); // بعدين اقفل التبويبات
 
-
+toggleBottomBar();
 
   passwordInput.value = '';
 });
