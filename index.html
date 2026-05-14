@@ -17,10 +17,7 @@
 
   <style>
     /* 📌 القسم 2: ستايل الواجهة + Responsive */
-  
-/* ===== متغيرات الألوان ===== */
-اريدك تنظف هذا الكود وتبعد المكرر فقط . 
- :root {
+   :root {
   --bg-dark: #111b21;
   --bg-panel: #202c33;
   --text-primary: #e9edef;
@@ -571,6 +568,35 @@ table.table-selected {
   background: rgba(37, 211, 102, 0.25)!important;
 }
 
+.match-card{background:#2a2f38;padding:12px;border-radius:12px}
+.match-toolbar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.match-toolbar.field{flex:1;min-width:80px;display:flex;flex-direction:column}
+.match-toolbar input,.match-toolbar select,.match-toolbar button{
+  height:34px;font-size:13px;border-radius:6px;border:1px solid #444;
+  background:#1e2229;color:#fff
+}
+.table-wrap{border:2px solid #d97706;border-radius:8px;overflow-x:auto}
+
+#matchTable{width:100%;border-collapse:collapse;font-size:15px;color:#fff}
+#matchTable thead{background:#000}
+#matchTable th,#matchTable td{padding:8px 6px;text-align:center}
+#matchTable td{background:#3a4049;border:1px solid #2a2f38;cursor:pointer} /* ضفت cursor:pointer عشان يبان قابل للضغط */
+
+#matchTable td.zoom{font-size:28px;font-weight:bold;z-index:10;position:relative;background:#2a2f38} /* هذا جديد للتكبير */
+
+#matchTable select,#matchTable input{
+  width:100%;height:38px;background:#3a4049;border:1px solid #555;
+  border-radius:6px;color:#fff;text-align:center;font-size:15px
+}
+#matchTable select option{background:#3a4049;color:#fff}
+
+.matchResult{font-weight:bold}
+.matchResult.pos{color:#facc15}
+.matchResult.neg{color:#ef4444}
+.matchResult.zero{color:#22c55e}
+
+.btn-green{width:100%;height:44px;margin-top:12px;background:#22c55e;border:none;
+  border-radius:8px;font-size:16px;font-weight:bold;color:#000}
 
 
 /* تصغير فلتر التاريخ عشان يدخل داخل الكرت */
@@ -678,7 +704,25 @@ button, .btn, input[type="submit"], .btn-primary {
 
 
 
+.match-controls {
+  display: grid !important;
+  grid-template-columns: 1fr 140px auto !important;
+  gap: 8px !important;
+  align-items: end !important;
+  margin-bottom: 12px !important;
+}
 
+.match-controls * {
+  box-sizing: border-box !important;
+}
+
+.match-controls select,
+.match-controls input,
+.match-controls button {
+  width: 100% !important;
+  height: 36px !important;
+  margin: 0 !important;
+}
 
 
 
@@ -758,130 +802,6 @@ body {
 tr.row-selected {
   background: rgba(37, 211, 102, 0.25) !important;
 }
-
-
-.match-card{background:#2a2f38;padding:12px;border-radius:12px}
-.match-toolbar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
-.match-toolbar.field{flex:1;min-width:80px;display:flex;flex-direction:column}
-.match-toolbar input,.match-toolbar select,.match-toolbar button{
-  height:34px;font-size:13px;border-radius:6px;border:1px solid #444;
-  background:#1e2229;color:#fff
-}
-.table-wrap{border:2px solid #d97706;border-radius:8px;overflow-x:auto}
-
-
-.btn-green{width:100%;height:44px;margin-top:12px;background:#22c55e;border:none;
-  border-radius:8px;font-size:16px;font-weight:bold;color:#000}
-
-
-/* ===== جدول المطابقة ===== */
-#matchTable {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 15px;
-  color: #fff;
-}
-#matchTable thead {
-  background: #000;
-}
-#matchTable th,
-#matchTable td {
-  padding: 8px 6px;
-  text-align: center;
-  border: 1px solid var(--border-color);
-}
-#matchTable td {
-  background: #3a4049;
-  border: 1px solid #2a2f38;
-  cursor: pointer;
-}
-#matchTable td.zoom {
-  font-size: 28px;
-  font-weight: bold;
-  z-index: 10;
-  position: relative;
-  background: #2a2f38;
-}
-
-/* الحقول داخل الجدول - خليت ستايل var(--border-color) لأنه متناسق مع النظام */
-#matchTable select,
-#matchTable input {
-  width: 100%;
-  height: 38px;
-  background: var(--bg-panel);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  color: var(--text-primary);
-  text-align: center;
-  font-size: 15px;
-  padding: 6px;
-}
-#matchTable select option {
-  background: var(--bg-panel);
-  color: var(--text-primary);
-}
-
-/* النتيجة - خليت نسخة الألوان الخفيفة لأنها أوضح للقراءة */
-#matchTable td.matchResult.pos { 
-  background: #d4edda; 
-  color: #155724; 
-  font-weight: bold;
-}
-#matchTable td.matchResult.neg { 
-  background: #f8d7da; 
-  color: #721c24; 
-  font-weight: bold;
-}
-#matchTable td.matchResult.zero { 
-  background: #fff3cd; 
-  color: #856404; 
-  font-weight: bold;
-}
-#matchTable .systemBal {
-  background: #f5f5f5;
-  font-weight: 600;
-  color: #000;
-}
-
-/* ===== شريط أدوات المطابقة ===== */
-.match-toolbar {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-  align-items: flex-end;
-}
-.match-toolbar .field {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-.match-toolbar input,
-.match-toolbar select,
-.match-toolbar button {
-  height: 36px;
-}
-
-/* ===== خيارات التحكم البديلة - خليت Grid لأنه أرتب ===== */
-.match-controls {
-  display: grid !important;
-  grid-template-columns: 1fr 140px auto !important;
-  gap: 8px !important;
-  align-items: end !important;
-  margin-bottom: 12px !important;
-}
-.match-controls * {
-  box-sizing: border-box !important;
-}
-.match-controls select,
-.match-controls input,
-.match-controls button {
-  width: 100% !important;
-  height: 36px !important;
-  margin: 0 !important;
-}
-
-
-
 
   </style>
 </head>
@@ -1254,6 +1174,7 @@ tr.row-selected {
     
     
     
+    
 <div id="matchs" class="tab-content">
   <div class="card match-card" id="MatchCard">
     <h3>مطابقة الموظف</h3>
@@ -1287,8 +1208,6 @@ tr.row-selected {
     </div>
   </div>
 </div>
-
-
 
     
     
@@ -1574,7 +1493,7 @@ tr.row-selected {
 
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, get, update, onValue, remove }
+import { getDatabase, ref, set, get, update, onValue, remove, push }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
@@ -3321,160 +3240,6 @@ document.getElementById('btnSavePerm')?.addEventListener('click', async ()=>{
 
 setupTabClickHandlers();
 
-
-
-
-
-
-
-
-
-
-
-
-
-document.addEventListener('DOMContentLoaded', () => {
-
-const matchTbody = document.querySelector('#matchTable tbody');
-const matchDate = document.getElementById('matchDate');
-const matchSelect = document.getElementById('matchSelect');
-const btnRunMatch = document.getElementById('btnRunMatch');
-
-// 1. انشئ 5 صفوف فاضية
-function initMatchRows() {
-  let rows = '';
-  for (let i = 0; i < 5; i++) {
-    rows += `
-      <tr data-row="${i}">
-        <td><select class="matchCurrency"><option value="">العملة</option></select></td>
-        <td><input type="number" class="matchActual" placeholder="0"></td>
-        <td class="systemBal"></td>
-        <td class="matchResult"></td>
-      </tr>
-    `;
-  }
-  matchTbody.innerHTML = rows;
-  loadCurrenciesToMatchSelect();
-}
-
-// 2. عبئ العملات في العمود الأول باستخدام دالتك الموجودة
-async function loadCurrenciesToMatchSelect() {
-  const currencies = window.CURRENCIES_AR || [];
-  document.querySelectorAll('.matchCurrency').forEach(sel => {
-    fillCurrencySelect(sel); // دالتك الموجودة
-    sel.addEventListener('change', () => onCurrencyChange(sel));
-  });
-}
-
-// 3. لما تغير العملة امسح النتيجة
-function onCurrencyChange(sel) {
-  const tr = sel.closest('tr');
-  tr.querySelector('.systemBal').textContent = '';
-  tr.querySelector('.matchResult').textContent = '';
-  tr.querySelector('.matchResult').className = 'matchResult';
-}
-
-// 4. جيب ارقام المطابقات لتاريخ معين
-async function loadMatchesForDate(date) {
-  const snap = await get(ref(db, `matches/${window.currentUser}/${date}`));
-  const matches = snap.val() || {};
-
-  matchSelect.innerHTML = '<option value="">مطابقة جديدة</option>';
-  Object.keys(matches).forEach(key => {
-    const shortKey = key.slice(-4);
-    matchSelect.innerHTML += `<option value="${key}">مطابقة ${shortKey}</option>`;
-  });
-}
-
-// 5. تحميل مطابقة قديمة
-async function loadMatchData(date, matchId) {
-  if (!matchId) {
-    initMatchRows();
-    return;
-  }
-
-  const snap = await get(ref(db, `matches/${window.currentUser}/${date}/${matchId}`));
-  const data = snap.val();
-  if (!data) return;
-
-  initMatchRows();
-  data.rows.forEach((rowData, i) => {
-    const tr = matchTbody.querySelectorAll('tr')[i];
-    tr.querySelector('.matchCurrency').value = rowData.currency;
-    tr.querySelector('.matchActual').value = rowData.actual;
-    tr.querySelector('.systemBal').textContent = rowData.system.toFixed(2);
-    const resultCell = tr.querySelector('.matchResult');
-    resultCell.textContent = rowData.diff.toFixed(2);
-    setResultColor(resultCell, rowData.diff);
-  });
-}
-
-// 6. زر المطابقة - الحساب + الحفظ
-btnRunMatch.addEventListener('click', async () => {
-  const date = matchDate.value || getToday();
-  const rows = [];
-  let hasData = false;
-
-  for (const tr of matchTbody.querySelectorAll('tr')) {
-    const currency = tr.querySelector('.matchCurrency').value;
-    if (!currency) continue;
-
-    hasData = true;
-    const actual = parseFloat(tr.querySelector('.matchActual').value) || 0;
-
-    // جيب رصيد الموظف الحالي من النظام لهذه العملة
-    const systemBal = await getEmployeeBalance(window.currentUser, currency);
-    const diff = actual - systemBal;
-
-    // اعرض النتيجة
-    tr.querySelector('.systemBal').textContent = systemBal.toFixed(2);
-    const resultCell = tr.querySelector('.matchResult');
-    resultCell.textContent = diff.toFixed(2);
-    setResultColor(resultCell, diff);
-
-    rows.push({ currency, actual, system: systemBal, diff });
-  }
-
-  if (!hasData) {
-    alert('اختر عملة واحدة على الأقل');
-    return;
-  }
-
-  // احفظ المطابقة
-  const matchRef = push(ref(db, `matches/${window.currentUser}/${date}`));
-  await set(matchRef, { rows, timestamp: Date.now() });
-
-  // حدث القائمة المنسدلة
-  await loadMatchesForDate(date);
-  matchSelect.value = matchRef.key;
-
-  alert('تمت المطابقة وحفظها');
-});
-
-// 7. تلوين النتيجة
-function setResultColor(cell, diff) {
-  cell.className = 'matchResult';
-  if (diff > 0) cell.classList.add('pos');
-  else if (diff < 0) cell.classList.add('neg');
-  else cell.classList.add('zero');
-}
-
-// 8. أحداث التاريخ والقائمة
-matchDate.addEventListener('change', () => {
-  if (matchDate.value) loadMatchesForDate(matchDate.value);
-});
-
-matchSelect.addEventListener('change', () => {
-  loadMatchData(matchDate.value, matchSelect.value);
-});
-
-// شغل هذا اول ما يتحمل
-matchDate.value = getToday();
-initMatchRows();
-loadMatchesForDate(getToday());
-
-
-
 }); // نهاية DOMContentLoaded
 
 
@@ -4171,22 +3936,11 @@ function initMatchRows() {
 async function loadCurrenciesToMatchSelect() {
   const snap = await get(ref(db, 'currencies'));
   const currencies = snap.val() || {};
-  
-  // امسك كل الـ select الموجودة في الجدول اليدوي
-  document.querySelectorAll('#matchTable .matchCurrency').forEach(sel => {
-    const currentVal = sel.value; // عشان ما تضيع القيمة المختارة
-    
-    // امسح الخيارات القديمة وخلي أول خيار فقط
+  document.querySelectorAll('.matchCurrency').forEach(sel => {
     sel.innerHTML = '<option value="">العملة</option>';
-    
-    // ضيف العملات النشطة فقط
-    Object.entries(currencies).forEach(([code, data]) => {
-      if (data.active !== false) {
-        sel.innerHTML += `<option value="${code}">${code} - ${data.nameAr || data.name || code}</option>`;
-      }
+    Object.keys(currencies).forEach(cur => {
+      sel.innerHTML += `<option value="${cur}">${cur}</option>`;
     });
-    
-    sel.value = currentVal; // رجّع القيمة لو كانت موجودة
   });
 }
 
@@ -4206,7 +3960,7 @@ document.addEventListener('click', (e) => {
 
 // 4. زر مطابقة - هنا يصير الحساب والحفظ
 btnRunMatch.addEventListener('click', async () => {
-  const date = matchDate.value || new Date().toISOString().split('T')[0];
+  const date = matchDate.value || getToday();
   const rows = [];
   let hasData = false;
 
@@ -4241,9 +3995,16 @@ btnRunMatch.addEventListener('click', async () => {
 
   // احفظ المطابقة
   const matchRef = push(ref(db, `matches/${window.currentUser}/${date}`));
+  const matchKey = matchRef.key;
   await set(matchRef, { rows, timestamp: Date.now() });
 
-  await loadMatchesForDate(date);
+  // ضيف رقم المطابقة للقائمة المنسدلة بدون ما تعيد تحميل الكل
+  const opt = document.createElement('option');
+  opt.value = matchKey;
+  opt.textContent = `مطابقة ${matchKey.slice(-4)}`;
+  matchSelect.appendChild(opt);
+  matchSelect.value = matchKey;
+
   alert('تمت المطابقة وحفظها');
 });
 
@@ -4253,9 +4014,24 @@ async function loadMatchesForDate(date) {
   const matches = snap.val() || {};
 
   matchSelect.innerHTML = '<option value="">جديدة</option>';
-  Object.keys(matches).forEach(key => {
-    matchSelect.innerHTML += `<option value="${key}">مطابقة ${key.slice(-4)}</option>`;
+
+  // حولها لمصفوفة ورتبها حسب الوقت تنازلياً
+  const sorted = Object.entries(matches)
+   .sort((a, b) => b[1].timestamp - a[1].timestamp);
+
+  sorted.forEach(([key, val]) => {
+    const time = new Date(val.timestamp).toLocaleTimeString('ar-EG', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    matchSelect.innerHTML += `<option value="${key}">مطابقة ${key.slice(-4)} - ${time}</option>`;
   });
+
+  // اختر آخر مطابقة تلقائياً لو موجودة
+  if (sorted.length > 0) {
+    matchSelect.value = sorted[0][0];
+    matchSelect.dispatchEvent(new Event('change'));
+  }
 }
 
 // 6. عرض مطابقة محفوظة
@@ -4268,7 +4044,7 @@ btnLoadMatch.addEventListener('click', async () => {
   const data = snap.val();
   if (!data) return;
 
-  //  initMatchRows();
+  initMatchRows();
 
   data.rows.forEach((rowData, i) => {
     const tr = matchTbody.querySelectorAll('tr')[i];
@@ -4292,6 +4068,34 @@ matchDate.addEventListener('change', () => {
 
 // شغل هذا اول ما يتحمل
 loadCurrenciesToMatchSelect();
+
+
+
+
+
+
+
+
+document.addEventListener('click', (e) => {
+  const td = e.target.closest('#matchTable td');
+  
+  if (!td) {
+    document.querySelectorAll('#matchTable td.zoom').forEach(cell => {
+      cell.classList.remove('zoom');
+    });
+    return;
+  }
+
+  if (td.classList.contains('zoom')) {
+    td.classList.remove('zoom');
+    return;
+  }
+
+  document.querySelectorAll('#matchTable td.zoom').forEach(cell => {
+    cell.classList.remove('zoom');
+  });
+  td.classList.add('zoom');
+});
 
 }); // نهاية DOMContentLoaded
 
