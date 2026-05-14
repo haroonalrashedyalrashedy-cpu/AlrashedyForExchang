@@ -2213,7 +2213,9 @@ btnLogin?.addEventListener('click', async () => {
   
   resetAllSelects();
   window.currentUser = username;
+  toggleBottomBar();
   window.currentRole = user.role;
+  
   loginScreen.classList.remove('active');
 
   if (user.role !== 'admin') {
@@ -2230,7 +2232,7 @@ btnLogin?.addEventListener('click', async () => {
   renderTabsByPerms(); // بعدين طبّق العرض
   closeAllTabsOnLogin(); // بعدين اقفل التبويبات
 
-toggleBottomBar();
+
 
   passwordInput.value = '';
 });
@@ -4064,16 +4066,14 @@ function toggleBottomBar() {
   const bar = document.getElementById('bottomBar');
   if (!bar) return;
 
-  console.log('currentUser:', window.currentUser);
-
   const isLoginPage = document.getElementById('loginScreen').classList.contains('active');
   const isLoggedIn = !!window.currentUser;
 
   console.log('isLoginPage:', isLoginPage, 'isLoggedIn:', isLoggedIn);
 
-  bar.style.display = (!isLoginPage && isLoggedIn) ? 'flex' : 'none';
+  bar.classList.toggle('active', !isLoginPage && isLoggedIn);
   
-  console.log('display set to:', bar.style.display);
+  console.log('has active class:', bar.classList.contains('active'));
 }
 
 // ناديها بعد تسجيل الدخول وعند تحميل الصفحة
