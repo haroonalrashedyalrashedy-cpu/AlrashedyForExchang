@@ -2174,6 +2174,9 @@ function showSubElementsByPerm(tabName) {
       if (hasPerm('permMach')) {
         showCard('MatchCard');
         initMatchRows(); // هذا السطر الجديد
+        loadMatchesForDate(matchDate.value, window.currentUser);
+        
+        
       }
       break;
   }
@@ -2322,7 +2325,7 @@ btnLogin?.addEventListener('click', async () => {
 
 startListeners(); 
 toggleBottomBar();
-
+loadMatchesForDate(matchDate.value, window.currentUser);
   passwordInput.value = '';
 });
 
@@ -4133,11 +4136,14 @@ btnRunMatch.addEventListener('click', async () => {
 });
 
 // 5. جيب ارقام المطابقات لتاريخ معين
-async function loadMatchesForDate(date) {
-    console.log('[LOG 1] جاري جلب المطابقات للتاريخ:', date);
-  const snap = await get(ref(db, `matches/${window.currentUser}/${date}`));
+
+async function loadMatchesForDate(date, uid = window.currentUser) {
+  console.log('[LOG 1] جاري جلب المطابقات للتاريخ:', date, 'للمستخدم:', uid);
+
+  const snap = await get(ref(db, `matches/${uid}/${date}`));
   const matches = snap.val() || {};
-console.log('[LOG 1] البيانات اللي رجعت:', matches);
+  console.log('[LOG 1] البيانات اللي رجعت:', matches);
+
   matchSelect.innerHTML = '<option value="">جديدة</option>';
 
   // حولها لمصفوفة ورتبها حسب الوقت تنازلياً
@@ -4158,7 +4164,6 @@ console.log('[LOG 1] البيانات اللي رجعت:', matches);
     matchSelect.dispatchEvent(new Event('change'));
   }
 }
-
 
 
 async function showMatch(matchKey) {
@@ -4239,7 +4244,7 @@ matchSelect.addEventListener('change', () => {
 
 // 7. لما تغير التاريخ حدث القائمة
 matchDate.addEventListener('change', () => {
-  if (matchDate.value) loadMatchesForDate(matchDate.value);
+  if (matchDate.value) loadMatchesForDate(matchDate.value, window.currentUser);
 });
 
 // شغل هذا اول ما يتحمل
