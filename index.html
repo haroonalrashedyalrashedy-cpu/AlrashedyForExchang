@@ -2171,17 +2171,13 @@ function showSubElementsByPerm(tabName) {
       break;
 
     case 'matchs':
-  if (hasPerm('permMach')) {
-    showCard('MatchCard');
-    initMatchRows();
-    
-    matchDate.value = getToday(); // تأكد التاريخ موجود
-    loadMatchesForDate(matchDate.value, window.currentUser); // شغّل التحميل
-    
-  } else {
-    clearMatchUI(); // فرغ القائمة لما ما عنده صلاحية
-  }
-  
+      if (hasPerm('permMach')) {
+        showCard('MatchCard');
+        initMatchRows(); // هذا السطر الجديد
+       // loadMatchesForDate(matchDate.value, window.currentUser);
+        
+        
+      }
       break;
   }
 }
@@ -2329,8 +2325,7 @@ btnLogin?.addEventListener('click', async () => {
 
 startListeners(); 
 toggleBottomBar();
-
-loadMatchesForDate(matchDate.value, window.currentUser);
+//loadMatchesForDate(matchDate.value, window.currentUser);
   passwordInput.value = '';
 });
 
@@ -2340,9 +2335,6 @@ loadMatchesForDate(matchDate.value, window.currentUser);
 
 // 5. خروج
 btnLogoutAdmin?.addEventListener('click', () => {
-    
-    
-    clearMatchUI();
     
     resetAllSelects();
   window.currentUser = null;
@@ -4014,22 +4006,6 @@ const matchSelect = document.getElementById('matchSelect');
 const btnRunMatch = document.getElementById('btnRunMatch');
 
 
-function clearMatchUI() {
-  // فرغ القائمة
-  matchSelect.innerHTML = '<option value="">جديدة</option>';
-  
-  // امسح الجريد
-  document.querySelectorAll('.match-grid select.match-cur').forEach(sel => {
-    sel.value = '';
-    sel.nextElementSibling.value = '';
-    sel.nextElementSibling.nextElementSibling.textContent = '0';
-    const resultDiv = sel.nextElementSibling.nextElementSibling.nextElementSibling;
-    resultDiv.textContent = '0';
-    resultDiv.className = 'match-result';
-  });
-}
-
-
 document.addEventListener('DOMContentLoaded', () => {
 
 
@@ -4161,13 +4137,11 @@ btnRunMatch.addEventListener('click', async () => {
 
 // 5. جيب ارقام المطابقات لتاريخ معين
 
-async function loadMatchesForDate(date, uid = window.currentUser) {
-  console.log('[LOG 1] جاري جلب المطابقات للتاريخ:', date, 'للمستخدم:', uid);
-
-  const snap = await get(ref(db, `matches/${uid}/${date}`));
+async function loadMatchesForDate(date) {
+    console.log('[LOG 1] جاري جلب المطابقات للتاريخ:', date);
+  const snap = await get(ref(db, `matches/${window.currentUser}/${date}`));
   const matches = snap.val() || {};
-  console.log('[LOG 1] البيانات اللي رجعت:', matches);
-
+console.log('[LOG 1] البيانات اللي رجعت:', matches);
   matchSelect.innerHTML = '<option value="">جديدة</option>';
 
   // حولها لمصفوفة ورتبها حسب الوقت تنازلياً
@@ -4268,7 +4242,7 @@ matchSelect.addEventListener('change', () => {
 
 // 7. لما تغير التاريخ حدث القائمة
 matchDate.addEventListener('change', () => {
-  if (matchDate.value) loadMatchesForDate(matchDate.value, window.currentUser);
+  if (matchDate.value) loadMatchesForDate(matchDate.value);
 });
 
 // شغل هذا اول ما يتحمل
