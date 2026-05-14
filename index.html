@@ -4369,6 +4369,11 @@ const tooltip = document.createElement('div');
 tooltip.className = 'number-tooltip';
 document.body.appendChild(tooltip);
 
+
+
+
+
+
 function numberToArabicWords(num) {
   num = parseInt(String(num).replace(/[^0-9]/g, ''));
   if (!num && num!== 0) return '';
@@ -4380,10 +4385,12 @@ function numberToArabicWords(num) {
   const hundreds = ['','مائة','مئتان','ثلاثمائة','أربعمائة','خمسمائة','ستمائة','سبعمائة','ثمانمائة','تسعمائة'];
 
   function convertChunk(n) {
+    if (n === 0) return '';
     let str = '';
     let h = Math.floor(n / 100);
     let t = Math.floor((n % 100) / 10);
     let o = n % 10;
+
     if (h > 0) str += hundreds[h] + ' ';
     if (n % 100 < 20 && n % 100 > 0) {
       str += ones[n % 100] + ' ';
@@ -4395,25 +4402,32 @@ function numberToArabicWords(num) {
   }
 
   let result = '';
+
   let billion = Math.floor(num / 1000000);
   let million = Math.floor((num % 1000000) / 1000000);
   let thousand = Math.floor((num % 1000000) / 1000);
   let remainder = num % 1000;
 
   if (billion > 0) {
-    result += (billion === 1? 'مليار ' : billion === 2? 'ملياران ' : convertChunk(billion) + ' مليار ') ;
+    result += (billion === 1? 'مليار ' : billion === 2? 'ملياران ' : convertChunk(billion) + ' مليار ');
   }
   if (million > 0) {
-    result += (million === 1? 'مليون ' : million === 2? 'مليونان ' : convertChunk(million) + ' مليون ') ;
+    result += (million === 1? 'مليون ' : million === 2? 'مليونان ' : convertChunk(million) + ' مليون ');
   }
   if (thousand > 0) {
-    result += (thousand === 1? 'ألف ' : thousand === 2? 'ألفان ' : convertChunk(thousand) + ' ألف ') ;
+    result += (thousand === 1? 'ألف ' : thousand === 2? 'ألفان ' : convertChunk(thousand) + ' ألف ');
   }
   if (remainder > 0) {
     result += convertChunk(remainder) + ' ';
   }
+
   return result.trim().replace(/\s+/g, ' ');
 }
+
+
+
+
+
 
 function formatNumberWithCommas(numStr) {
   const clean = String(numStr).replace(/[^0-9.]/g, '');
