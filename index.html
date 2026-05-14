@@ -2703,7 +2703,10 @@ function initRateLogFilter() {
   document.getElementById('buyAmount')?.addEventListener('input', calcBuyResult);
   document.getElementById('sellAmount')?.addEventListener('input', calcSellResult);
 
-  
+  initCurrenciesDropdowns();
+  listenRates();
+  initRateLogFilter();
+
   // ===== عمليات الشراء =====
   document.getElementById('btnSaveBuy')?.addEventListener('click', async () => {
     const amount = parseFloat(document.getElementById('buyAmount').value);
@@ -3970,11 +3973,22 @@ function initMatchRows() {
 async function loadCurrenciesToMatchSelect() {
   const snap = await get(ref(db, 'currencies'));
   const currencies = snap.val() || {};
-  document.querySelectorAll('.matchCurrency').forEach(sel => {
+  
+  // امسك كل الـ select الموجودة في الجدول اليدوي
+  document.querySelectorAll('#matchTable .matchCurrency').forEach(sel => {
+    const currentVal = sel.value; // عشان ما تضيع القيمة المختارة
+    
+    // امسح الخيارات القديمة وخلي أول خيار فقط
     sel.innerHTML = '<option value="">العملة</option>';
-    Object.keys(currencies).forEach(cur => {
-      sel.innerHTML += `<option value="${cur}">${cur}</option>`;
+    
+    // ضيف العملات النشطة فقط
+    Object.entries(currencies).forEach(([code, data]) => {
+      if (data.active !== false) {
+        sel.innerHTML += `<option value="${code}">${code} - ${data.nameAr || data.name || code}</option>`;
+      }
     });
+    
+    sel.value = currentVal; // رجّع القيمة لو كانت موجودة
   });
 }
 
@@ -4056,7 +4070,7 @@ btnLoadMatch.addEventListener('click', async () => {
   const data = snap.val();
   if (!data) return;
 
-  initMatchRows();
+  //  initMatchRows();
 
   data.rows.forEach((rowData, i) => {
     const tr = matchTbody.querySelectorAll('tr')[i];
@@ -4080,11 +4094,6 @@ matchDate.addEventListener('change', () => {
 
 // شغل هذا اول ما يتحمل
 loadCurrenciesToMatchSelect();
-
-initCurrenciesDropdowns();
-  listenRates();
-  initRateLogFilter();
-
 
 }); // نهاية DOMContentLoaded
 
