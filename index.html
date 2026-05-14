@@ -2703,10 +2703,7 @@ function initRateLogFilter() {
   document.getElementById('buyAmount')?.addEventListener('input', calcBuyResult);
   document.getElementById('sellAmount')?.addEventListener('input', calcSellResult);
 
-  initCurrenciesDropdowns();
-  listenRates();
-  initRateLogFilter();
-
+  
   // ===== عمليات الشراء =====
   document.getElementById('btnSaveBuy')?.addEventListener('click', async () => {
     const amount = parseFloat(document.getElementById('buyAmount').value);
@@ -4083,6 +4080,11 @@ matchDate.addEventListener('change', () => {
 
 // شغل هذا اول ما يتحمل
 loadCurrenciesToMatchSelect();
+
+initCurrenciesDropdowns();
+  listenRates();
+  initRateLogFilter();
+
 
 }); // نهاية DOMContentLoaded
 
