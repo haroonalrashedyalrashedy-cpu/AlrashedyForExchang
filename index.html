@@ -2464,7 +2464,7 @@ async function updateEmployeeBalance(emp, updates) {
   }
 
   // ===== إدارة الاسعار =====
-  function fillCurrencySelect(selectId) {
+  function fillCurrencySelectById(selectId) {
     const select = document.getElementById(selectId);
     if (!select) return;
     const currentVal = select.value;
@@ -2479,7 +2479,7 @@ async function updateEmployeeBalance(emp, updates) {
   }
   function initCurrenciesDropdowns() {
     ['buyCurrency', 'sellCurrency','depositCurrency', 'withdrawCurrency',
-     'transCurr', 'payCurr','rateCurrency', 'matchCurrencySelect'].forEach(fillCurrencySelect);
+     'transCurr', 'payCurr','rateCurrency', 'matchCurrencySelect'].forEach(fillCurrencySelectById);
   }
   function listenRates() {
     onValue(ref(db, RATES_PATH), (snap) => {
