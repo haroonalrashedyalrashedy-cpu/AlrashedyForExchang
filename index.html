@@ -732,13 +732,16 @@ button, .btn, input[type="submit"], .btn-primary {
   bottom: 0;
   left: 0;
   right: 0;
-  background: #1e293b;
-  padding: 10px 20px;
-  display: flex;
-  justify-content: space-between;
+  height: 52px;
+  background: rgba(139, 69, 19, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: none; /* يبدأ مخفي */
+  justify-content: space-around;
   align-items: center;
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
-  z-index: 9999;
+  z-index: 50;
+  border-top: 1px solid rgba(93, 58, 26, 0.6);
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.2);
 }
 
 .bottom-bar button {
@@ -4059,15 +4062,19 @@ loadCurrenciesToMatchSelect();
 // إظهار/إخفاء الشريط حسب الصفحة
 function toggleBottomBar() {
   const bar = document.getElementById('bottomBar');
-  if (!bar) return;
-
-  const isLoginPage = document.querySelector('#loginForm, #login, input[type="password"]');
-
-  if (!isLoginPage && window.currentUser) {
-    bar.style.display = 'flex';
-  } else {
-    bar.style.display = 'none';
+  if (!bar) {
+    console.log('bottomBar not found');
+    return;
   }
+
+  console.log('currentUser:', window.currentUser); // للتجربة
+
+  const isLoginPage = !!document.querySelector('#loginScreen.active, input[type="password"]');
+  const isLoggedIn = !!window.currentUser;
+
+  bar.style.display = (!isLoginPage && isLoggedIn) ? 'flex' : 'none';
+  
+  console.log('display set to:', bar.style.display); // للتجربة
 }
 
 // ناديها بعد تسجيل الدخول وعند تحميل الصفحة
@@ -4243,7 +4250,7 @@ document.getElementById('btnPrint').addEventListener('click', () => {
 
 
 
-<div class="bottom-bar" id="bottomBar" style="display:none;">
+<div class="bottom-bar" id="bottomBar" >
   <button id="btnRefresh" class="btn-refresh">
     <span class="spinner"></span>
     <span class="btn-text">تحديث</span>
