@@ -727,28 +727,28 @@ button, .btn, input[type="submit"], .btn-primary {
 
 
 
-
 .bottom-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   background: #1e293b;
-  padding: 10px;
+  padding: 10px 20px;
   display: flex;
-  gap: 10px;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
   box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
   z-index: 9999;
 }
 
 .bottom-bar button {
-  padding: 10px 20px;
+  padding: 10px 24px;
   border: none;
   border-radius: 8px;
   font-size: 15px;
   cursor: pointer;
   font-weight: bold;
+  font-family: 'Cairo', sans-serif;
 }
 
 .btn-refresh {
@@ -787,59 +787,14 @@ button, .btn, input[type="submit"], .btn-primary {
   color: white;
 }
 
+.btn-print:hover {
+  background: #0d9f6e;
+}
+
 /* مسافة تحت عشان الشريط ما يغطي المحتوى */
 body {
-  padding-bottom: 70px;
+  padding-bottom: 80px;
 }
-
-/* ستايل الطباعة */
-@media print {
-  body * {
-    visibility: hidden;
-  }
-  #printArea, #printArea * {
-    visibility: visible;
-  }
-  #printArea {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    padding: 20px;
-  }
-  .print-header {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .print-header img {
-    max-height: 60px;
-    margin-bottom: 10px;
-  }
-  .print-header h2 {
-    margin: 5px 0;
-    font-size: 22px;
-  }
-  .print-meta {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-    font-size: 14px;
-  }
-  .print-footer {
-    margin-top: 40px;
-    text-align: left;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  table, th, td {
-    border: 1px solid #000;
-    padding: 8px;
-    text-align: center;
-  }
-}
-
 
 
 
@@ -4086,89 +4041,190 @@ loadCurrenciesToMatchSelect();
 
 
 
+
+
+
+
+
+
+
 // 1. زر التحديث - يعيد جلب كل البيانات
+// إظهار/إخفاء الشريط حسب الصفحة
+function toggleBottomBar() {
+  const bar = document.getElementById('bottomBar');
+  if (!bar) return;
+
+  const isLoginPage = document.querySelector('#loginForm, #login, input[type="password"]');
+
+  if (!isLoginPage && window.currentUser) {
+    bar.style.display = 'flex';
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+// ناديها بعد تسجيل الدخول وعند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', toggleBottomBar);
+
+// 1. دالة مساعدة للطباعة
+function getRowHTML(tr) {
+  let cells = '';
+  tr.querySelectorAll('th, td').forEach(cell => {
+    const input = cell.querySelector('input, select');
+    let val = input? (input.tagName === 'SELECT'? input.options[input.selectedIndex]?.text || '' : input.value) : cell.innerText.trim();
+    cells += `<td>${val}</td>`;
+  });
+  return `<tr>${cells}</tr>`;
+}
+
+// 2. زر التحديث
 document.getElementById('btnRefresh').addEventListener('click', async () => {
   const btn = document.getElementById('btnRefresh');
+  const btnText = btn.querySelector('.btn-text');
+
   btn.classList.add('loading');
-  btn.querySelector('.btn-text').textContent = 'جار التحديث...';
+  btnText.textContent = 'جار التحديث...';
 
   try {
-    // شغل كل دوال التحميل اللي عندك من جديد
-    // عدّل الأسماء حسب اللي عندك
-    if (typeof loadCurrenciesToMatchSelect === 'function') await loadCurrenciesToMatchSelect();
-    if (typeof loadEmployees === 'function') await loadEmployees();
-    if (typeof loadMatchesForDate === 'function' && matchDate && matchDate.value) await loadMatchesForDate(matchDate.value);
-    
-    // أو لو تبغى حل سريع: اعمل ريفرش للصفحة
-    // location.reload();
+    const tasks = [];
 
-    alert('تم التحديث');
+    if (typeof loadCurrenciesToMatchSelect === 'function') tasks.push(loadCurrenciesToMatchSelect());
+    if (typeof loadEmployees === 'function') tasks.push(loadEmployees());
+    if (typeof loadMatchesForDate === 'function' && matchDate && matchDate.value) tasks.push(loadMatchesForDate(matchDate.value));
+
+    await Promise.all(tasks);
+
+    btnText.textContent = 'تم التحديث';
+    setTimeout(() => { btnText.textContent = 'تحديث'; }, 1500);
+
   } catch (e) {
     alert('فشل التحديث: ' + e.message);
+    btnText.textContent = 'تحديث';
   } finally {
-    btn.classList.remove('loading');
-    btn.querySelector('.btn-text').textContent = 'تحديث';
+    setTimeout(() => { btn.classList.remove('loading'); }, 800);
   }
 });
 
-// 2. تحديد جدول عند الضغط على أول خانة
+// 3. تحديد جدول كامل عند الضغط المزدوج على أول خانة
 let selectedTable = null;
-document.addEventListener('click', (e) => {
+document.addEventListener('dblclick', (e) => {
   if (e.target.matches('table tbody tr td:first-child')) {
-    document.querySelectorAll('table tbody tr.selected').forEach(r => r.classList.remove('selected'));
-    const row = e.target.closest('tr');
-    row.classList.add('selected');
-    selectedTable = row.closest('table');
+    const table = e.target.closest('table');
+
+    // شل التحديد من أي جدول ثاني
+    document.querySelectorAll('table.selected').forEach(t => t.classList.remove('selected'));
+
+    // حدد الجدول كامل
+    table.classList.add('selected');
+    selectedTable = table;
   }
 });
 
-// ستايل الصف المحدد
+// ستايل التحديد للجدول كامل
 const style = document.createElement('style');
-style.innerHTML = 'table tbody tr.selected { background: #fef3c7 !important; }';
+style.innerHTML = `
+  table.selected {
+    outline: 2px solid #8B4513;
+    outline-offset: 2px;
+    background: #fef3c7;
+  }
+  table.selected tbody tr {
+    background: #fef3c7!important;
+  }
+  table tbody tr:hover {
+    background: #f1f5f9;
+    cursor: pointer;
+  }
+`;
 document.head.appendChild(style);
 
-// 3. زر الطباعة
+// 4. زر الطباعة - تصميم احترافي
 document.getElementById('btnPrint').addEventListener('click', () => {
   if (!selectedTable) {
-    alert('اضغط على أول خانة في أي صف لتحديد الجدول');
+    alert('سوي دبل كليك على أول خانة في أي صف لتحديد الجدول');
     return;
   }
 
   const now = new Date();
   const employeeName = window.currentUser || 'غير معروف';
-  
+  const title = 'تقرير المطابقة';
+
+  // بناء الجدول
+  let theadHTML = '';
+  const thead = selectedTable.querySelector('thead');
+  if (thead && thead.rows[0]) {
+    theadHTML = `<thead>${getRowHTML(thead.rows[0])}</thead>`;
+  }
+
+  let rowsHTML = '';
+  selectedTable.querySelectorAll('tbody tr').forEach(tr => {
+    rowsHTML += getRowHTML(tr);
+  });
+
+  const html = `<table>${theadHTML}<tbody>${rowsHTML}</tbody></table>`;
+
   const printContent = `
-    <div id="printArea">
-      <div class="print-header">
-        <img src="logo.png" alt="الشعار"> <!-- غيّر مسار الشعار -->
-        <h2>الراشدي للصرافة والتحويلات</h2>
+    <!DOCTYPE html>
+    <html dir="rtl" lang="ar">
+    <head>
+      <meta charset="UTF-8">
+      <title>${title}</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+        body { font-family: 'Cairo', Tahoma, Arial; padding: 30px; color: #333; }
+       .header { text-align: center; margin-bottom: 25px; border-bottom: 3px solid #8B4513; padding-bottom: 15px; }
+       .logo-emoji { font-size: 55px; margin-bottom: 8px; }
+       .header h1 { color: #8B4513; margin: 5px 0; font-weight: 700; font-size: 26px; }
+       .meta-info { display: flex; justify-content: space-between; background: #f9f5f0; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #333; padding: 10px; text-align: center; }
+        th { background: #8B4513; color: #fff; font-weight: 600; }
+        tbody tr:nth-child(even) { background: #f9f5f0; }
+       .signature { margin-top: 80px; display: flex; justify-content: space-between; font-size: 15px; }
+       .sig-box { text-align: center; width: 200px; }
+       .sig-line { border-top: 2px solid #8B4513; margin-top: 50px; }
+       .no-print { text-align: center; margin-top: 30px; }
+       .no-print button { background: #8B4513; color: white; border: none; padding: 12px 30px; font-size: 16px; border-radius: 6px; cursor: pointer; font-family: 'Cairo'; font-weight: 600; }
+        @media print {.no-print { display: none; } }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="logo-emoji">💰</div>
+        <h1>الراشدي للصرافة والتحويلات</h1>
+        <p>نظام إدارة المطابقات والحسابات</p>
       </div>
-      
-      <div class="print-meta">
+
+      <div class="meta-info">
         <span>الموظف: ${employeeName}</span>
         <span>التاريخ: ${now.toLocaleDateString('ar-SA')}</span>
         <span>الوقت: ${now.toLocaleTimeString('ar-SA')}</span>
       </div>
-      
-      ${selectedTable.outerHTML}
-      
-      <div class="print-footer">
-        التوقيع: ...................
+
+      ${html}
+
+      <div class="signature">
+        <div class="sig-box">
+          <div>توقيع الموظف</div>
+          <div class="sig-line"></div>
+        </div>
+        <div class="sig-box">
+          <div>توقيع المدير</div>
+          <div class="sig-line"></div>
+        </div>
       </div>
-    </div>
+
+      <div class="no-print">
+        <button onclick="window.print()">طباعة / حفظ PDF</button>
+      </div>
+    </body>
+    </html>
   `;
 
-  const printWindow = window.open('', '', 'height=700,width=900');
-  printWindow.document.write('<html><head><title>طباعة</title>');
-  printWindow.document.write('<style>' + document.querySelector('style:last-of-type').innerHTML + '</style>');
-  printWindow.document.write('</head><body>');
+  const printWindow = window.open('', '', 'height=800,width=900');
   printWindow.document.write(printContent);
-  printWindow.document.write('</body></html>');
   printWindow.document.close();
-  
-  setTimeout(() => {
-    printWindow.print();
-  }, 500);
+  printWindow.onload = () => printWindow.focus();
 });
 
 
@@ -4180,12 +4236,12 @@ document.getElementById('btnPrint').addEventListener('click', () => {
 
 
 
-<div class="bottom-bar">
+<div class="bottom-bar" id="bottomBar" style="display:none;">
   <button id="btnRefresh" class="btn-refresh">
     <span class="spinner"></span>
     <span class="btn-text">تحديث</span>
   </button>
-  
+
   <button id="btnPrint" class="btn-print">طباعة</button>
 </div>
 
