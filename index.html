@@ -803,37 +803,34 @@ tr.row-selected {
   background: rgba(37, 211, 102, 0.25) !important;
 }
 
-
 .match-toolbar {
+  display: flex;
+}
+
+.match-toolbar .row-inline {
   display: flex;
   gap: 10px;
   align-items: flex-end;
   flex-wrap: wrap;
+  width: 100%;
 }
 
-.match-toolbar .field {
-  display: flex;
-  flex-direction: column;
-  flex: 1;           /* يخلي الحقل يتمدد وياخذ مساحة متساوية */
-  min-width: 120px;  /* أقل عرض قبل ما ينزل تحت */
-}
-
-.match-toolbar .field input,
-.match-toolbar .field select {
-  width: 100%;       /* يملأ عرض الـ field */
+.match-toolbar .row-inline input,
+.match-toolbar .row-inline select {
+  flex: 1;
+  min-width: 60px;
   height: 34px;
   padding: 4px 8px;
   font-size: 14px;
   box-sizing: border-box;
 }
 
-.match-toolbar button {
+.match-toolbar .row-inline button {
   height: 34px;
   padding: 0 16px;
   font-size: 14px;
-  flex-shrink: 0;    /* ما يصغر الزر */
+  flex-shrink: 0;
 }
-
 
 
   </style>
@@ -1213,15 +1210,16 @@ tr.row-selected {
     <h3>مطابقة الموظف</h3>
 
     <div class="match-toolbar">
-      <div class="field">
-        <label>التاريخ</label>
+    
+       <div class="row-inline">
         <input type="date" id="matchDate">
-      </div>
-      <div class="field">
-        <label>رقم المطابقة</label>
+     
+   
+      
         <select id="matchSelect"><option value="">مطابقة جديدة</option></select>
-      </div>
+     
       <button id="btnRunMatch" class="btn-green">مطابقة</button>
+   </div>
     </div>
 
     <div class="table-wrap">
