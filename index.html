@@ -836,35 +836,27 @@ tr.row-selected {
 
 
 /* ===== Recon Module ===== */
+/* ===== Recon Module ===== */
 .recon-card{
   background:#2a2f38;
   padding:14px;
   border-radius:12px;
-  display:block!important; 
+  display:block!important;
 }
 
 .recon-bar{
   display:flex;
   gap:8px;
   margin-bottom:12px;
-  flex-wrap:nowrap;           /* منع النزول لسطر جديد */
-  overflow-x:auto;            /* سكرول افقي لو ضاق المكان */
-  -webkit-overflow-scrolling:touch;
-}
-
-/* اخفي سكرول الموبايل */
-.recon-bar::-webkit-scrollbar{
-  display:none;
-}
-.recon-bar{
-  -ms-overflow-style:none;
-  scrollbar-width:none;
+  flex-wrap:nowrap;
+  overflow-x:auto;
 }
 
 .recon-bar input,
 .recon-bar select,
 .recon-bar button{
-  flex:0 0 auto;              /* لا يتمدد ولا ينكمش */
+  flex:0 0 auto;
+  min-width:110px;
   height:38px;
   font-size:14px;
   border-radius:6px;
@@ -872,7 +864,6 @@ tr.row-selected {
   background:#1e2229;
   color:#fff;
   padding:0 10px;
-  min-width:110px;            /* اصغر عرض عشان ما يختفي المحتوى */
 }
 
 .btn-recon{
@@ -880,7 +871,6 @@ tr.row-selected {
   color:#000;
   font-weight:bold;
   cursor:pointer;
-  padding:0 16px;             /* خلي الزر اعرض شوي */
 }
 
 .recon-wrap{
@@ -921,11 +911,6 @@ tr.row-selected {
 .recon-diff.pos{color:#facc15; font-weight:bold;}
 .recon-diff.neg{color:#ef4444; font-weight:bold;}
 .recon-diff.zero{color:#22c55e; font-weight:bold;}
-
-
-#reconTab .recon-card{ display:block!important; }
-#reconTable tbody{ min-height:170px; display:table-row-group!important; }
-
   </style>
 </head>
 
@@ -1306,7 +1291,7 @@ tr.row-selected {
     
     
     
-    <div id="reconTab" class="tab-content">
+   <div id="reconTab" class="tab-content">
   <div class="recon-card">
     <h3>مطابقة الصندوق</h3>
 
@@ -1321,12 +1306,43 @@ tr.row-selected {
         <thead>
           <tr>
             <th>العملة</th>
-            <th>الرصيد النقدي</th>
-            <th>رصيد النظام</th>
-            <th>الفارق</th>
+            <th>المبلغ الفعلي</th>
+            <th>مبلغ النظام</th>
+            <th>الفرق</th>
           </tr>
         </thead>
-        <tbody></tbody>
+        <tbody>
+          <tr>
+            <td><select class="recon-cur"><option value="">العملة</option></select></td>
+            <td><input type="number" class="recon-actual" placeholder="0"></td>
+            <td class="recon-sys">0</td>
+            <td class="recon-diff">0</td>
+          </tr>
+          <tr>
+            <td><select class="recon-cur"><option value="">العملة</option></select></td>
+            <td><input type="number" class="recon-actual" placeholder="0"></td>
+            <td class="recon-sys">0</td>
+            <td class="recon-diff">0</td>
+          </tr>
+          <tr>
+            <td><select class="recon-cur"><option value="">العملة</option></select></td>
+            <td><input type="number" class="recon-actual" placeholder="0"></td>
+            <td class="recon-sys">0</td>
+            <td class="recon-diff">0</td>
+          </tr>
+          <tr>
+            <td><select class="recon-cur"><option value="">العملة</option></select></td>
+            <td><input type="number" class="recon-actual" placeholder="0"></td>
+            <td class="recon-sys">0</td>
+            <td class="recon-diff">0</td>
+          </tr>
+          <tr>
+            <td><select class="recon-cur"><option value="">العملة</option></select></td>
+            <td><input type="number" class="recon-actual" placeholder="0"></td>
+            <td class="recon-sys">0</td>
+            <td class="recon-diff">0</td>
+          </tr>
+        </tbody>
       </table>
     </div>
   </div>
@@ -4510,32 +4526,16 @@ document.getElementById('btnPrint').addEventListener('click', () => {
 // ... الكود القديم كله حقك
 
 // ===== Recon Module - Isolated =====
+// ===== Recon Module - Static Table =====
 (function(){
   const reconTbody = document.querySelector('#reconTable tbody');
   const reconDate = document.getElementById('reconDate');
   const reconList = document.getElementById('reconList');
   const btnReconRun = document.getElementById('btnReconRun');
 
-  if(!reconTbody) return; // لو التبويب مش موجود يوقف
+  if(!reconTbody) return;
 
-  // 1. ابني 5 صفوف اول ما يفتح
-  function reconInitRows(){
-    let html = '';
-    for(let i=0; i<5; i++){
-      html += `
-        <tr>
-          <td><select class="recon-cur"><option value="">العملة</option></select></td>
-          <td><input type="number" class="recon-actual" placeholder="0"></td>
-          <td class="recon-sys">0</td>
-          <td class="recon-diff">0</td>
-        </tr>
-      `;
-    }
-    reconTbody.innerHTML = html;
-    reconLoadCurrencies();
-  }
-
-  // 2. عبئ العملات من Firebase
+  // عبئ العملات في كل select
   async function reconLoadCurrencies(){
     try{
       const snap = await get(ref(db, 'currencies'));
@@ -4546,12 +4546,12 @@ document.getElementById('btnPrint').addEventListener('click', () => {
         Object.keys(data).forEach(cur=>{
           sel.innerHTML += `<option value="${cur}">${cur}</option>`;
         });
-        if(Object.keys(data).includes(oldVal)) sel.value = oldVal;
+        if(oldVal) sel.value = oldVal;
       });
-    }catch(e){ console.error('recon currency error:', e); }
+    }catch(e){ console.error(e); }
   }
 
-  // 3. زر المطابقة
+  // زر المطابقة
   btnReconRun?.addEventListener('click', async ()=>{
     const date = reconDate.value || getToday();
     const rows = [];
@@ -4563,8 +4563,6 @@ document.getElementById('btnPrint').addEventListener('click', () => {
 
       hasData = true;
       const actual = parseFloat(tr.querySelector('.recon-actual').value) || 0;
-
-      // جيب رصيد الموظف من النظام
       const snap = await get(ref(db, `${EMPLOYEE_BAL_PATH}/${window.currentUser}/${cur}`));
       const sys = snap.val() || 0;
       const diff = actual - sys;
@@ -4579,65 +4577,13 @@ document.getElementById('btnPrint').addEventListener('click', () => {
 
     if(!hasData){ alert('اختر عملة واحدة على الاقل'); return; }
 
-    // احفظ المطابقة
     const newRef = push(ref(db, `recon/${window.currentUser}/${date}`));
     await set(newRef, {rows, ts:Date.now()});
-
-    // ضيفها للقائمة
-    const opt = document.createElement('option');
-    opt.value = newRef.key;
-    opt.textContent = `مطابقة ${newRef.key.slice(-4)}`;
-    reconList.appendChild(opt);
-    reconList.value = newRef.key;
-
     alert('تمت المطابقة وحفظها');
   });
 
-  // 4. عرض مطابقة محفوظة
-  reconList?.addEventListener('change', async ()=>{
-    if(!reconList.value) return;
-    const snap = await get(ref(db, `recon/${window.currentUser}/${reconDate.value}/${reconList.value}`));
-    const data = snap.val();
-    if(!data) return;
-
-    reconTbody.innerHTML = '';
-    data.rows.forEach(r=>{
-      reconTbody.innerHTML += `
-        <tr>
-          <td><select class="recon-cur"><option value="${r.currency}">${r.currency}</option></select></td>
-          <td><input type="number" class="recon-actual" value="${r.actual}"></td>
-          <td class="recon-sys">${r.sys.toFixed(2)}</td>
-          <td class="recon-diff ${r.diff>0?'pos':r.diff<0?'neg':'zero'}">${r.diff.toFixed(2)}</td>
-        </tr>
-      `;
-    });
-    reconLoadCurrencies(); // عشان تعبي باقي الخيارات
-  });
-
-  // 5. لما يتغير التاريخ جيب المطابقات السابقة
-  reconDate?.addEventListener('change', async ()=>{
-    if(!reconDate.value) return;
-    const snap = await get(ref(db, `recon/${window.currentUser}/${reconDate.value}`));
-    const data = snap.val() || {};
-    reconList.innerHTML = '<option value="">مطابقة جديدة</option>';
-    Object.entries(data)
-     .sort((a,b)=>b[1].ts - a[1].ts)
-     .forEach(([key,val])=>{
-        const t = new Date(val.ts).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
-        reconList.innerHTML += `<option value="${key}">مطابقة ${key.slice(-4)} - ${t}</option>`;
-      });
-  });
-
-  // شغل اول ما يتحمل
-  // شغلها لما يضغط على التبويب
-document.querySelector('[data-tab="reconTab"]')?.addEventListener('click', ()=>{
-  setTimeout(reconInitRows, 50);
-});
-
-// وشغلها برضو اول مرة لو التبويب مفتوح
-if(document.getElementById('reconTab')?.classList.contains('active')){
-  reconInitRows();
-}
+  // شغلها اول ما يتحمل
+  reconLoadCurrencies();
 })();
 
 
