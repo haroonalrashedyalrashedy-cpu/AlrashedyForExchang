@@ -4152,18 +4152,15 @@ console.log('[LOG 1] البيانات اللي رجعت:', matches);
 
 
 async function showMatch(matchKey) {
-  if (!matchKey) {
-      
-      console.log('[LOG 3] داخل showMatch. المفتاح:', matchKey, 'التاريخ:', matchDate.value);
-    // لو اختار "جديدة" امسح الجريد
-    document.querySelectorAll('.match-grid select.match-cur').forEach(sel => {
-      sel.value = '';
-      const actualInput = sel.nextElementSibling;
-      const sysDiv = actualInput.nextElementSibling;
-      const resultDiv = sysDiv.nextElementSibling;
+  console.log('[LOG 3] داخل showMatch. المفتاح:', matchKey, 'التاريخ:', matchDate.value);
 
-      actualInput.value = '';
-      sysDiv.textContent = '';
+  if (!matchKey) {
+    // لو اختار "جديدة" امسح الجريد
+    document.querySelectorAll('.match-grid.match-row').forEach(rowEl => {
+      rowEl.querySelector('select.match-cur').value = '';
+      rowEl.querySelector('input.match-actual').value = '';
+      rowEl.querySelector('.match-sys').textContent = '';
+      const resultDiv = rowEl.querySelector('.match-result');
       resultDiv.textContent = '';
       resultDiv.className = 'match-result';
     });
@@ -4173,24 +4170,24 @@ async function showMatch(matchKey) {
   const date = matchDate.value;
   const snap = await get(ref(db, `matches/${window.currentUser}/${date}/${matchKey}`));
   const match = snap.val();
-  if (!match) return;
+  if (!match) {
+    console.log('[LOG 3] ما لقيت بيانات');
+    return;
+  }
 
-  const rows = document.querySelectorAll('.match-grid.match-row');
+  const rows = document.querySelectorAll('.match-grid.match-row'); // <-- المسافة هنا هي التعديل
+  console.log('[LOG 3] عدد الصفوف اللي لقيتها:', rows.length);
 
   match.rows.forEach((row, i) => {
     const rowEl = rows[i];
     if (!rowEl) return;
 
-    const curSelect = rowEl.querySelector('select.match-cur');
-    const actualInput = rowEl.querySelector('input.match-actual');
-    const sysDiv = rowEl.querySelector('.match-sys');
+    rowEl.querySelector('select.match-cur').value = row.currency;
+    rowEl.querySelector('input.match-actual').value = row.actual;
+    rowEl.querySelector('.match-sys').textContent = row.system.toFixed(2);
+
     const resultDiv = rowEl.querySelector('.match-result');
-
-    curSelect.value = row.currency;
-    actualInput.value = row.actual;
-    sysDiv.textContent = row.system.toFixed(2);
     resultDiv.textContent = row.diff.toFixed(2);
-
     resultDiv.className = 'match-result';
     if (row.diff > 0) resultDiv.classList.add('pos');
     else if (row.diff < 0) resultDiv.classList.add('neg');
