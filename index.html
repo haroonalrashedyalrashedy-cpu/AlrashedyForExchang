@@ -799,7 +799,9 @@ body {
   padding-bottom: 80px;
 }
 
-
+tr.row-selected {
+  background: rgba(37, 211, 102, 0.25) !important;
+}
 
   </style>
 </head>
@@ -4145,29 +4147,54 @@ document.getElementById('btnRefresh').addEventListener('click', async () => {
 // 3. تحديد جدول كامل عند الضغط المزدوج على أول خانة
 let selectedTable = null;
 document.addEventListener('dblclick', (e) => {
-  if (e.target.matches('table tbody tr td:first-child')) {
-    const table = e.target.closest('table');
+  const table = e.target.closest('table');
+  if (!table) return;
 
-    // شل التحديد من أي جدول ثاني
-    document.querySelectorAll('table.selected').forEach(t => t.classList.remove('selected'));
+  // حالة 1: ضغطتين على هيد أول عمود = تحديد الجدول كامل
+  if (e.target.matches('table thead tr th:first-child')) {
+    
+    // Toggle للجدول
+    if (table.classList.contains('table-selected')) {
+      table.classList.remove('table-selected');
+    } else {
+      document.querySelectorAll('table.table-selected').forEach(t => {
+        t.classList.remove('table-selected');
+      });
+      table.classList.add('table-selected');
+    }
+    return;
+  }
 
-    // حدد الجدول كامل
-    table.classList.add('selected');
-    selectedTable = table;
+  // حالة 2: ضغطتين على أي صف = تحديد الصف فقط
+  if (e.target.matches('table tbody tr td')) {
+    const row = e.target.closest('tr');
+    
+    // Toggle للصف
+    row.classList.toggle('row-selected');
+    
+    // لو حددت صف، شل تحديد الجدول كامل عشان ما يتعارضوا
+    table.classList.remove('table-selected');
   }
 });
 
 // ستايل التحديد للجدول كامل
+
+// 1. ستايل التحديد
 const style = document.createElement('style');
 style.innerHTML = `
-  table.selected {
-    outline: 2px solid #8B4513;
-    outline-offset: 2px;
-    background: #fef3c7;
+  table.table-selected {
+    outline: 2px solid var(--accent-green);
+    outline-offset: -2px;
+    background: rgba(37, 211, 102, 0.15);
   }
-  table.selected tbody tr {
-    background: #fef3c7!important;
+  table.table-selected tbody tr {
+    background: rgba(37, 211, 102, 0.15)!important;
   }
+
+  tr.row-selected {
+    background: rgba(37, 211, 102, 0.25)!important;
+  }
+
   table tbody tr:hover {
     background: #f1f5f9;
     cursor: pointer;
@@ -4175,10 +4202,39 @@ style.innerHTML = `
 `;
 document.head.appendChild(style);
 
-// 4. زر الطباعة - تصميم احترافي
+// 2. التحديد بالضغطتين
+document.addEventListener('dblclick', (e) => {
+  const table = e.target.closest('table');
+  if (!table) return;
+
+  // ضغطتين على هيد أول عمود = تحديد الجدول كامل
+  if (e.target.matches('table thead tr th:first-child')) {
+    if (table.classList.contains('table-selected')) {
+      table.classList.remove('table-selected');
+    } else {
+      document.querySelectorAll('table.table-selected').forEach(t => {
+        t.classList.remove('table-selected');
+      });
+      table.classList.add('table-selected');
+    }
+    return;
+  }
+
+  // ضغطتين على أي صف = تحديد الصف فقط
+  if (e.target.matches('table tbody tr td')) {
+    const row = e.target.closest('tr');
+    row.classList.toggle('row-selected');
+    table.classList.remove('table-selected'); // شل تحديد الجدول عشان ما يتعارض
+  }
+});
+
+// 3. زر الطباعة - يطبع الصف المحدد أو الجدول كامل
 document.getElementById('btnPrint').addEventListener('click', () => {
-  if (!selectedTable) {
-    alert('سوي دبل كليك على أول خانة في أي صف لتحديد الجدول');
+  const table = document.querySelector('table.table-selected');
+  const selectedRow = table? table.querySelector('tr.row-selected') : null;
+
+  if (!table) {
+    alert('سوي دبل كليك على رأس أول عمود لتحديد الجدول');
     return;
   }
 
@@ -4186,17 +4242,22 @@ document.getElementById('btnPrint').addEventListener('click', () => {
   const employeeName = window.currentUser || 'غير معروف';
   const title = 'تقرير المطابقة';
 
-  // بناء الجدول
+  // بناء الهيد
   let theadHTML = '';
-  const thead = selectedTable.querySelector('thead');
+  const thead = table.querySelector('thead');
   if (thead && thead.rows[0]) {
     theadHTML = `<thead>${getRowHTML(thead.rows[0])}</thead>`;
   }
 
+  // بناء الصفوف: لو في صف محدد اطبع هو فقط، لو لا اطبع الكل
   let rowsHTML = '';
-  selectedTable.querySelectorAll('tbody tr').forEach(tr => {
-    rowsHTML += getRowHTML(tr);
-  });
+  if (selectedRow) {
+    rowsHTML = getRowHTML(selectedRow);
+  } else {
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      rowsHTML += getRowHTML(tr);
+    });
+  }
 
   const html = `<table>${theadHTML}<tbody>${rowsHTML}</tbody></table>`;
 
@@ -4229,7 +4290,7 @@ document.getElementById('btnPrint').addEventListener('click', () => {
       <div class="header">
         <div class="logo-emoji">💰</div>
         <h1>الراشدي للصرافة والتحويلات</h1>
-        <p>نظام إدارة المطابقات والحسابات</p>
+      
       </div>
 
       <div class="meta-info">
@@ -4263,7 +4324,6 @@ document.getElementById('btnPrint').addEventListener('click', () => {
   printWindow.document.close();
   printWindow.onload = () => printWindow.focus();
 });
-
 
 
 </script>
