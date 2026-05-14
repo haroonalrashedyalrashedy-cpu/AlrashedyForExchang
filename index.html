@@ -911,6 +911,22 @@ tr.row-selected {
 .recon-diff.pos{color:#facc15; font-weight:bold;}
 .recon-diff.neg{color:#ef4444; font-weight:bold;}
 .recon-diff.zero{color:#22c55e; font-weight:bold;}
+/* كسر اي قاعدة تخفي صفوف الجدول */
+#reconTable tbody,
+#reconTable tbody tr,
+#reconTable tbody td{
+  display: table-row-group !important;
+}
+#reconTable tbody tr{
+  display: table-row !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+#reconTable tbody td{
+  display: table-cell !important;
+}
+
+
   </style>
 </head>
 
@@ -1311,7 +1327,7 @@ tr.row-selected {
             <th>الفرق</th>
           </tr>
         </thead>
-        <tbody>
+      <tbody style="min-height: 180px;">
           <tr>
             <td><select class="recon-cur"><option value="">العملة</option></select></td>
             <td><input type="number" class="recon-actual" placeholder="0"></td>
