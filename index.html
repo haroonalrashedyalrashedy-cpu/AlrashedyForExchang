@@ -4054,60 +4054,74 @@ document.addEventListener('click', (e) => {
   }
 });
 // 4. زر مطابقة - هنا يصير الحساب والحفظ
+
+let isRunningMatch = false; // ضيف هذا السطر فوق مع باقي المتغيرات
+
 btnRunMatch.addEventListener('click', async () => {
+  if (isRunningMatch) return; // يمنع الضغط مرتين
+  isRunningMatch = true;
+  btnRunMatch.disabled = true;
+  btnRunMatch.textContent = 'جارٍ الحفظ...';
+
   const date = matchDate.value || getToday();
   const rows = [];
   let hasData = false;
 
   const matchRows = document.querySelectorAll('.match-grid select.match-cur');
 
-  for (const curSelect of matchRows) {
-    const cur = curSelect.value;
-    if (!cur) continue;
+  try {
+    for (const curSelect of matchRows) {
+      const cur = curSelect.value;
+      if (!cur) continue;
 
-    hasData = true;
-    
-    const actualInput = curSelect.nextElementSibling;
-    const sysDiv = actualInput.nextElementSibling;
-    const resultDiv = sysDiv.nextElementSibling;
+      hasData = true;
+      
+      const actualInput = curSelect.nextElementSibling;
+      const sysDiv = actualInput.nextElementSibling;
+      const resultDiv = sysDiv.nextElementSibling;
 
-    const actual = parseFloat(actualInput.value) || 0;
+      const actual = parseFloat(actualInput.value) || 0;
 
-    // جيب رصيد الموظف الحالي من النظام لهذه العملة
-    const snap = await get(ref(db, `${EMPLOYEE_BAL_PATH}/${window.currentUser}/${cur}`));
-    const system = snap.val() || 0;
-    const diff = actual - system;
+      const snap = await get(ref(db, `${EMPLOYEE_BAL_PATH}/${window.currentUser}/${cur}`));
+      const system = snap.val() || 0;
+      const diff = actual - system;
 
-    // اعرض النتيجة في الجريد
-    sysDiv.textContent = system.toFixed(2);
-    resultDiv.textContent = diff.toFixed(2);
-    resultDiv.className = 'match-result';
-    if (diff > 0) resultDiv.classList.add('pos');
-    else if (diff < 0) resultDiv.classList.add('neg');
-    else resultDiv.classList.add('zero');
+      sysDiv.textContent = system.toFixed(2);
+      resultDiv.textContent = diff.toFixed(2);
+      resultDiv.className = 'match-result';
+      if (diff > 0) resultDiv.classList.add('pos');
+      else if (diff < 0) resultDiv.classList.add('neg');
+      else resultDiv.classList.add('zero');
 
-    rows.push({ currency: cur, actual, system, diff });
+      rows.push({ currency: cur, actual, system, diff });
+    }
+
+    if (!hasData) {
+      alert('اختر عملة واحدة على الأقل');
+      return;
+    }
+
+    const matchRef = push(ref(db, `matches/${window.currentUser}/${date}`));
+    const matchKey = matchRef.key;
+    await set(matchRef, { rows, timestamp: Date.now() });
+
+    const opt = document.createElement('option');
+    opt.value = matchKey;
+    opt.textContent = `مطابقة ${matchKey.slice(-4)}`;
+    matchSelect.appendChild(opt);
+    matchSelect.value = matchKey;
+
+    alert('تمت المطابقة وحفظها');
+
+  } catch (e) {
+    alert('فشل الحفظ: ' + e.message);
+  } finally {
+    isRunningMatch = false;
+    btnRunMatch.disabled = false;
+    btnRunMatch.textContent = 'مطابقة';
   }
-
-  if (!hasData) {
-    alert('اختر عملة واحدة على الأقل');
-    return;
-  }
-
-  // احفظ المطابقة
-  const matchRef = push(ref(db, `matches/${window.currentUser}/${date}`));
-  const matchKey = matchRef.key;
-  await set(matchRef, { rows, timestamp: Date.now() });
-
-  // ضيف رقم المطابقة للقائمة المنسدلة
-  const opt = document.createElement('option');
-  opt.value = matchKey;
-  opt.textContent = `مطابقة ${matchKey.slice(-4)}`;
-  matchSelect.appendChild(opt);
-  matchSelect.value = matchKey;
-
-  alert('تمت المطابقة وحفظها');
 });
+
 // 5. جيب ارقام المطابقات لتاريخ معين
 async function loadMatchesForDate(date) {
   const snap = await get(ref(db, `matches/${window.currentUser}/${date}`));
@@ -4134,6 +4148,58 @@ async function loadMatchesForDate(date) {
   }
 }
 
+
+
+async function showMatch(matchKey) {
+  if (!matchKey) {
+    // لو اختار "جديدة" امسح الجريد
+    document.querySelectorAll('.match-grid select.match-cur').forEach(sel => {
+      sel.value = '';
+      const actualInput = sel.nextElementSibling;
+      const sysDiv = actualInput.nextElementSibling;
+      const resultDiv = sysDiv.nextElementSibling;
+
+      actualInput.value = '';
+      sysDiv.textContent = '';
+      resultDiv.textContent = '';
+      resultDiv.className = 'match-result';
+    });
+    return;
+  }
+
+  const date = matchDate.value;
+  const snap = await get(ref(db, `matches/${window.currentUser}/${date}/${matchKey}`));
+  const match = snap.val();
+  if (!match) return;
+
+  const rows = document.querySelectorAll('.match-grid.match-row');
+
+  match.rows.forEach((row, i) => {
+    const rowEl = rows[i];
+    if (!rowEl) return;
+
+    const curSelect = rowEl.querySelector('select.match-cur');
+    const actualInput = rowEl.querySelector('input.match-actual');
+    const sysDiv = rowEl.querySelector('.match-sys');
+    const resultDiv = rowEl.querySelector('.match-result');
+
+    curSelect.value = row.currency;
+    actualInput.value = row.actual;
+    sysDiv.textContent = row.system.toFixed(2);
+    resultDiv.textContent = row.diff.toFixed(2);
+
+    resultDiv.className = 'match-result';
+    if (row.diff > 0) resultDiv.classList.add('pos');
+    else if (row.diff < 0) resultDiv.classList.add('neg');
+    else resultDiv.classList.add('zero');
+  });
+}
+
+
+
+matchSelect.addEventListener('change', () => {
+  showMatch(matchSelect.value);
+});
 // 6. عرض مطابقة محفوظة
 
 
