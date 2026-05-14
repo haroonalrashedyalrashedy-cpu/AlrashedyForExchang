@@ -2171,13 +2171,17 @@ function showSubElementsByPerm(tabName) {
       break;
 
     case 'matchs':
-      if (hasPerm('permMach')) {
-        showCard('MatchCard');
-        initMatchRows(); // هذا السطر الجديد
-        loadMatchesForDate(matchDate.value, window.currentUser);
-        
-        
-      }
+  if (hasPerm('permMach')) {
+    showCard('MatchCard');
+    initMatchRows();
+    
+    matchDate.value = getToday(); // تأكد التاريخ موجود
+    loadMatchesForDate(matchDate.value, window.currentUser); // شغّل التحميل
+    
+  } else {
+    clearMatchUI(); // فرغ القائمة لما ما عنده صلاحية
+  }
+  
       break;
   }
 }
@@ -2325,6 +2329,7 @@ btnLogin?.addEventListener('click', async () => {
 
 startListeners(); 
 toggleBottomBar();
+
 loadMatchesForDate(matchDate.value, window.currentUser);
   passwordInput.value = '';
 });
@@ -2335,6 +2340,9 @@ loadMatchesForDate(matchDate.value, window.currentUser);
 
 // 5. خروج
 btnLogoutAdmin?.addEventListener('click', () => {
+    
+    
+    clearMatchUI();
     
     resetAllSelects();
   window.currentUser = null;
@@ -4004,6 +4012,22 @@ const matchDate = document.getElementById('matchDate');
 const matchSelect = document.getElementById('matchSelect');
 
 const btnRunMatch = document.getElementById('btnRunMatch');
+
+
+function clearMatchUI() {
+  // فرغ القائمة
+  matchSelect.innerHTML = '<option value="">جديدة</option>';
+  
+  // امسح الجريد
+  document.querySelectorAll('.match-grid select.match-cur').forEach(sel => {
+    sel.value = '';
+    sel.nextElementSibling.value = '';
+    sel.nextElementSibling.nextElementSibling.textContent = '0';
+    const resultDiv = sel.nextElementSibling.nextElementSibling.nextElementSibling;
+    resultDiv.textContent = '0';
+    resultDiv.className = 'match-result';
+  });
+}
 
 
 document.addEventListener('DOMContentLoaded', () => {
