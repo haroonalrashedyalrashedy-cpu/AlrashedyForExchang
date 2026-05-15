@@ -1543,7 +1543,7 @@ function showToast(message, type = 'info') {
   }
 
   // 2. الايقونة العائمة
- /* const fab = document.createElement('div');
+const fab = document.createElement('div');
   fab.id = 'devtoolsFab';
   fab.innerHTML = '🐞';
   fab.setAttribute('style', `
@@ -1566,7 +1566,7 @@ function showToast(message, type = 'info') {
     touch-action: none !important;
     user-select: none !important;
   `);
-  document.body.appendChild(fab);*/
+  document.body.appendChild(fab);
 
   // 3. فتح واغلاق مع تمييز السحب عن الضغط
   let isDragging = false;
