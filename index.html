@@ -1414,7 +1414,7 @@ if ('serviceWorker' in navigator) {
   var isOldAndroid = ua.includes('Android 7') || ua.includes('Android 6') || ua.includes('Android 5');
   
   if (!isOldAndroid) {
-    navigator.serviceWorker.register('/service-worker.js')
+    navigator.serviceWorker.register('./service-worker.js')
       .then(function() { console.log('Service Worker registered'); })
       .catch(function(err) { console.log('Service Worker failed:', err); });
   } else {
@@ -2159,7 +2159,23 @@ function listenBuyOps() {
  // listenBuyOps();
 
 
+function initMatchRows() {
+  console.log('[initMatchRows] started');
 
+  const matchRows = document.querySelectorAll('.match-grid select.match-cur');
+
+  if (matchRows.length === 0) {
+    console.error('[initMatchRows] ما لقيت أي صف في.match-grid. تأكد انك نسخت HTML الجريد صح');
+    return;
+  }
+
+  console.log('[initMatchRows] لقيت', matchRows.length, 'صف');
+
+  // املأ قوائم العملات في كل select
+  loadCurrenciesToMatchSelect();
+
+  console.log('[initMatchRows] finished');
+}
 
 // 2. دالة اظهار الكروت والفرعي - آمنة لكل التبويبات
 
@@ -2237,6 +2253,7 @@ function showSubElementsByPerm(tabName) {
     case 'matchs':
       if (hasPerm('permMach')) {
         showCard('MatchCard');
+       console.log(typeof initMatchRows);
         initMatchRows(); // هذا السطر الجديد
        // loadMatchesForDate(matchDate.value, window.currentUser);
         
@@ -4388,23 +4405,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // 1. انشئ 5 صفوف فاضية - بدون رصيد نظام ولا نتيجة
-function initMatchRows() {
-  console.log('[initMatchRows] started');
 
-  const matchRows = document.querySelectorAll('.match-grid select.match-cur');
 
-  if (matchRows.length === 0) {
-    console.error('[initMatchRows] ما لقيت أي صف في.match-grid. تأكد انك نسخت HTML الجريد صح');
-    return;
-  }
 
-  console.log('[initMatchRows] لقيت', matchRows.length, 'صف');
 
-  // املأ قوائم العملات في كل select
-  loadCurrenciesToMatchSelect();
 
-  console.log('[initMatchRows] finished');
-}
+
 
 // 2. عبئ العملات
 async function loadCurrenciesToMatchSelect() {
