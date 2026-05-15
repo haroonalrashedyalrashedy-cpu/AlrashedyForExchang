@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
   <!-- 📌 القسم 1: الميتا والمعلومات الأساسية للموقع -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -1405,7 +1408,20 @@ tr.row-selected {
 
 
 
-
+<script>
+if ('serviceWorker' in navigator) {
+  var ua = navigator.userAgent;
+  var isOldAndroid = ua.includes('Android 7') || ua.includes('Android 6') || ua.includes('Android 5');
+  
+  if (!isOldAndroid) {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(function() { console.log('Service Worker registered'); })
+      .catch(function(err) { console.log('Service Worker failed:', err); });
+  } else {
+    console.log('Old Android detected, skipping Service Worker');
+  }
+}
+</script>
 
 
 
@@ -1414,6 +1430,36 @@ tr.row-selected {
 
 
 
+
+
+function showToast(message, type = 'info') {
+  // انشئ عنصر التوست
+  const toast = document.createElement('div');
+  
+  const colors = {
+    info: 'bg-blue-600',
+    success: 'bg-green-600',
+    error: 'bg-red-600',
+    warning: 'bg-yellow-600'
+  };
+  
+  toast.className = `fixed top-5 right-5 z-[9999] px-4 py-3 rounded-lg text-white shadow-lg ${colors[type] || colors.info} 
+                     transform transition-all duration-300 opacity-0 translate-y-[-20px] max-w-sm`;
+  toast.textContent = message;
+  
+  document.body.appendChild(toast);
+  
+  // حركة الظهور
+  setTimeout(() => {
+    toast.classList.remove('opacity-0', 'translate-y-[-20px]');
+  }, 10);
+  
+  // يختفي بعد 3 ثواني
+  setTimeout(() => {
+    toast.classList.add('opacity-0', 'translate-y-[-20px]');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
 
 // كود عرض الأخطاء + ايقونة DevTools قابلة للسحب
 // كود عرض الأخطاء + ايقونة DevTools قابلة للسحب
@@ -1717,10 +1763,26 @@ const PERMS_PATH = 'perms';
 window.userPerms = {};
 
 // 2. دالة تحميل الصلاحيات
-async function loadUserPerms(uid) {
-  if (window.currentRole === 'admin') return;
-  const snap = await get(ref(db, `${PERMS_PATH}/${uid}`));
-  window.userPerms = snap.val() || {};
+let permsUnsubscribe = null;
+
+function loadUserPerms(uid) {
+  if (window.currentRole === 'admin') {
+    // الادمن ما يحتاج صلاحيات، عنده كل شي
+    window.userPerms = {};
+    renderTabsByPerms();
+    showSubElementsByPerm();
+    return;
+  }
+
+  if (permsUnsubscribe) permsUnsubscribe(); // الغي القديم
+
+  permsUnsubscribe = onValue(ref(db, `perms/${uid}`), (snap) => {
+    window.userPerms = snap.val() || {};
+    renderTabsByPerms();
+    showSubElementsByPerm();
+
+    console.log('[Perms] Updated:', window.userPerms);
+  });
 }
 
 // 3. دالة فحص الصلاحية
@@ -2289,43 +2351,48 @@ function startListeners() {
 btnLogin?.addEventListener('click', async () => {
   const username = userSelect.value.trim();
   const password = passwordInput.value.trim();
-  if (!username || !password) { alert('ادخل اسم المستخدم وكلمة المرور'); return; }
+  if (!username || !password) { 
+    showToast('ادخل اسم المستخدم وكلمة المرور', 'warning'); 
+    return; 
+  }
 
   const snap = await get(ref(db, `users/${username}`));
-  if (!snap.exists()) { alert('المستخدم غير موجود'); return; }
-
+  if (!snap.exists()) { 
+    showToast('المستخدم غير موجود', 'error'); 
+    return; 
+  }
   const user = snap.val();
-  if (user.active === false) { alert('الحساب موقف'); return; }
-  if (user.password !== password) { alert('كلمة المرور خطأ'); return; }
+  if (user.active === false) { 
+    showToast('الحساب موقف', 'error'); 
+    return; 
+  }
+  if (user.password !== password) { 
+    showToast('كلمة المرور خطأ', 'error'); 
+    return; 
+  }
 
-  
   resetAllSelects();
   window.currentUser = username;
-  
   window.currentRole = user.role;
   
   loginScreen.classList.remove('active');
 
   if (user.role !== 'admin') {
-    await loadUserPerms(username);
+    loadUserPerms(username); // الحين onValue، بتتحدث لحظياً
   } else {
     window.userPerms = {};
+    renderTabsByPerms();
+    showSubElementsByPerm();
   }
 
-  adminScreen.classList.add('active'); // افتح الشاشة اول
+  adminScreen.classList.add('active');
   document.getElementById('adminName').textContent = user.name;
-  document.getElementById('adminRole').textContent = currentRole === 'admin' ? 'مدير' : 'موظف';
+  document.getElementById('adminRole').textContent = user.role === 'admin' ? 'مدير' : 'موظف';
   
- 
-  renderTabsByPerms(); // بعدين طبّق العرض
-  closeAllTabsOnLogin(); // بعدين اقفل التبويبات
-
-
-//openTab('operationsTab');
-
-startListeners(); 
-toggleBottomBar();
-//loadMatchesForDate(matchDate.value, window.currentUser);
+  renderTabsByPerms();
+  closeAllTabsOnLogin();
+  startListeners(); 
+  toggleBottomBar();
   passwordInput.value = '';
 });
 
@@ -2335,14 +2402,20 @@ toggleBottomBar();
 
 // 5. خروج
 btnLogoutAdmin?.addEventListener('click', () => {
+  // 1. الغي كل الاشتراكات
+  if (buyRateUnsubscribe) buyRateUnsubscribe();
+  if (sellRateUnsubscribe) sellRateUnsubscribe();
+  if (permsUnsubscribe) permsUnsubscribe(); // هذا الناقص
+
+  buyRateUnsubscribe = sellRateUnsubscribe = permsUnsubscribe = null;
     
-    resetAllSelects();
+  resetAllSelects();
   window.currentUser = null;
   window.currentRole = null;
   window.userPerms = {}; 
 
-  // امسح inline + active عشان تبدأ نظيف
-  document.querySelectorAll('.tabs.tab, .tab-content, .subtabs, .card')
+  // 2. امسح inline + active عشان تبدأ نظيف
+  document.querySelectorAll('.tabs .tab, .tab-content, .subtabs, .card')
     .forEach(el => {
       el.style.removeProperty('display');
       el.classList.remove('active');
@@ -2351,9 +2424,7 @@ btnLogoutAdmin?.addEventListener('click', () => {
   adminScreen.classList.remove('active');
   loginScreen.classList.add('active');
   userSelect.value = '';
- 
- 
- 
+  
   toggleBottomBar();
 });
 
@@ -2362,13 +2433,13 @@ document.getElementById('btnChangeAdminPass')?.addEventListener('click', async (
   const newPass = document.getElementById('adminNewPass').value.trim();
   
   if (!newPass) { 
-    alert('ادخل كلمة المرور الجديدة'); 
-    return; 
-  }
+  showToast('ادخل كلمة المرور الجديدة', 'warning'); 
+  return; 
+}
   if (!/^\d{3,8}$/.test(newPass)) { 
-    alert('كلمة المرور لازم تكون ارقام 3-8 خانات'); 
-    return; 
-  }
+  showToast('كلمة المرور لازم تكون ارقام 3-8 خانات', 'warning'); 
+  return; 
+}
 
   try {
     // لو ادمن: يغير كلمة مرور admin
@@ -2377,12 +2448,12 @@ document.getElementById('btnChangeAdminPass')?.addEventListener('click', async (
     
     await update(ref(db, `users/${targetUser}`), { password: newPass });
     
-    alert('تم تغيير كلمة المرور بنجاح');
-    document.getElementById('adminNewPass').value = '';
+showToast('تم تغيير كلمة المرور بنجاح', 'success');
+document.getElementById('adminNewPass').value = '';
     
-  } catch (e) {
-    alert('فشل التغيير: ' + e.message);
-  }
+} catch (e) {
+  showToast('فشل التغيير: ' + e.message, 'error');
+}
 });
 
 // ===== كل كود التبويبات والعمليات داخل DOMContentLoaded =====
@@ -2538,7 +2609,7 @@ async function updateEmployeeBalance(emp, updates) {
     ['buyCurrency', 'sellCurrency','depositCurrency', 'withdrawCurrency',
      'transCurr', 'payCurr','rateCurrency', 'matchCurrencySelect'].forEach(fillCurrencySelectById);
   }
-  function listenRates() {
+ /* function listenRates() {
     onValue(ref(db, RATES_PATH), (snap) => {
       const rates = snap.val() || {};
       const buyCur = document.getElementById('buyCurrency')?.value;
@@ -2546,7 +2617,7 @@ async function updateEmployeeBalance(emp, updates) {
       const sellCur = document.getElementById('sellCurrency')?.value;
       if (sellCur && rates[sellCur]) document.getElementById('sellRate').value = rates[sellCur].sell || '';
     });
-  }
+  }*/
 
 function initRateLogFilter() {
   const card = document.querySelector('#permissions.card:has(#rateLogTable)');
@@ -2671,9 +2742,18 @@ function initRateLogFilter() {
     const cur = document.getElementById('rateCurrency').value;
     const buy = parseFloat(document.getElementById('buyRateInput').value);
     const btn = document.getElementById('btnSaveBuyRate');
-    if (!cur) { alert('اختر العملة'); return; }
-    if (isNaN(buy) || buy <= 0) { alert('ادخل سعر شراء صحيح'); return; }
-    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (!cur) { 
+  showToast('اختر العملة', 'warning'); 
+  return; 
+}
+    if (isNaN(buy) || buy <= 0) { 
+  showToast('ادخل سعر شراء صحيح', 'warning'); 
+  return; 
+}
+if (!navigator.onLine) { 
+  showToast('لا يوجد انترنت', 'error'); 
+  return; 
+}
     if (btn.disabled) return;
     btn.disabled = true;
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
@@ -2688,15 +2768,15 @@ function initRateLogFilter() {
         timeoutPromise
       ]);
       document.getElementById('buyRateInput').value = '';
-      alert('تم حفظ سعر الشراء بنجاح');
+showToast('تم حفظ سعر الشراء بنجاح', 'success');
       
-     filterTable('rateLogTable'); 
+filterTable('rateLogTable'); 
       
-   //   loadRateLogs();
-    } catch (e) {
-      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل الحفظ: ' + e.message);
-    } finally {
-      setTimeout(() => btn.disabled = false, 500);
+// loadRateLogs();
+} catch (e) {
+  showToast(e.message === 'العملية تأخرت' ? 'النت ضعيف' : 'فشل الحفظ: ' + e.message, 'error');
+} finally {
+  setTimeout(() => btn.disabled = false, 500);
     }
   });
 
@@ -2704,9 +2784,18 @@ function initRateLogFilter() {
     const cur = document.getElementById('rateCurrency').value;
     const sell = parseFloat(document.getElementById('sellRateInput').value);
     const btn = document.getElementById('btnSaveSellRate');
-    if (!cur) { alert('اختر العملة'); return; }
-    if (isNaN(sell) || sell <= 0) { alert('ادخل سعر بيع صحيح'); return; }
-    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+if (!cur) { 
+  showToast('اختر العملة', 'warning'); 
+  return; 
+}
+if (isNaN(sell) || sell <= 0) { 
+  showToast('ادخل سعر بيع صحيح', 'warning'); 
+  return; 
+}
+if (!navigator.onLine) { 
+  showToast('لا يوجد انترنت', 'error'); 
+  return; 
+}
     if (btn.disabled) return;
     btn.disabled = true;
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
@@ -2721,20 +2810,19 @@ function initRateLogFilter() {
         timeoutPromise
       ]);
       document.getElementById('sellRateInput').value = '';
-      alert('تم حفظ سعر البيع بنجاح');
+showToast('تم حفظ سعر البيع بنجاح', 'success');
     
+filterTable('rateLogTable');
     
-    filterTable('rateLogTable');
-    
-    //  loadRateLogs();
-    } catch (e) {
-      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل الحفظ: ' + e.message);
+//  loadRateLogs();
+} catch (e) {
+  showToast(e.message === 'العملية تأخرت' ? 'النت ضعيف' : 'فشل الحفظ: ' + e.message, 'error');
     } finally {
       setTimeout(() => btn.disabled = false, 500);
     }
   });
 
-  document.getElementById('buyCurrency')?.addEventListener('change', (e) => {
+ /* document.getElementById('buyCurrency')?.addEventListener('change', (e) => {
     get(ref(db, `${RATES_PATH}/${e.target.value}`)).then(snap => {
       document.getElementById('buyRate').value = snap.val()?.buy || '';
       calcBuyResult();
@@ -2745,7 +2833,7 @@ function initRateLogFilter() {
       document.getElementById('sellRate').value = snap.val()?.sell || '';
       calcSellResult();
     });
-  });
+  });*/
 
   function calcBuyResult() {
     const amt = parseFloat(document.getElementById('buyAmount').value) || 0;
@@ -2757,11 +2845,57 @@ function initRateLogFilter() {
     const rate = parseFloat(document.getElementById('sellRate').value) || 0;
     document.getElementById('sellResult').value = (amt * rate).toFixed(2);
   }
+  
+  
+  
+  
+  let buyRateUnsubscribe = null;
+let sellRateUnsubscribe = null;
+
+function listenSelectedRate(currency, type) {
+  const rateInput = type === 'buy'? document.getElementById('buyRate') : document.getElementById('sellRate');
+  const calcFn = type === 'buy'? calcBuyResult : calcSellResult;
+  const unsubVar = type === 'buy'? 'buyRateUnsubscribe' : 'sellRateUnsubscribe';
+
+  if (window[unsubVar]) window[unsubVar]();
+
+  if (!currency) {
+    rateInput.value = '';
+    calcFn();
+    return;
+  }
+
+  window[unsubVar] = onValue(ref(db, `${RATES_PATH}/${currency}`), (snap) => {
+    const rates = snap.val() || {};
+    rateInput.value = type === 'buy'? (rates.buy || '') : (rates.sell || '');
+    calcFn();
+  });
+}
+
+document.getElementById('buyCurrency')?.addEventListener('change', (e) => {
+  listenSelectedRate(e.target.value, 'buy');
+});
+
+document.getElementById('sellCurrency')?.addEventListener('change', (e) => {
+  listenSelectedRate(e.target.value, 'sell');
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const buyCur = document.getElementById('buyCurrency')?.value;
+  const sellCur = document.getElementById('sellCurrency')?.value;
+  if (buyCur) listenSelectedRate(buyCur, 'buy');
+  if (sellCur) listenSelectedRate(sellCur, 'sell');
+});
+
+
+
+
+
   document.getElementById('buyAmount')?.addEventListener('input', calcBuyResult);
   document.getElementById('sellAmount')?.addEventListener('input', calcSellResult);
 
   initCurrenciesDropdowns();
-  listenRates();
+ // listenRates();
   initRateLogFilter();
 
   // ===== عمليات الشراء =====
@@ -2771,15 +2905,24 @@ function initRateLogFilter() {
     const rate = parseFloat(document.getElementById('buyRate').value);
     const result = parseFloat(document.getElementById('buyResult').value);
     const btn = document.getElementById('btnSaveBuy');
-    if (!amount ||!currency ||!rate ||!result) { alert('عبئ كل الحقول أولاً'); return; }
-    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (!amount || !currency || !rate || !result) { 
+  showToast('عبئ كل الحقول أولاً', 'warning'); 
+  return; 
+}
+if (!navigator.onLine) { 
+  showToast('لا يوجد انترنت', 'error'); 
+  return; 
+}
     if (btn.disabled) return;
     btn.disabled = true;
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
     try {
       // 1. غيّر getSystemBalance لـ getEmployeeBalance
       const yemenBalance = await getEmployeeBalance(window.currentUser, 'يمني');
-      if (yemenBalance < result) { alert('رصيدك من اليمني لا يسمح'); return; }
+      if (yemenBalance < result) { 
+  showToast('رصيدك من اليمني لا يسمح', 'error'); 
+  return; 
+}
 
       // 2. غيّر updateSystemBalance لـ updateEmployeeBalance وضيف window.currentUser
       await Promise.race([updateEmployeeBalance(window.currentUser, { 'يمني': -result, [currency]: amount }), timeoutPromise]);
@@ -2793,9 +2936,9 @@ function initRateLogFilter() {
       document.getElementById('buyRate').value = '';
       document.getElementById('buyCurrency').value = '';
       document.getElementById('buyResult').value = '';
-      alert('تمت العملية بنجاح');
-    } catch (e) {
-      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+showToast('تمت العملية بنجاح', 'success');
+} catch (e) {
+  showToast(e.message === 'العملية تأخرت' ? 'النت ضعيف' : 'فشل العملية: ' + e.message, 'error');
     } finally {
       setTimeout(() => btn.disabled = false, 500);
     }
@@ -2810,15 +2953,24 @@ document.getElementById('btnSaveSell')?.addEventListener('click', async () => {
     const rate = parseFloat(document.getElementById('sellRate').value);
     const result = parseFloat(document.getElementById('sellResult').value);
     const btn = document.getElementById('btnSaveSell');
-    if (!amount ||!currency ||!rate ||!result) { alert('عبئ كل الحقول أولاً'); return; }
-    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (!amount || !currency || !rate || !result) { 
+  showToast('عبئ كل الحقول أولاً', 'warning'); 
+  return; 
+}
+if (!navigator.onLine) { 
+  showToast('لا يوجد انترنت', 'error'); 
+  return; 
+}
     if (btn.disabled) return;
     btn.disabled = true;
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
     try {
       // 1. غيّر getSystemBalance لـ getEmployeeBalance وضيف window.currentUser
       const curBalance = await getEmployeeBalance(window.currentUser, currency);
-      if (curBalance < amount) { alert(`رصيدك من ${currency} لا يسمح`); return; }
+      if (curBalance < amount) { 
+  showToast(`رصيدك من ${currency} لا يسمح`, 'error'); 
+  return; 
+}
 
       // 2. غيّر updateSystemBalance لـ updateEmployeeBalance وضيف window.currentUser
       await Promise.race([updateEmployeeBalance(window.currentUser, { [currency]: -amount, 'يمني': result }), timeoutPromise]);
@@ -2832,9 +2984,9 @@ document.getElementById('btnSaveSell')?.addEventListener('click', async () => {
       document.getElementById('sellRate').value = '';
       document.getElementById('sellCurrency').value = '';
       document.getElementById('sellResult').value = '';
-      alert('تمت العملية بنجاح');
-    } catch (e) {
-      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+showToast('تمت العملية بنجاح', 'success');
+} catch (e) {
+  showToast(e.message === 'العملية تأخرت' ? 'النت ضعيف' : 'فشل العملية: ' + e.message, 'error');
     } finally {
       setTimeout(() => btn.disabled = false, 500);
     }
@@ -2850,16 +3002,31 @@ document.getElementById('btnSaveDeposit')?.addEventListener('click', async () =>
     const currency = document.getElementById('depositCurrency').value;
     const depositor = document.getElementById('nameMod').value.trim();
     const btn = document.getElementById('btnSaveDeposit');
-    if (!accId ||!amount ||!currency ||!depositor) { alert('عبئ كل الحقول أولاً'); return; }
-    if (amount <= 0) { alert('المبلغ لازم يكون أكبر من صفر'); return; }
-    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (!accId || !amount || !currency || !depositor) { 
+  showToast('عبئ كل الحقول أولاً', 'warning'); 
+  return; 
+}
+if (amount <= 0) { 
+  showToast('المبلغ لازم يكون أكبر من صفر', 'warning'); 
+  return; 
+}
+if (!navigator.onLine) { 
+  showToast('لا يوجد انترنت', 'error'); 
+  return; 
+}
     if (btn.disabled) return;
 
     // فحص حالة الحساب
     const accSnap = await get(ref(db, `${ACCOUNTS_PATH}/${accId}`));
     const acc = accSnap.val();
-    if (!acc) { alert('الحساب غير موجود'); return; }
-    if (acc.active === false) { alert('لا يمكن الايداع، الحساب موقف'); return; }
+if (!acc) { 
+  showToast('الحساب غير موجود', 'error'); 
+  return; 
+}
+if (acc.active === false) { 
+  showToast('لا يمكن الايداع، الحساب موقف', 'error'); 
+  return; 
+}
 
     btn.disabled = true;
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
@@ -2877,9 +3044,9 @@ document.getElementById('btnSaveDeposit')?.addEventListener('click', async () =>
       document.getElementById('depositAmount').value = '';
       document.getElementById('depositCurrency').value = '';
       document.getElementById('nameMod').value = '';
-      alert('تمت العملية بنجاح');
-    } catch (e) {
-      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+showToast('تمت العملية بنجاح', 'success');
+} catch (e) {
+  showToast(e.message === 'العملية تأخرت' ? 'النت ضعيف' : 'فشل العملية: ' + e.message, 'error');
     } finally {
       setTimeout(() => btn.disabled = false, 500);
     }
@@ -2891,16 +3058,31 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
     const currency = document.getElementById('withdrawCurrency').value;
     const receiver = document.getElementById('nameWithd').value.trim();
     const btn = document.getElementById('btnSaveWithdraw');
-    if (!accId ||!amount ||!currency ||!receiver) { alert('عبئ كل الحقول أولاً'); return; }
-    if (amount <= 0) { alert('المبلغ لازم يكون أكبر من صفر'); return; }
-    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (!accId || !amount || !currency || !receiver) { 
+  showToast('عبئ كل الحقول أولاً', 'warning'); 
+  return; 
+}
+if (amount <= 0) { 
+  showToast('المبلغ لازم يكون أكبر من صفر', 'warning'); 
+  return; 
+}
+if (!navigator.onLine) { 
+  showToast('لا يوجد انترنت', 'error'); 
+  return; 
+}
     if (btn.disabled) return;
 
     // فحص حالة الحساب
     const accSnap = await get(ref(db, `${ACCOUNTS_PATH}/${accId}`));
     const acc = accSnap.val();
-    if (!acc) { alert('الحساب غير موجود'); return; }
-    if (acc.active === false) { alert('لا يمكن السحب، الحساب موقف'); return; }
+if (!acc) { 
+  showToast('الحساب غير موجود', 'error'); 
+  return; 
+}
+if (acc.active === false) { 
+  showToast('لا يمكن السحب، الحساب موقف', 'error'); 
+  return; 
+}
 
     btn.disabled = true;
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
@@ -2908,8 +3090,14 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
       // غيّر getSystemBalance و updateSystemBalance لـ employee versions
       const sysBal = await getEmployeeBalance(window.currentUser, currency);
       const accBal = await getAccountBalance(accId, currency);
-      if (sysBal < amount) { alert('رصيدك غير كافي'); return; }
-      if (accBal < amount) { alert('رصيد الحساب غير كافي'); return; }
+      if (sysBal < amount) { 
+  showToast('رصيدك غير كافي', 'error'); 
+  return; 
+}
+if (accBal < amount) { 
+  showToast('رصيد الحساب غير كافي', 'error'); 
+  return; 
+}
       await Promise.race([
         Promise.all([updateEmployeeBalance(window.currentUser, { [currency]: -amount }), updateAccountBalance(accId, currency, -amount)]),
         timeoutPromise
@@ -2922,9 +3110,9 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
       document.getElementById('withdrawAmount').value = '';
       document.getElementById('withdrawCurrency').value = '';
       document.getElementById('nameWithd').value = '';
-      alert('تمت العملية بنجاح');
-    } catch (e) {
-      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+showToast('تمت العملية بنجاح', 'success');
+} catch (e) {
+  showToast(e.message === 'العملية تأخرت' ? 'النت ضعيف' : 'فشل العملية: ' + e.message, 'error');
     } finally {
       setTimeout(() => btn.disabled = false, 500);
     }
@@ -2951,9 +3139,18 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
     const receiver = document.getElementById('recNam').value.trim();
     const sender = document.getElementById('sendNam').value.trim();
     const btn = document.getElementById('sendbtn');
-    if (!amount ||!currency ||!receiver ||!sender) { alert('عبئ كل الحقول أولاً'); return; }
-    if (amount <= 0) { alert('المبلغ لازم يكون أكبر من صفر'); return; }
-    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (!amount || !currency || !receiver || !sender) { 
+  showToast('عبئ كل الحقول أولاً', 'warning'); 
+  return; 
+}
+if (amount <= 0) { 
+  showToast('المبلغ لازم يكون أكبر من صفر', 'warning'); 
+  return; 
+}
+if (!navigator.onLine) { 
+  showToast('لا يوجد انترنت', 'error'); 
+  return; 
+}
     if (btn.disabled) return;
     btn.disabled = true;
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('العملية تأخرت')), 3000));
@@ -2972,9 +3169,9 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
       document.getElementById('transCurr').value = '';
       document.getElementById('recNam').value = '';
       document.getElementById('sendNam').value = '';
-      alert(`تمت العملية بنجاح\nرقم الحوالة: ${transferNumber}`);
-    } catch (e) {
-      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+showToast(`تمت العملية بنجاح\nرقم الحوالة: ${transferNumber}`, 'success');
+} catch (e) {
+  showToast(e.message === 'العملية تأخرت' ? 'النت ضعيف' : 'فشل العملية: ' + e.message, 'error');
     } finally {
       setTimeout(() => btn.disabled = false, 500);
     }
@@ -2986,16 +3183,24 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
     const number = document.getElementById('numRec').value.trim();
     const recInput = document.getElementById('nameRec');
     const sendInput = document.getElementById('nameSend');
-    if (!number) { alert('ادخل رقم الحوالة'); return; }
+    if (!number) { 
+  showToast('ادخل رقم الحوالة', 'warning'); 
+  return; 
+}
 
     currentTransfer = null;
     recInput.value = '';
     sendInput.value = '';
     const snap = await get(ref(db, `${TRANSFERS_PENDING}/${number}`));
-    if (!snap.exists()) { alert('لا يوجد حوالة بهذا الرقم'); return; }
-
+    if (!snap.exists()) { 
+  showToast('لا يوجد حوالة بهذا الرقم', 'error'); 
+  return; 
+}
     currentTransfer = snap.val();
-    if (currentTransfer.status === 'مستلمة') { alert('الحوالة مستلمة مسبقاً'); return; }
+    if (currentTransfer.status === 'مستلمة') { 
+  showToast('الحوالة مستلمة مسبقاً', 'warning'); 
+  return; 
+}
     recInput.value = currentTransfer.receiver;
     sendInput.value = currentTransfer.sender;
     recInput.readOnly = true;
@@ -3004,8 +3209,14 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
 
   document.getElementById('Recbtn')?.addEventListener('click', async () => {
     const btn = document.getElementById('Recbtn');
-    if (!currentTransfer) { alert('ابحث عن الحوالة أولاً'); return; }
-    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (!currentTransfer) { 
+  showToast('ابحث عن الحوالة أولاً', 'warning'); 
+  return; 
+}
+if (!navigator.onLine) { 
+  showToast('لا يوجد انترنت', 'error'); 
+  return; 
+}
     if (btn.disabled) return;
     btn.disabled = true;
 
@@ -3018,7 +3229,10 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
 
       // 2. غيّر getSystemBalance و updateSystemBalance لـ employee versions
       const sysBal = await getEmployeeBalance(window.currentUser, currency);
-      if (sysBal < amount) { alert('رصيدك غير كافي'); return; }
+      if (sysBal < amount) { 
+  showToast('رصيدك غير كافي', 'error'); 
+  return; 
+}
 
       await Promise.race([
         Promise.all([
@@ -3038,10 +3252,10 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
       document.getElementById('numRec').value = '';
       document.getElementById('nameRec').value = '';
       document.getElementById('nameSend').value = '';
-      currentTransfer = null;
-      alert('تم استلام الحوالة بنجاح');
-    } catch (e) {
-      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+currentTransfer = null;
+showToast('تم استلام الحوالة بنجاح', 'success');
+} catch (e) {
+  showToast(e.message === 'العملية تأخرت' ? 'النت ضعيف' : 'فشل العملية: ' + e.message, 'error');
     } finally {
       setTimeout(() => btn.disabled = false, 500);
     }
@@ -3055,9 +3269,18 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
     const receiver = document.getElementById('payName').value.trim();
     const btn = document.getElementById('paybtn');
 
-    if (!number ||!amount ||!currency ||!receiver) { alert('عبئ كل الحقول أولاً'); return; }
-    if (amount <= 0) { alert('المبلغ لازم يكون أكبر من صفر'); return; }
-    if (!navigator.onLine) { alert('لا يوجد انترنت'); return; }
+    if (!number || !amount || !currency || !receiver) { 
+  showToast('عبئ كل الحقول أولاً', 'warning'); 
+  return; 
+}
+if (amount <= 0) { 
+  showToast('المبلغ لازم يكون أكبر من صفر', 'warning'); 
+  return; 
+}
+if (!navigator.onLine) { 
+  showToast('لا يوجد انترنت', 'error'); 
+  return; 
+}
     if (btn.disabled) return;
     btn.disabled = true;
 
@@ -3068,8 +3291,10 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
     try {
       // 3. غيّر getSystemBalance و updateSystemBalance لـ employee versions
       const sysBal = await getEmployeeBalance(window.currentUser, currency);
-      if (sysBal < amount) { alert('رصيدك غير كافي'); return; }
-
+      if (sysBal < amount) { 
+  showToast('رصيدك غير كافي', 'error'); 
+  return; 
+}
       await Promise.race([updateEmployeeBalance(window.currentUser, { [currency]: -amount }), timeoutPromise]);
 
       const today = getToday();
@@ -3083,9 +3308,9 @@ document.getElementById('btnSaveWithdraw')?.addEventListener('click', async () =
       document.getElementById('payRat').value = '';
       document.getElementById('payCurr').value = '';
       document.getElementById('payName').value = '';
-      alert('تم دفع الحوالة بنجاح');
-    } catch (e) {
-      alert(e.message === 'العملية تأخرت'? 'النت ضعيف' : 'فشل العملية: ' + e.message);
+showToast('تم دفع الحوالة بنجاح', 'success');
+} catch (e) {
+  showToast(e.message === 'العملية تأخرت' ? 'النت ضعيف' : 'فشل العملية: ' + e.message, 'error');
     } finally {
       setTimeout(() => btn.disabled = false, 500);
     }
@@ -3299,16 +3524,16 @@ addDateFiltersToTables();
 
 // حفظ الصلاحيات
 document.getElementById('btnSavePerm')?.addEventListener('click', async ()=>{
-  if(window.currentRole !== 'admin'){ 
-    alert('صلاحيه مدير فقط'); 
-    return; 
-  }
+  if (window.currentRole !== 'admin') { 
+  showToast('صلاحيه مدير فقط', 'error'); 
+  return; 
+}
   
-  const uid = document.getElementById('permEmpSelect').value;
-  if(!uid){ 
-    alert('اختر الموظف'); 
-    return; 
-  }
+const uid = document.getElementById('permEmpSelect').value;
+if (!uid) { 
+  showToast('اختر الموظف', 'warning'); 
+  return; 
+}
 
   const perms = {
     employEd: document.getElementById('employEd').checked,
@@ -3327,9 +3552,8 @@ document.getElementById('btnSavePerm')?.addEventListener('click', async ()=>{
   };
 
   await set(ref(db, `perms/${uid}`), perms);
-  alert('تم حفظ الصلاحيات');
+showToast('تم حفظ الصلاحيات', 'success');
 });
-
 
 
 setupTabClickHandlers();
@@ -3385,13 +3609,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const name = document.getElementById('newEmpName').value.trim();
     const pass = document.getElementById('newEmpPass').value.trim();
 
-    if (!name) { alert('ادخل اسم الموظف'); return; }
-    if (!pass) { alert('ادخل كلمة المرور'); return; }
-    if (!/^\d{3,8}$/.test(pass)) { alert('كلمة المرور ارقام 3-8 خانات فقط'); return; }
+    if (!name) { 
+  showToast('ادخل اسم الموظف', 'warning'); 
+  return; 
+}
+if (!pass) { 
+  showToast('ادخل كلمة المرور', 'warning'); 
+  return; 
+}
+if (!/^\d{3,8}$/.test(pass)) { 
+  showToast('كلمة المرور ارقام 3-8 خانات فقط', 'warning'); 
+  return; 
+}
 
-    const snap = await get(ref(db, `users/${name}`));
-    if (snap.exists()) { alert('الموظف موجود مسبقاً'); return; }
-
+const snap = await get(ref(db, `users/${name}`));
+if (snap.exists()) { 
+  showToast('الموظف موجود مسبقاً', 'warning'); 
+  return; 
+}
     await set(ref(db, `users/${name}`), {
       password: pass,
       role: 'employee',
@@ -3405,56 +3640,101 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('newEmpName').value = '';
     document.getElementById('newEmpPass').value = '';
-    alert(`تم إضافة الموظف "${name}" بنجاح`);
+showToast(`تم إضافة الموظف "${name}" بنجاح`, 'success');
   });
 
   // 3. تعديل كلمة المرور
   document.getElementById('btnEditEmp')?.addEventListener('click', async () => {
     const username = empSelect.value;
-    if (!username) { alert('اختر الموظف أولاً'); return; }
+    if (!username) { 
+        showToast('اختر الموظف أولاً', 'warning'); 
+        return; 
+    }
 
     const snap = await get(ref(db, `users/${username}`));
-    if (!snap.exists()) { alert('الموظف غير موجود'); return; }
+    if (!snap.exists()) { 
+        showToast('الموظف غير موجود', 'error'); 
+        return; 
+    }
 
     const userData = snap.val();
-    const newPass = prompt(
-      `تعديل كلمة مرور الموظف: ${username}\n\nكلمة المرور الحالية: ${userData.password}\n\nادخل كلمة المرور الجديدة:`,
-      userData.password
-    );
 
-    if (!newPass) return;
-    if (!/^\d{3,8}$/.test(newPass)) { alert('كلمة المرور ارقام 3-8 خانات فقط'); return; }
-
-    await update(ref(db, `users/${username}`), {
-      password: newPass,
-      updatedAt: Date.now(),
-      updatedBy: window.currentUser || 'admin'
+    Swal.fire({
+        title: `تعديل كلمة مرور الموظف: ${username}`,
+        html: `كلمة المرور الحالية: <b>${userData.password}</b><br><br>ادخل كلمة المرور الجديدة:`,
+        input: 'text',
+        inputValue: userData.password,
+        showCancelButton: true,
+        confirmButtonText: 'حفظ',
+        cancelButtonText: 'إلغاء',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'لازم تدخل كلمة مرور';
+            }
+            if (!/^\d{3,8}$/.test(value)) {
+                return 'كلمة المرور ارقام 3-8 خانات فقط';
+            }
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            const newPass = result.value;
+            
+            await update(ref(db, `users/${username}`), {
+                password: newPass,
+                updatedAt: Date.now(),
+                updatedBy: window.currentUser || 'admin'
+            });
+            showToast('تم تحديث كلمة المرور بنجاح', 'success');
+        }
     });
-    alert('تم تحديث كلمة المرور بنجاح');
-  });
+});
 
   // 4. إيقاف موظف مع سبب
   document.getElementById('btnSuspendEmp')?.addEventListener('click', async () => {
     const username = empSelect.value;
-    if (!username) { alert('اختر الموظف أولاً'); return; }
-    if (username === 'هارون الراشدي') { alert('لا يمكن إيقاف المدير'); return; }
+    if (!username) { 
+        showToast('اختر الموظف أولاً', 'warning'); 
+        return; 
+    }
+    if (username === 'هارون الراشدي') { 
+        showToast('لا يمكن إيقاف المدير', 'error'); 
+        return; 
+    }
 
-    const reason = prompt(`اكتب سبب إيقاف الموظف "${username}":`);
-    if (!reason) return;
+    Swal.fire({
+        title: `إيقاف الموظف "${username}"`,
+        text: 'اكتب سبب الإيقاف:',
+        input: 'textarea',
+        showCancelButton: true,
+        confirmButtonText: 'إيقاف',
+        cancelButtonText: 'إلغاء',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'لازم تكتب السبب';
+            }
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            const reason = result.value;
 
-    await update(ref(db, `users/${username}`), {
-      active: false,
-      suspendReason: reason,
-      suspendedAt: Date.now(),
-      suspendedBy: window.currentUser || 'admin'
+            await update(ref(db, `users/${username}`), {
+                active: false,
+                suspendReason: reason,
+                suspendedAt: Date.now(),
+                suspendedBy: window.currentUser || 'admin'
+            });
+            showToast(`تم إيقاف الموظف "${username}"\nالسبب: ${reason}`, 'success');
+        }
     });
-    alert(`تم إيقاف الموظف "${username}"\nالسبب: ${reason}`);
-  });
+});
 
   // 5. إلغاء الإيقاف
   document.getElementById('btnStopSuspendEmp')?.addEventListener('click', async () => {
     const username = empSelect.value;
-    if (!username) { alert('اختر الموظف أولاً'); return; }
+    if (!username) { 
+  showToast('اختر الموظف أولاً', 'warning'); 
+  return; 
+}
 
     const snap = await get(ref(db, `users/${username}`));
     if (!snap.exists()) return;
@@ -3467,24 +3747,50 @@ document.addEventListener('DOMContentLoaded', () => {
       reactivatedAt: Date.now(),
       reactivatedBy: window.currentUser || 'admin'
     });
-    alert(`تم إلغاء إيقاف الموظف "${username}" ورجعت صلاحيته`);
+    showToast(`تم إلغاء إيقاف الموظف "${username}" ورجعت صلاحيته`, 'success');
   });
 
   // 6. حذف موظف نهائياً
-  document.getElementById('btnDeleteEmp')?.addEventListener('click', async () => {
+document.getElementById('btnDeleteEmp')?.addEventListener('click', async () => {
     const username = empSelect.value;
-    if (!username) { alert('اختر الموظف أولاً'); return; }
-    if (username === 'هارون الراشدي') { alert('لا يمكن حذف المدير'); return; }
+    if (!username) { 
+        showToast('اختر الموظف أولاً', 'warning'); 
+        return; 
+    }
+    if (username === 'هارون الراشدي') { 
+        showToast('لا يمكن حذف المدير', 'error'); 
+        return; 
+    }
 
-    const confirm1 = confirm(`تحذير: هل أنت متأكد تبي تحذف الموظف "${username}" نهائياً؟`);
-    if (!confirm1) return;
+    // التأكيد الأول
+    const confirm1 = await Swal.fire({
+        title: 'تحذير!',
+        text: `هل أنت متأكد تبي تحذف الموظف "${username}" نهائياً؟`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، احذف',
+        cancelButtonText: 'إلغاء',
+        confirmButtonColor: '#d33'
+    });
 
-    const confirm2 = confirm('هذا الإجراء لا يمكن التراجع عنه. متأكد 100%؟');
-    if (!confirm2) return;
+    if (!confirm1.isConfirmed) return;
+
+    // التأكيد الثاني
+    const confirm2 = await Swal.fire({
+        title: 'متأكد 100%؟',
+        text: 'هذا الإجراء لا يمكن التراجع عنه',
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، متأكد',
+        cancelButtonText: 'إلغاء',
+        confirmButtonColor: '#d33'
+    });
+
+    if (!confirm2.isConfirmed) return;
 
     await remove(ref(db, `users/${username}`));
-    alert(`تم حذف الموظف "${username}" من النظام`);
-  });
+    showToast(`تم حذف الموظف "${username}" من النظام`, 'success');
+});
 
   // 7. تحقق لو الموظف المفتوح تم إيقافه - يطرده على طول
   function checkIfCurrentUserSuspended(allUsers) {
@@ -3493,14 +3799,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const userData = allUsers[window.currentUser];
     if (!userData) {
       // الموظف اتحذف
-      alert('تم حذف حسابك من النظام');
+      showToast('تم حذف حسابك من النظام', 'success');
       document.getElementById('btnLogoutAdmin')?.click();
       return;
     }
 
     if (userData.active === false) {
       const reason = userData.suspendReason || 'بدون سبب';
-      alert(`تم إيقاف حسابك\nالسبب: ${reason}`);
+      showToast(`تم إيقاف حسابك\nالسبب: ${reason}`, 'error');
       document.getElementById('btnLogoutAdmin')?.click();
     }
   }
@@ -3511,7 +3817,7 @@ document.addEventListener('DOMContentLoaded', () => {
       get(ref(db, `users/${window.currentUser}`)).then(snap => {
         if (snap.exists() && snap.val().active === false) {
           const reason = snap.val().suspendReason || 'بدون سبب';
-          alert(`تم إيقاف حسابك\nالسبب: ${reason}`);
+          showToast(`تم إيقاف حسابك\nالسبب: ${reason}`, 'error');
           document.getElementById('btnLogoutAdmin')?.click();
         }
       });
@@ -3600,9 +3906,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const phone = accPhone.value.trim();
     const currencies = Array.from(document.querySelectorAll('.accCurrency:checked')).map(cb => cb.value);
 
-    if (!name) { alert('ادخل اسم العميل'); return; }
-    if (!phone) { alert('ادخل رقم الهاتف'); return; }
-    if (currencies.length === 0) { alert('اختر على الاقل عملة واحدة'); return; }
+    if (!name) { 
+  showToast('ادخل اسم العميل', 'warning'); 
+  return; 
+}
+if (!phone) { 
+  showToast('ادخل رقم الهاتف', 'warning'); 
+  return; 
+}
+if (currencies.length === 0) { 
+  showToast('اختر على الاقل عملة واحدة', 'warning'); 
+  return; 
+}
 
     const accId = `acc_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
 
@@ -3622,18 +3937,24 @@ document.addEventListener('DOMContentLoaded', () => {
     accName.value = '';
     accPhone.value = '';
     document.querySelectorAll('.accCurrency').forEach(cb => cb.checked = false);
-    alert(`تم انشاء الحساب "${name}" بنجاح`);
+    showToast(`تم انشاء الحساب "${name}" بنجاح`, 'success');
   });
 
   // 3. عرض الرصيد
   btnViewAcc?.addEventListener('click', async () => {
     const accId = viewAccSelect.value;
     const tbody = document.querySelector('#accBalanceTable tbody');
-    if (!accId) { alert('اختر الحساب'); return; }
+     if (!accId) { 
+  showToast('اختر الحساب', 'warning'); 
+  return; 
+}
     if (!tbody) return;
 
     const snap = await get(ref(db, `${ACC_PATH}/${accId}`));
-    if (!snap.exists()) { alert('الحساب غير موجود'); return; }
+    if (!snap.exists()) { 
+  showToast('الحساب غير موجود', 'error'); 
+  return; 
+}
 
     const acc = snap.val();
     tbody.innerHTML = '';
@@ -3685,12 +4006,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const phone = editAccPhone.value.trim();
     const currencies = Array.from(document.querySelectorAll('.editAccCurrency:checked')).map(cb => cb.value);
 
-    if (!accId) { alert('اختر الحساب'); return; }
-    if (!name) { alert('ادخل الاسم'); return; }
-    if (currencies.length === 0) { alert('اختر على الاقل عملة واحدة'); return; }
+    if (!accId) { 
+  showToast('اختر الحساب', 'warning'); 
+  return; 
+}
+if (!name) { 
+  showToast('ادخل الاسم', 'warning'); 
+  return; 
+}
+if (currencies.length === 0) { 
+  showToast('اختر على الاقل عملة واحدة', 'warning'); 
+  return; 
+}
 
     const snap = await get(ref(db, `${ACC_PATH}/${accId}`));
-    if (!snap.exists()) { alert('الحساب غير موجود'); return; }
+    if (!snap.exists()) { 
+  showToast('الحساب غير موجود', 'error'); 
+  return; 
+}
 
     const oldData = snap.val();
     const updateData = { name, phone, currencies: {} };
@@ -3700,29 +4033,50 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     await update(ref(db, `${ACC_PATH}/${accId}`), updateData);
-    alert('تم حفظ التعديل بنجاح');
-  });
+    showToast('تم حفظ التعديل بنجاح', 'success');
+});
 
   // 5. ايقاف / تفعيل / حذف
   btnSuspendAcc?.addEventListener('click', async () => {
     const accId = deleteAccSelect.value;
-    if (!accId) { alert('اختر الحساب'); return; }
+    if (!accId) { 
+        showToast('اختر الحساب', 'warning'); 
+        return; 
+    }
 
-    const reason = prompt('اكتب سبب إيقاف الحساب:');
-    if (!reason) return;
+    Swal.fire({
+        title: 'إيقاف الحساب',
+        text: 'اكتب سبب إيقاف الحساب:',
+        input: 'textarea',
+        showCancelButton: true,
+        confirmButtonText: 'إيقاف',
+        cancelButtonText: 'إلغاء',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'لازم تكتب السبب';
+            }
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            const reason = result.value;
 
-    await update(ref(db, `${ACC_PATH}/${accId}`), {
-      active: false,
-      suspendReason: reason,
-      suspendedAt: Date.now(),
-      suspendedBy: window.currentUser || 'admin'
+            await update(ref(db, `${ACC_PATH}/${accId}`), {
+                active: false,
+                suspendReason: reason,
+                suspendedAt: Date.now(),
+                suspendedBy: window.currentUser || 'admin'
+            });
+            showToast('تم إيقاف الحساب', 'error');
+        }
     });
-    alert('تم إيقاف الحساب');
-  });
+});
 
   btnActivateAcc?.addEventListener('click', async () => {
     const accId = deleteAccSelect.value;
-    if (!accId) { alert('اختر الحساب'); return; }
+    if (!accId) { 
+  showToast('اختر الحساب', 'warning'); 
+  return; 
+}
 
     await update(ref(db, `${ACC_PATH}/${accId}`), {
       active: true,
@@ -3732,22 +4086,45 @@ document.addEventListener('DOMContentLoaded', () => {
       reactivatedAt: Date.now(),
       reactivatedBy: window.currentUser || 'admin'
     });
-    alert('تم تفعيل الحساب');
+    showToast('تم تفعيل الحساب', 'success');
   });
 
   btnDeleteAcc?.addEventListener('click', async () => {
     const accId = deleteAccSelect.value;
-    if (!accId) { alert('اختر الحساب'); return; }
+    if (!accId) { 
+        showToast('اختر الحساب', 'warning'); 
+        return; 
+    }
 
-    const confirm1 = confirm('تحذير: سيتم حذف الحساب ورصيده نهائياً. متأكد؟');
-    if (!confirm1) return;
+    // التأكيد الأول
+    const confirm1 = await Swal.fire({
+        title: 'تحذير!',
+        text: 'سيتم حذف الحساب ورصيده نهائياً. متأكد؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، احذف',
+        cancelButtonText: 'إلغاء',
+        confirmButtonColor: '#d33'
+    });
 
-    const confirm2 = confirm('هذا الإجراء لا يمكن التراجع عنه. متأكد 100%؟');
-    if (!confirm2) return;
+    if (!confirm1.isConfirmed) return;
+
+    // التأكيد الثاني
+    const confirm2 = await Swal.fire({
+        title: 'متأكد 100%؟',
+        text: 'هذا الإجراء لا يمكن التراجع عنه',
+        icon: 'error',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، متأكد',
+        cancelButtonText: 'إلغاء',
+        confirmButtonColor: '#d33'
+    });
+
+    if (!confirm2.isConfirmed) return;
 
     await remove(ref(db, `${ACC_PATH}/${accId}`));
-    alert('تم حذف الحساب نهائياً');
-  });
+    showToast('تم حذف الحساب نهائياً', 'error');
+});
 
 })(); // نهاية IIFE
 
@@ -3806,13 +4183,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const selected = [...document.querySelectorAll('.activeCurrency:checked')].map(c => c.value);
     
     if (selected.length === 0) {
-      alert('لازم تختار عملة واحدة على الاقل');
-      return;
-    }
+  showToast('لازم تختار عملة واحدة على الاقل', 'warning');
+  return;
+}
 
     await set(ref(db, CURRENCY_PATH), selected);
     await broadcastCurrencies();
-    alert('تم حفظ العملات وتحديث النظام كامل');
+    showToast('تم حفظ العملات وتحديث النظام كامل', 'success');
   };
 
   // شغلها على طول اول ما يفتح
@@ -3872,9 +4249,9 @@ document.getElementById('btnSaveColors')?.addEventListener('click', async () => 
       updatedBy: window.currentUser || 'مجهول',
       updatedAt: Date.now()
     });
-    alert('تم حفظ الالوان بنجاح');
+    showToast('تم حفظ الالوان بنجاح', 'success');
   } catch (e) {
-    alert('فشل الحفظ: ' + e.message);
+    showToast('فشل الحفظ: ' + e.message, 'error');
   } finally {
     btn.disabled = false;
   }
@@ -3938,9 +4315,9 @@ async function viewEmployeeBalance() {
   }
 
   if (!empUsername) {
-    alert('اختر الموظف أولاً');
-    return;
-  }
+  showToast('اختر الموظف أولاً', 'warning');
+  return;
+}
 
   tbody.innerHTML = '<tr><td colspan="4">جاري التحميل...</td></tr>';
 
@@ -4106,7 +4483,7 @@ btnRunMatch.addEventListener('click', async () => {
 
     if (!hasData) {
       console.log('[SAVE] ما في بيانات، وقفت');
-      alert('اختر عملة واحدة على الأقل');
+      showToast('اختر عملة واحدة على الأقل', 'warning');
       return;
     }
 
@@ -4122,11 +4499,11 @@ btnRunMatch.addEventListener('click', async () => {
     matchSelect.value = matchKey;
 
     console.log('[SAVE] تم الحفظ بنجاح. المفتاح:', matchKey);
-    alert('تمت المطابقة وحفظها');
+    showToast('تمت المطابقة وحفظها', 'success');
 
   } catch (e) {
     console.log('[SAVE] خطأ:', e);
-    alert('فشل الحفظ: ' + e.message);
+    showToast('فشل الحفظ: ' + e.message, 'error');
   } finally {
     isRunningMatch = false;
     btnRunMatch.disabled = false;
@@ -4195,7 +4572,7 @@ async function showMatch(matchKey) {
   const match = snap.val();
   if (!match) {
     console.log('[LOG 3] ما لقيت بيانات في المسار');
-    alert('ما لقيت بيانات لهذي المطابقة');
+    showToast('ما لقيت بيانات لهذي المطابقة', 'warning');
     return;
   }
 
@@ -4341,7 +4718,7 @@ document.getElementById('btnRefresh').addEventListener('click', async () => {
     setTimeout(() => { btnText.textContent = 'تحديث'; }, 1500);
 
   } catch (e) {
-    alert('فشل التحديث: ' + e.message);
+    showToast('فشل التحديث: ' + e.message, 'error');
     btnText.textContent = 'تحديث';
   } finally {
     setTimeout(() => { btn.classList.remove('loading'); }, 800);
@@ -4431,7 +4808,7 @@ document.getElementById('btnPrint').addEventListener('click', () => {
   const targetTable = table || (selectedRow? selectedRow.closest('table') : null);
 
   if (!targetTable) {
-    alert('اضغط على أي صف ضغطة وحدة لتحديد الصف، أو ضغطتين لتحديد الجدول كامل');
+    showToast('اضغط على أي صف ضغطة وحدة لتحديد الصف، أو ضغطتين لتحديد الجدول كامل', 'info');
     return;
   }
 
