@@ -1501,22 +1501,14 @@ function showToast(message, type = 'info') {
 // كود عرض الأخطاء + ايقونة DevTools قابلة للسحب
 
 (function() {
-  // 1. شيك إذا المستخدم أدمن أو لا
-  const isAdmin = localStorage.getItem('role') === 'admin' 
-               || window.currentUser?.role === 'admin'
-               || window.username === 'admin';
-
-  // لو مو أدمن، وقف هنا ولا تكمل
-  if (!isAdmin) return;
-
-  // 2. احذف اي صندوق قديم لو موجود
+  // احذف اي صندوق قديم لو موجود
   const oldBox = document.getElementById('mobileDevConsole');
   if (oldBox) oldBox.remove();
   
   const oldFab = document.getElementById('devtoolsFab');
   if (oldFab) oldFab.remove();
 
-  // 3. صندوق الأخطاء - بالنص وبحجم ثابت
+  // 1. صندوق الأخطاء - بالنص وبحجم ثابت
   const errBox = document.createElement('div');
   errBox.id = 'mobileDevConsole';
   errBox.setAttribute('style', `
@@ -1545,13 +1537,13 @@ function showToast(message, type = 'info') {
   document.body.appendChild(errBox);
 
   function showErr(msg) {
-    errBox.style.setProperty('display', 'block', 'important');
+   // errBox.style.setProperty('display', 'block', 'important');
     errBox.innerHTML += `<div>${msg}</div>`;
     errBox.scrollTop = errBox.scrollHeight;
   }
 
-  // 4. الايقونة العائمة
-  const fab = document.createElement('div');
+  // 2. الايقونة العائمة
+ /* const fab = document.createElement('div');
   fab.id = 'devtoolsFab';
   fab.innerHTML = '🐞';
   fab.setAttribute('style', `
@@ -1574,14 +1566,8 @@ function showToast(message, type = 'info') {
     touch-action: none !important;
     user-select: none !important;
   `);
-  document.body.appendChild(fab);
+  document.body.appendChild(fab);*/
 
-  fab.onclick = () => {
-    const isHidden = errBox.style.display === 'none' || errBox.style.display === '';
-    errBox.style.setProperty('display', isHidden ? 'block' : 'none', 'important');
-  };
-
-})();
   // 3. فتح واغلاق مع تمييز السحب عن الضغط
   let isDragging = false;
   let moved = 0;
@@ -1668,6 +1654,7 @@ function showToast(message, type = 'info') {
     window.originalLog && window.originalLog(...args);
   };
 })();
+
 
 
 
