@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
   <!-- 📌 القسم 1: الميتا والمعلومات الأساسية للموقع -->
@@ -305,23 +305,7 @@ input[readonly], input[readOnly] {
   display: block;
 }
 
-.toast {
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--bg-panel);
-  padding: 12px 24px;
-  border-radius: 8px;
-  display: none;
-  z-index: 30;
-  border: 1px solid var(--border-color);
-}
 
-.toast.show {
-  display: block;
-  animation: fade 3s forwards;
-}
 
 @keyframes fade {
  0% {opacity: 0; transform: translateX(-50%) translateY(20px);}
@@ -879,6 +863,27 @@ tr.row-selected {
 
 
 
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #333;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+
 
   </style>
 </head>
@@ -901,6 +906,16 @@ tr.row-selected {
       <button id="btnLogin">تسجيل الدخول</button>
     </div>
   </div>
+  
+  
+  
+  
+  
+  
+  <div id="toast" class="toast"></div>
+  
+  
+  
 
   <div id="adminScreen" class="screen">
     <div class="header">
@@ -2157,6 +2172,23 @@ function listenBuyOps() {
   });
 }
  // listenBuyOps();
+
+
+
+// 2. عبئ العملات
+async function loadCurrenciesToMatchSelect() {
+  const snap = await get(ref(db, CURRENCY_PATH));
+  const currencies = snap.val() || [];
+  
+  document.querySelectorAll('.match-grid select.match-cur').forEach(sel => {
+    const currentVal = sel.value;
+    sel.innerHTML = '<option value="">العملة</option>';
+    currencies.forEach(cur => {
+      sel.innerHTML += `<option value="${cur}">${cur}</option>`;
+    });
+    sel.value = currentVal;
+  });
+}
 
 
 function initMatchRows() {
@@ -4412,20 +4444,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-// 2. عبئ العملات
-async function loadCurrenciesToMatchSelect() {
-  const snap = await get(ref(db, CURRENCY_PATH));
-  const currencies = snap.val() || [];
-  
-  document.querySelectorAll('.match-grid select.match-cur').forEach(sel => {
-    const currentVal = sel.value;
-    sel.innerHTML = '<option value="">العملة</option>';
-    currencies.forEach(cur => {
-      sel.innerHTML += `<option value="${cur}">${cur}</option>`;
-    });
-    sel.value = currentVal;
-  });
-}
+
 
 // 3. تكبير الخلية للجريد
 document.querySelector('.match-grid').addEventListener('click', (e) => {
