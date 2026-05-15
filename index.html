@@ -1662,7 +1662,9 @@ const SYSTEM_BAL_PATH = 'systemBalance';
 const SETTINGS_PATH = 'app/settings';
 const CURRENCY_PATH = 'settings/activeCurrencies';
  
- 
+ let buyRateUnsubscribe = null;
+let sellRateUnsubscribe = null;
+let permsUnsubscribe = null;
  
  
  function resetAllSelects() {
@@ -1763,7 +1765,7 @@ const PERMS_PATH = 'perms';
 window.userPerms = {};
 
 // 2. دالة تحميل الصلاحيات
-let permsUnsubscribe = null;
+
 
 function loadUserPerms(uid) {
   if (window.currentRole === 'admin') {
@@ -2849,8 +2851,7 @@ filterTable('rateLogTable');
   
   
   
-  let buyRateUnsubscribe = null;
-let sellRateUnsubscribe = null;
+  
 
 function listenSelectedRate(currency, type) {
   const rateInput = type === 'buy'? document.getElementById('buyRate') : document.getElementById('sellRate');
