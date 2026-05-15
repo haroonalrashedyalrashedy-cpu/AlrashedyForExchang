@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <script src="https://cdn.tailwindcss.com"></script>
+   
+   
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
   <!-- 📌 القسم 1: الميتا والمعلومات الأساسية للموقع -->
@@ -1448,46 +1449,74 @@ if ('serviceWorker' in navigator) {
 
 
 function showToast(message, type = 'info') {
-  // انشئ عنصر التوست
   const toast = document.createElement('div');
   
   const colors = {
-    info: 'bg-blue-600',
-    success: 'bg-green-600',
-    error: 'bg-red-600',
-    warning: 'bg-yellow-600'
+    info: '#2563eb',
+    success: '#16a34a',
+    error: '#dc2626',
+    warning: '#ca8a04'
   };
   
-  toast.className = `fixed top-5 right-5 z-[9999] px-4 py-3 rounded-lg text-white shadow-lg ${colors[type] || colors.info} 
-                     transform transition-all duration-300 opacity-0 translate-y-[-20px] max-w-sm`;
-  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed; 
+    top: 20px; 
+    left: 50%; 
+    transform: translateX(-50%) translateY(-20px);
+    z-index: 9999;
+    padding: 12px 16px; 
+    border-radius: 8px; 
+    color: white;
+    background: ${colors[type] || colors.info};
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    opacity: 0;
+    transition: all 0.3s ease; 
+    max-width: 320px;
+    width: max-content;
+    text-align: center;
+    font-family: system-ui, sans-serif; 
+    font-size: 14px;
+  `;
   
+  toast.textContent = message;
   document.body.appendChild(toast);
   
-  // حركة الظهور
   setTimeout(() => {
-    toast.classList.remove('opacity-0', 'translate-y-[-20px]');
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
   }, 10);
   
-  // يختفي بعد 3 ثواني
   setTimeout(() => {
-    toast.classList.add('opacity-0', 'translate-y-[-20px]');
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(-20px)';
     setTimeout(() => toast.remove(), 300);
   }, 3000);
 }
+
+
+
+
 
 // كود عرض الأخطاء + ايقونة DevTools قابلة للسحب
 // كود عرض الأخطاء + ايقونة DevTools قابلة للسحب
 
 (function() {
-  // احذف اي صندوق قديم لو موجود
+  // 1. شيك إذا المستخدم أدمن أو لا
+  const isAdmin = localStorage.getItem('role') === 'admin' 
+               || window.currentUser?.role === 'admin'
+               || window.username === 'admin';
+
+  // لو مو أدمن، وقف هنا ولا تكمل
+  if (!isAdmin) return;
+
+  // 2. احذف اي صندوق قديم لو موجود
   const oldBox = document.getElementById('mobileDevConsole');
   if (oldBox) oldBox.remove();
   
   const oldFab = document.getElementById('devtoolsFab');
   if (oldFab) oldFab.remove();
 
-  // 1. صندوق الأخطاء - بالنص وبحجم ثابت
+  // 3. صندوق الأخطاء - بالنص وبحجم ثابت
   const errBox = document.createElement('div');
   errBox.id = 'mobileDevConsole';
   errBox.setAttribute('style', `
@@ -1516,12 +1545,12 @@ function showToast(message, type = 'info') {
   document.body.appendChild(errBox);
 
   function showErr(msg) {
-   // errBox.style.setProperty('display', 'block', 'important');
+    errBox.style.setProperty('display', 'block', 'important');
     errBox.innerHTML += `<div>${msg}</div>`;
     errBox.scrollTop = errBox.scrollHeight;
   }
 
-  // 2. الايقونة العائمة
+  // 4. الايقونة العائمة
   const fab = document.createElement('div');
   fab.id = 'devtoolsFab';
   fab.innerHTML = '🐞';
@@ -1547,6 +1576,12 @@ function showToast(message, type = 'info') {
   `);
   document.body.appendChild(fab);
 
+  fab.onclick = () => {
+    const isHidden = errBox.style.display === 'none' || errBox.style.display === '';
+    errBox.style.setProperty('display', isHidden ? 'block' : 'none', 'important');
+  };
+
+})();
   // 3. فتح واغلاق مع تمييز السحب عن الضغط
   let isDragging = false;
   let moved = 0;
