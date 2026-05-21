@@ -2341,7 +2341,7 @@ async function createAdminIfMissing() {
   const snap = await get(adminRef);
   if (!snap.exists()) {
     await set(adminRef, {
-      password: "123",
+      password: "123321",
       role: "admin",
       name: "هارون الراشدي",
       active: true
